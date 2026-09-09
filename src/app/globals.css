@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand Colors */
+  --color-primary: #15803d;
+  --color-primary-hover: #166534;
+
+  /* Brand Gradient Colors */
+  --color-brand-start: #059669;
+  --color-brand-middle: #16a34a;
+  --color-brand-end: #0d9488;
+
+  /* Base Colors */
+  --color-page: #f8faf9;
+  --color-surface: #ffffff;
+  --color-text: #17221a;
+  --color-muted: #5e6d62;
+  --color-border: #dbe5dd;
+
+  /* Brand Gradient */
+  --background-image-brand-gradient: linear-gradient(
+    135deg,
+    var(--color-brand-start),
+    var(--color-brand-middle),
+    var(--color-brand-end)
+  );
+  --background-image-hero-ambient: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--color-primary) 16%, transparent),
+    transparent 68%
+  );
+}
+
+@theme inline {
+  /* Colors */
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+
+  --color-brand-start: var(--color-brand-start);
+  --color-brand-middle: var(--color-brand-middle);
+  --color-brand-end: var(--color-brand-end);
+
+  --color-page: var(--color-page);
+  --color-surface: var(--color-surface);
+  --color-text: var(--color-text);
+  --color-muted: var(--color-muted);
+  --color-border: var(--color-border);
+
+  /* Gradient */
+  --background-image-brand-gradient: var(--background-image-brand-gradient);
+  --background-image-hero-ambient: var(--background-image-hero-ambient);
+
+  /* Font */
+  --font-sans: var(--font-plus-jakarta);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-manrope), sans-serif;
+  background-color: var(--color-page);
+  color: var(--color-text);
+}

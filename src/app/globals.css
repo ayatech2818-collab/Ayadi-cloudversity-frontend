@@ -67,3 +67,30 @@ body {
   background-color: var(--color-page);
   color: var(--color-text);
 }
+
+/*
+ * Used by the How It Works journey cards.
+ * Both animate transforms only (offset-distance resolves to a translation),
+ * so they stay off the paint path. Applied with `motion-safe:` variants.
+ */
+@keyframes spark-travel {
+  to {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes idle-tilt {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: translate3d(0, -3px, 0) rotateX(0.6deg) rotateY(-0.5deg);
+  }
+  50% {
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0.6deg);
+  }
+  75% {
+    transform: translate3d(0, 3px, 0) rotateX(-0.5deg) rotateY(0.3deg);
+  }
+}

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" fill="none" role="img" aria-label="Abstract learning journey artwork">
+  <defs>
+    <linearGradient id="journeyBg" x1="0" y1="0" x2="800" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#02231b" />
+      <stop offset="0.55" stop-color="#064e3b" />
+      <stop offset="1" stop-color="#0f766e" />
+    </linearGradient>
+
+    <radialGradient id="journeyGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(630 230) rotate(115) scale(440)">
+      <stop stop-color="#bef264" stop-opacity="0.42" />
+      <stop offset="1" stop-color="#bef264" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="journeyGlowTwo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(140 900) rotate(-60) scale(380)">
+      <stop stop-color="#34d399" stop-opacity="0.35" />
+      <stop offset="1" stop-color="#34d399" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="journeyPath" x1="120" y1="880" x2="700" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#bef264" />
+      <stop offset="0.5" stop-color="#6ee7b7" />
+      <stop offset="1" stop-color="#99f6e4" />
+    </linearGradient>
+
+    <pattern id="journeyGrid" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M50 0H0V50" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1" />
+    </pattern>
+  </defs>
+
+  <rect width="800" height="1000" fill="url(#journeyBg)" />
+  <rect width="800" height="1000" fill="url(#journeyGrid)" />
+  <rect width="800" height="1000" fill="url(#journeyGlow)" />
+  <rect width="800" height="1000" fill="url(#journeyGlowTwo)" />
+
+  <g stroke="#ffffff" fill="none">
+    <circle cx="640" cy="235" r="150" stroke-opacity="0.13" />
+    <circle cx="640" cy="235" r="235" stroke-opacity="0.085" />
+    <circle cx="640" cy="235" r="325" stroke-opacity="0.05" />
+  </g>
+
+  <path
+    d="M120 880 C 265 765, 235 565, 400 505 C 560 445, 605 355, 690 200"
+    stroke="url(#journeyPath)"
+    stroke-width="6"
+    stroke-linecap="round"
+  />
+
+  <g opacity="0.55">
+    <path d="M120 880 C 265 765, 235 565, 400 505" stroke="#ffffff" stroke-opacity="0.12" stroke-width="18" stroke-linecap="round" />
+  </g>
+
+  <circle cx="120" cy="880" r="15" fill="#bef264" />
+  <circle cx="120" cy="880" r="30" fill="#bef264" fill-opacity="0.18" />
+
+  <circle cx="400" cy="505" r="12" fill="#6ee7b7" />
+  <circle cx="400" cy="505" r="26" fill="#6ee7b7" fill-opacity="0.16" />
+
+  <circle cx="690" cy="200" r="17" fill="#ffffff" />
+  <circle cx="690" cy="200" r="34" fill="#ffffff" fill-opacity="0.14" />
+</svg>

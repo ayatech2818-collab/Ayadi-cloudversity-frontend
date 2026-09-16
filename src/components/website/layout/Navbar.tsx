@@ -1,174 +1,423 @@
-"use client";
+'use client';
 
 import {
   AnimatePresence,
   motion,
+  useMotionValueEvent,
   useReducedMotion,
+  useScroll,
+  useSpring,
   type Variants,
-} from "framer-motion";
-import Link from "next/link";
-import { useState } from "react";
+} from 'framer-motion';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useCallback, useEffect, useState, type SVGProps } from 'react';
+
+/* ==================================================
+   ICONS
+================================================== */
+
+function AboutIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" {...props}>
+      <circle cx="12" cy="8" r="3.2" />
+      <path d="M5.5 20c.8-3.4 3-5.2 6.5-5.2s5.7 1.8 6.5 5.2" />
+    </svg>
+  );
+}
+
+function CoursesIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" {...props}>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+      <path d="M4 5.5v15M8 7h8M8 11h7" />
+    </svg>
+  );
+}
+
+function BlogIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" {...props}>
+      <rect x="4" y="3" width="16" height="18" rx="2" />
+      <path d="M8 8h8M8 12h8M8 16h5" />
+    </svg>
+  );
+}
+
+function ArrowUpRight(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" {...props}>
+      <path d="M7 17 17 7" />
+      <path d="M8 7h9v9" />
+    </svg>
+  );
+}
 
 const navigation = [
-  { href: "/about", label: "About" },
-  { href: "/courses", label: "Courses" },
-  { href: "/blog", label: "Blog" },
+  { href: '/about', label: 'About', Icon: AboutIcon },
+  { href: '/courses', label: 'Courses', Icon: CoursesIcon },
+  { href: '/blog', label: 'Blog', Icon: BlogIcon },
 ];
 
+/*
+ * Two thresholds, not one. With a single value the bar flickers when you hover
+ * around it: shrink at 96px, grow back only below 40px.
+ */
+const COMPACT_ENTER = 96;
+const COMPACT_EXIT = 40;
+
+/* The shared feel of every transition here — long and gentle. */
+const EASE = 'ease-[cubic-bezier(0.22,1,0.36,1)]';
+
 const mobileMenuVariants: Variants = {
-  closed: { opacity: 0, y: -8 },
+  closed: { opacity: 0, height: 0 },
   open: {
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.2, ease: "easeOut", staggerChildren: 0.05 },
+    height: 'auto',
+    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1], staggerChildren: 0.04 },
   },
 };
 
 const mobileItemVariants: Variants = {
   closed: { opacity: 0, y: -6 },
-  open: { opacity: 1, y: 0, transition: { duration: 0.18, ease: "easeOut" } },
+  open: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } },
 };
 
+/* ==================================================
+   NAVBAR
+================================================== */
+
 export function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const reduceMotion = useReducedMotion();
-  const closeMenu = () => setIsMenuOpen(false);
+  const pathname = usePathname();
+  const [isCompact, setIsCompact] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const { scrollY, scrollYProgress } = useScroll();
+
+  // Reading progress, driven by a MotionValue — it never re-renders React.
+  const progressScaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.3 });
+
+  useMotionValueEvent(scrollY, 'change', (latest) => {
+    setIsCompact((wasCompact) => (wasCompact ? latest > COMPACT_EXIT : latest > COMPACT_ENTER));
+  });
+
+  const closeMenu = useCallback(() => setIsMenuOpen(false), []);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMenuOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuOpen]);
+
+  /*
+   * Collapsing happens through max-width + opacity transitions rather than
+   * animating width to `auto`. Nothing has to be measured per frame, and
+   * hovering to re-expand is pure CSS — no state, no re-render.
+   */
+  const collapsible = isCompact
+    ? `max-w-0 opacity-0 group-hover:max-w-[180px] group-hover:opacity-100`
+    : 'max-w-[180px] opacity-100';
+
   return (
     <motion.header
-      initial={reduceMotion ? false : { opacity: 0, y: -10 }}
+      initial={reduceMotion ? false : { opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.32, ease: "easeOut" }}
-      className="border-b border-border/90 bg-surface/95 shadow-sm backdrop-blur"
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="fixed inset-x-0 top-0 z-50 px-4 pt-3 md:px-5 md:pt-4"
     >
       <nav
-        aria-label="Primary navigation"
-        className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-6 px-5 sm:px-8 lg:px-10"
+        aria-label="Primary"
+        className={`
+          group
+          relative
+          mx-auto
+          overflow-hidden
+          rounded-2xl
+          bg-white/75
+          ring-1
+          ring-inset
+          ring-white/70
+          backdrop-blur-xl
+          transition-[max-width,border-radius,box-shadow,background-color]
+          duration-500
+          ${EASE}
+          supports-[backdrop-filter]:bg-white/65
+          ${
+            /*
+             * `hover:`, not `group-hover:` — this element *is* the group, and
+             * `group-hover` compiles to a descendant selector (`.group:hover *`),
+             * which never matches the group itself. Using it here left the pill
+             * at its compact width while the labels inside expanded, clipping
+             * the Enroll button.
+             */
+            isCompact
+              ? 'max-w-[1180px] shadow-[0_16px_50px_rgba(4,76,59,0.16)] md:max-w-[620px] md:rounded-full md:hover:max-w-[1180px] md:hover:rounded-2xl'
+              : 'max-w-[1180px] shadow-[0_10px_40px_rgba(4,76,59,0.10)]'
+          }
+        `}
       >
-        <Link
-          href="/"
-          onClick={closeMenu}
-          className="shrink-0 rounded-sm text-xl font-bold tracking-[-0.035em] text-text transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:text-[1.35rem]"
-        >
-          Ayadi{" "}
-          <span className="bg-brand-gradient bg-clip-text text-transparent">
-            Cloudversity
-          </span>
-        </Link>
+        {/* Glass highlights: a lit top edge and a soft brand glow */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-white to-transparent"
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_-20%,rgba(22,163,74,0.12),transparent_45%)]"
+        />
 
-        <div className="hidden items-center gap-10 md:flex">
-          {navigation.map((item) => (
-            <motion.div key={item.href} initial="rest" whileHover="hover" animate="rest">
-              <Link
-                href={item.href}
-                className="relative block rounded-sm px-0.5 py-2 text-[0.9375rem] font-semibold text-muted transition-colors duration-200 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+        <div
+          className={`
+            relative
+            flex
+            items-center
+            justify-between
+            gap-4
+            px-4
+            transition-[height]
+            duration-500
+            ${EASE}
+            md:px-6
+            ${isCompact ? 'h-14 md:h-[58px] md:group-hover:h-[68px]' : 'h-14 md:h-[72px]'}
+          `}
+        >
+          {/* ---------- LOGO ---------- */}
+          <Link
+            href="/"
+            onClick={closeMenu}
+            aria-label="Ayadi Cloudversity — home"
+            className="flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+          >
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-brand-gradient text-sm font-black text-white shadow-sm shadow-primary/25">
+              A
+            </span>
+
+            <span className="whitespace-nowrap text-lg font-extrabold tracking-[-0.04em] text-text md:text-xl">
+              Ayadi
+              <span
+                className={`inline-block overflow-hidden align-bottom transition-[max-width,opacity] duration-500 ${EASE} ${collapsible}`}
               >
-                {item.label}
-                <motion.span
-                  aria-hidden="true"
-                  variants={{ rest: { scaleX: 0 }, hover: { scaleX: 1 } }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute inset-x-0 -bottom-0.5 h-0.5 origin-left rounded-full bg-primary"
-                />
-              </Link>
-            </motion.div>
-          ))}
+                <span className="bg-brand-gradient bg-clip-text pl-1.5 text-transparent">Cloudversity</span>
+              </span>
+            </span>
+          </Link>
+
+          {/* ---------- DESKTOP LINKS ---------- */}
+          <div className="hidden items-center gap-1 md:flex">
+            {navigation.map(({ href, label, Icon }) => {
+              const isActive = pathname === href;
+
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={isActive ? 'page' : undefined}
+                  title={isCompact ? label : undefined}
+                  className={`
+                    relative
+                    flex
+                    items-center
+                    gap-2
+                    rounded-full
+                    px-3
+                    py-2
+                    text-sm
+                    font-semibold
+                    transition-colors
+                    duration-300
+                    focus-visible:outline-2
+                    focus-visible:outline-offset-2
+                    focus-visible:outline-primary
+                    ${isActive ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-primary/[0.07] hover:text-primary'}
+                  `}
+                >
+                  <Icon className="size-[18px] shrink-0" />
+
+                  <span
+                    className={`overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-500 ${EASE} ${collapsible}`}
+                  >
+                    {label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* ---------- ACTIONS ---------- */}
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href="/enroll"
+              onClick={closeMenu}
+              className={`
+                hidden
+                items-center
+                gap-2
+                rounded-full
+                bg-brand-gradient
+                font-bold
+                text-white
+                shadow-md
+                shadow-primary/25
+                transition-all
+                duration-500
+                ${EASE}
+                hover:-translate-y-0.5
+                hover:shadow-lg
+                hover:shadow-primary/35
+                focus-visible:outline-2
+                focus-visible:outline-offset-4
+                focus-visible:outline-primary
+                md:inline-flex
+                ${isCompact ? 'px-4 py-2 text-[13px]' : 'px-5 py-2.5 text-sm'}
+              `}
+            >
+              Enroll Now
+              <ArrowUpRight className="size-4" />
+            </Link>
+
+            <button
+              type="button"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-navigation"
+              aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              onClick={() => setIsMenuOpen((open) => !open)}
+              className="
+                inline-flex
+                size-10
+                items-center
+                justify-center
+                rounded-full
+                bg-primary/[0.08]
+                text-primary
+                transition-colors
+                duration-300
+                hover:bg-primary/15
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-primary
+                md:hidden
+              "
+            >
+              <MenuIcon open={isMenuOpen} />
+            </button>
+          </div>
         </div>
 
-        <motion.div
-          whileHover={reduceMotion ? undefined : { y: -2, scale: 1.015 }}
-          whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className="hidden md:block"
-        >
-         <Link
-            href="/enroll"
-            className="
-              inline-flex items-center justify-center
-              rounded-lg
-              bg-brand-gradient
-              px-5 py-2.5
-              text-sm font-bold text-white
-              shadow-md shadow-primary/20
-              transition-all duration-300 ease-out
-              hover:-translate-y-0.5
-              hover:shadow-lg hover:shadow-primary/30
-              active:translate-y-0
-              focus-visible:outline-2
-              focus-visible:outline-offset-4
-              focus-visible:outline-primary
-            "
-          >
-            Enroll Now
-          </Link>
-        </motion.div>
+        {/* ---------- READING PROGRESS ---------- */}
+        <motion.span
+          aria-hidden="true"
+          style={{ scaleX: progressScaleX }}
+          className={`absolute inset-x-0 bottom-0 h-0.5 origin-left bg-brand-gradient transition-opacity duration-500 ${
+            isCompact ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
 
-        <button
-          type="button"
-          aria-expanded={isMenuOpen}
-          aria-controls="mobile-navigation"
-          aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-          onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
-          className="inline-flex size-11 items-center justify-center rounded-lg text-text transition-colors hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary md:hidden"
-        >
-          <span className="sr-only">Menu</span>
-          <span aria-hidden="true" className="relative block size-5">
-            <motion.span
-              animate={{ rotate: isMenuOpen ? 45 : 0, y: isMenuOpen ? 7 : 0 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="absolute left-0 top-0 block h-0.5 w-5 rounded-full bg-current"
-            />
-            <motion.span
-              animate={{ opacity: isMenuOpen ? 0 : 1 }}
-              transition={{ duration: 0.15 }}
-              className="absolute left-0 top-[7px] block h-0.5 w-5 rounded-full bg-current"
-            />
-            <motion.span
-              animate={{ rotate: isMenuOpen ? -45 : 0, y: isMenuOpen ? -7 : 0 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="absolute bottom-0 left-0 block h-0.5 w-5 rounded-full bg-current"
-            />
-          </span>
-        </button>
-      </nav>
-
-      <AnimatePresence initial={false}>
-        {isMenuOpen && (
-          <motion.div
-            id="mobile-navigation"
-            initial={reduceMotion ? false : "closed"}
-            animate="open"
-            exit={reduceMotion ? { opacity: 0 } : "closed"}
-            variants={mobileMenuVariants}
-            className="overflow-hidden border-t border-border bg-surface md:hidden"
-          >
+        {/* ---------- MOBILE MENU ---------- */}
+        <AnimatePresence initial={false}>
+          {isMenuOpen && (
             <motion.div
-              variants={{ open: { transition: { staggerChildren: 0.05 } } }}
-              className="mx-auto flex max-w-7xl flex-col gap-1 px-5 py-4 sm:px-8"
+              id="mobile-navigation"
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={mobileMenuVariants}
+              className="overflow-hidden md:hidden"
             >
-              {navigation.map((item) => (
-                <motion.div key={item.href} variants={mobileItemVariants}>
+              <span aria-hidden="true" className="mx-4 block h-px bg-primary/10" />
+
+              <div className="px-3 pb-3 pt-2">
+                {navigation.map(({ href, label, Icon }) => {
+                  const isActive = pathname === href;
+
+                  return (
+                    <motion.div key={href} variants={mobileItemVariants}>
+                      <Link
+                        href={href}
+                        onClick={closeMenu}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={`
+                          flex
+                          items-center
+                          gap-3
+                          rounded-xl
+                          px-3
+                          py-3
+                          text-sm
+                          font-semibold
+                          transition-colors
+                          duration-300
+                          ${isActive ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-primary/[0.07] hover:text-primary'}
+                        `}
+                      >
+                        <Icon className="size-[18px]" />
+                        {label}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+
+                <motion.div variants={mobileItemVariants}>
                   <Link
-                    href={item.href}
+                    href="/enroll"
                     onClick={closeMenu}
-                    className="block rounded-lg px-3 py-3 text-[0.9375rem] font-semibold text-muted transition-colors hover:bg-page hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="
+                      mt-2
+                      flex
+                      items-center
+                      justify-center
+                      gap-2
+                      rounded-xl
+                      bg-brand-gradient
+                      px-5
+                      py-3
+                      text-sm
+                      font-bold
+                      text-white
+                      shadow-md
+                      shadow-primary/25
+                    "
                   >
-                    {item.label}
+                    Enroll Now
+                    <ArrowUpRight className="size-4" />
                   </Link>
                 </motion.div>
-              ))}
-              <motion.div variants={mobileItemVariants}>
-                <Link
-                  href="/enroll"
-                  onClick={closeMenu}
-                  className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-brand-gradient px-5 py-3 text-sm font-bold text-white shadow-md transition-shadow hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                >
-                  Enroll Now
-                </Link>
-              </motion.div>
+              </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </nav>
     </motion.header>
+  );
+}
+
+/* ==================================================
+   MENU ICON
+================================================== */
+
+function MenuIcon({ open }: { open: boolean }) {
+  return (
+    <span className="relative block size-5">
+      <motion.span
+        animate={{ rotate: open ? 45 : 0, y: open ? 7 : 0 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute left-0 top-0 block h-0.5 w-5 rounded-full bg-current"
+      />
+      <motion.span
+        animate={{ opacity: open ? 0 : 1, x: open ? -6 : 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="absolute left-0 top-[7px] block h-0.5 w-5 rounded-full bg-current"
+      />
+      <motion.span
+        animate={{ rotate: open ? -45 : 0, y: open ? -7 : 0 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute bottom-0 left-0 block h-0.5 w-5 rounded-full bg-current"
+      />
+    </span>
   );
 }

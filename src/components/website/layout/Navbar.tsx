@@ -267,16 +267,16 @@ export function Navbar() {
                 font-bold
                 text-white
                 shadow-md
-                shadow-primary/25
+                shadow-accent/30
                 transition-all
                 duration-500
                 ${EASE}
                 hover:-translate-y-0.5
                 hover:shadow-lg
-                hover:shadow-primary/35
+                hover:shadow-accent/40
                 focus-visible:outline-2
                 focus-visible:outline-offset-4
-                focus-visible:outline-primary
+                focus-visible:outline-accent
                 md:inline-flex
                 ${isCompact ? 'px-4 py-2 text-[13px]' : 'px-5 py-2.5 text-sm'}
               `}
@@ -382,14 +382,14 @@ export function Navbar() {
                       justify-center
                       gap-2
                       rounded-xl
-                      bg-brand-gradient
+                      bg-accent-gradient
                       px-5
                       py-3
                       text-sm
                       font-bold
                       text-white
                       shadow-md
-                      shadow-primary/25
+                      shadow-accent/30
                     "
                   >
                     Enroll Now

@@ -45,7 +45,7 @@ export function Hero() {
           <motion.p variants={itemVariants} className="mb-5 text-sm font-bold uppercase tracking-[0.16em] text-primary">
             Learning for every next step
           </motion.p>
-          <motion.h1 variants={itemVariants} className="max-w-xl text-4xl font-extrabold tracking-[-0.055em] text-text sm:text-5xl sm:leading-[1.06] lg:text-[3.65rem]">
+          <motion.h1 variants={itemVariants} className="max-w-xl text-4xl font-extrabold tracking-[-0.055em] text-accent sm:text-5xl sm:leading-[1.06] lg:text-[3.65rem]">
             Start Your Future Education With{" "}
             <span className="bg-brand-gradient bg-clip-text text-transparent">Ayadi Cloudversity</span>
           </motion.h1>
@@ -58,7 +58,7 @@ export function Hero() {
               whileHover={reduceMotion ? undefined : { y: -2, scale: 1.01 }}
               whileTap={reduceMotion ? undefined : { scale: 0.98 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="inline-flex items-center gap-2 rounded-lg bg-brand-gradient px-5 py-3 text-sm font-bold text-white shadow-md transition-shadow hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent-gradient px-5 py-3 text-sm font-bold text-white shadow-md transition-shadow hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
             >
               Explore Learning Paths
               <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4 fill-none stroke-current stroke-2">

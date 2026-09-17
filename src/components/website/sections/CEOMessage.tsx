@@ -100,7 +100,7 @@ export default function CEOMessage() {
           >
             {/* Small label */}
             <div className="mb-7 flex items-center gap-3">
-              <span className="h-px w-10 bg-[#62e62b]" />
+              <span className="h-px w-10 bg-primary" />
 
               <span className="
                 text-xs
@@ -120,14 +120,14 @@ export default function CEOMessage() {
               font-medium
               leading-[0.98]
               tracking-[-0.045em]
-              text-[#182653]
+              text-accent
               md:text-6xl
               lg:text-[72px]
             ">
               Education is more
               <br />
 
-              <span className="text-[#62e62b]">
+              <span className="text-primary">
                 than learning.
               </span>
             </h2>
@@ -191,7 +191,7 @@ export default function CEOMessage() {
 
               <ArrowUpRight
                 size={17}
-                className="text-[#62e62b]"
+                className="text-primary"
               />
             </div>
           </motion.div>
@@ -332,7 +332,7 @@ export default function CEOMessage() {
                       items-center
                       justify-center
                       rounded-full
-                      bg-[#62e62b]
+                      bg-primary
                       text-[#182653]
                       shadow-[0_0_0_10px_rgba(98,230,43,0.12)]
                       transition-all

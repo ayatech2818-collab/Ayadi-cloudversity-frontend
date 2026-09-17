@@ -10,6 +10,19 @@
   --color-brand-middle: #16a34a;
   --color-brand-end: #0d9488;
 
+  /* Brand Navy — the logo's ground colour, on trial.
+     Wired to the navbar Enroll button only for now. Roll it out by swapping
+     more `brand-gradient` / `primary` usages over to these, or delete this
+     block to go back to full green.
+
+     NOTE: sampled by eye from the flattened logo — every PNG/SVG in
+     public/images/ has a transparent background, so the navy is not recorded
+     anywhere in the repo. Confirm the exact hex with the client. */
+  --color-accent-soft: #2a3a6e;
+  --color-accent: #1e2b57;
+  --color-accent-strong: #141d3f;
+  --background-image-accent-gradient: linear-gradient(135deg, #141d3f, #1e2b57, #2f4480);
+
   /* Base Colors */
   --color-page: #f8faf9;
   --color-surface: #ffffff;
@@ -40,6 +53,10 @@
   --color-brand-middle: var(--color-brand-middle);
   --color-brand-end: var(--color-brand-end);
 
+  --color-accent-soft: var(--color-accent-soft);
+  --color-accent: var(--color-accent);
+  --color-accent-strong: var(--color-accent-strong);
+
   --color-page: var(--color-page);
   --color-surface: var(--color-surface);
   --color-text: var(--color-text);
@@ -48,6 +65,7 @@
 
   /* Gradient */
   --background-image-brand-gradient: var(--background-image-brand-gradient);
+  --background-image-accent-gradient: var(--background-image-accent-gradient);
   --background-image-hero-ambient: var(--background-image-hero-ambient);
 
   /* Font */
@@ -76,6 +94,21 @@ body {
 @keyframes spark-travel {
   to {
     offset-distance: 100%;
+  }
+}
+
+/*
+ * Idle bob for the About page's card icons — the same beat as the icons in
+ * WhyChooseAyadi, but driven by CSS so it stays off the main thread while the
+ * section is parked off-screen.
+ */
+@keyframes icon-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
   }
 }
 

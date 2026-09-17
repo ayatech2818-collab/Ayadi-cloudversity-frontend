@@ -9,6 +9,7 @@ import {
   useSpring,
   type Variants,
 } from 'framer-motion';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState, type SVGProps } from 'react';
@@ -19,7 +20,7 @@ import { useCallback, useEffect, useState, type SVGProps } from 'react';
 
 function AboutIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" {...props}>
       <circle cx="12" cy="8" r="3.2" />
       <path d="M5.5 20c.8-3.4 3-5.2 6.5-5.2s5.7 1.8 6.5 5.2" />
     </svg>
@@ -28,7 +29,7 @@ function AboutIcon(props: SVGProps<SVGSVGElement>) {
 
 function CoursesIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" {...props}>
       <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
       <path d="M4 5.5v15M8 7h8M8 11h7" />
     </svg>
@@ -37,7 +38,7 @@ function CoursesIcon(props: SVGProps<SVGSVGElement>) {
 
 function BlogIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" {...props}>
       <rect x="4" y="3" width="16" height="18" rx="2" />
       <path d="M8 8h8M8 12h8M8 16h5" />
     </svg>
@@ -192,20 +193,18 @@ export function Navbar() {
             href="/"
             onClick={closeMenu}
             aria-label="Ayadi Cloudversity — home"
-            className="flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+            className="flex shrink-0 items-center rounded-lg py-1 transition-opacity duration-300 hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
           >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-brand-gradient text-sm font-black text-white shadow-sm shadow-primary/25">
-              A
-            </span>
-
-            <span className="whitespace-nowrap text-lg font-extrabold tracking-[-0.04em] text-text md:text-xl">
-              Ayadi
-              <span
-                className={`inline-block overflow-hidden align-bottom transition-[max-width,opacity] duration-500 ${EASE} ${collapsible}`}
-              >
-                <span className="bg-brand-gradient bg-clip-text pl-1.5 text-transparent">Cloudversity</span>
-              </span>
-            </span>
+            <Image
+              src="/images/ayadi-logo.png"
+              alt="Ayadi Cloudversity"
+              width={160}
+              height={87}
+              priority
+              className={`w-auto object-contain transition-[height] duration-500 ${EASE} ${
+                isCompact ? 'h-[30px] md:h-8 md:group-hover:h-11' : 'h-9 md:h-11'
+              }`}
+            />
           </Link>
 
           {/* ---------- DESKTOP LINKS ---------- */}
@@ -220,6 +219,7 @@ export function Navbar() {
                   aria-current={isActive ? 'page' : undefined}
                   title={isCompact ? label : undefined}
                   className={`
+                    group/nav
                     relative
                     flex
                     items-center
@@ -237,7 +237,11 @@ export function Navbar() {
                     ${isActive ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-primary/[0.07] hover:text-primary'}
                   `}
                 >
-                  <Icon className="size-[18px] shrink-0" />
+                  <Icon
+                    className={`size-[18px] shrink-0 transition-colors ${
+                      isActive ? 'text-primary' : 'text-black group-hover/nav:text-primary'
+                    }`}
+                  />
 
                   <span
                     className={`overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-500 ${EASE} ${collapsible}`}
@@ -342,6 +346,7 @@ export function Navbar() {
                         onClick={closeMenu}
                         aria-current={isActive ? 'page' : undefined}
                         className={`
+                          group/mobile-nav
                           flex
                           items-center
                           gap-3
@@ -355,7 +360,11 @@ export function Navbar() {
                           ${isActive ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-primary/[0.07] hover:text-primary'}
                         `}
                       >
-                        <Icon className="size-[18px]" />
+                        <Icon
+                          className={`size-[18px] transition-colors ${
+                            isActive ? 'text-primary' : 'text-black group-hover/mobile-nav:text-primary'
+                          }`}
+                        />
                         {label}
                       </Link>
                     </motion.div>

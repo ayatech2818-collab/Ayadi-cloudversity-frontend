@@ -151,10 +151,12 @@ export default function FeaturedCourses() {
     isolate
     overflow-hidden
     px-4
-    pb-20
+    pb-30
+    sm:pb-40
+    md:pb-60
     md:px-8
     lg:px-16
-    lg:pb-28
+    lg:pb-38
   "
 >
       {/* Decorative background */}

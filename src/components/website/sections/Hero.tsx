@@ -34,9 +34,9 @@ export function Hero() {
 
   return (
     <main className="relative isolate overflow-hidden bg-page">
-      <div aria-hidden="true" className="absolute right-[-16rem] top-12 -z-10 size-[40rem] rounded-full bg-hero-ambient blur-3xl" />
+      <div aria-hidden="true" className="absolute right-[-16rem] top-12 -z-10 size-[40rem] rounded-full bg-hero-ambient blur-3xl " />
 
-<section className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-[90rem] items-center gap-8 px-5 py-14 sm:px-8 sm:py-18 lg:grid-cols-[1fr_0.95fr] lg:gap-10 lg:px-6 lg:py-16">        <motion.div
+<section className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-[100rem] items-center gap-8 px-5 py-14 sm:px-8 sm:py-18 lg:grid-cols-[1fr_0.95fr] lg:gap-10 lg:px-6 lg:py-16 mt-20">        <motion.div
           initial={reduceMotion ? false : "hidden"}
           animate="visible"
           variants={contentVariants}

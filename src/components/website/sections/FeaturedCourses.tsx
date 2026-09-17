@@ -224,9 +224,9 @@ export default function FeaturedCourses() {
                 font-bold
                 leading-[1.08]
                 tracking-[-0.04em]
-                text-[#182653]
                 md:text-5xl
                 lg:text-6xl
+                text-accent
               "
             >
               Discover your next{' '}
@@ -408,8 +408,8 @@ export default function FeaturedCourses() {
               backdrop-blur-sm
               transition
               duration-300
-              hover:bg-[#62e62b]
-              hover:text-[#182653]
+              hover:bg-brand-gradient
+              hover:text-white
               hover:ring-[#62e62b]
               focus-visible:outline-2
               focus-visible:outline-offset-4
@@ -458,11 +458,11 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
         flex-col
         overflow-hidden
         rounded-3xl
-        bg-white/[0.12]
+        bg-white
         ring-1
         ring-inset
         ring-white/22
-        shadow-[0_20px_50px_rgba(0,40,30,0.15)]
+        
         transition-[translate,box-shadow,ring-color]
         duration-500
         ease-out
@@ -557,14 +557,14 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
       {/* CONTENT */}
       {/* z-20 keeps the text above the spotlight wash */}
       <div className="relative z-20 flex flex-1 flex-col p-6">
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-white/65">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-black/65">
           <Clock3 aria-hidden="true" size={13} />
           {course.duration}
         </span>
 
-        <h3 className="mt-3 text-lg font-semibold leading-snug tracking-[-0.02em] text-white">{course.title}</h3>
+        <h3 className="mt-3 text-lg font-semibold leading-snug tracking-[-0.02em] text-black">{course.title}</h3>
 
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-white/80">{course.description}</p>
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-black/80">{course.description}</p>
 
         {/* LEARN MORE */}
         <div className="mt-auto pt-6">
@@ -585,14 +585,14 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
               py-3
               text-sm
               font-bold
-              text-white
+              text-white/80
               ring-1
               ring-inset
               ring-white/20
               transition-[color,background-color,transform]
               duration-300
               group-hover:scale-[1.02]
-              group-hover:text-[#10251d]
+              group-hover:text-white
               focus-visible:outline-2
               focus-visible:outline-offset-4
               focus-visible:outline-lime-300
@@ -601,7 +601,7 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
             {/* Fills with lime when the card is hovered */}
             <span
               aria-hidden="true"
-              className="absolute inset-0 -z-10 bg-lime-300 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              className="absolute inset-0 -z-10 bg-brand-gradient opacity-80 transition-opacity duration-300 group-hover:opacity-100" 
             />
             Learn More
             <span className="sr-only">about {course.title}</span>

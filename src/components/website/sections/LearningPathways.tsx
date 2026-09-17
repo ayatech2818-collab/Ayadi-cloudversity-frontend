@@ -123,7 +123,7 @@ export default function LearningPathways() {
           <motion.h2
             id="learning-pathways-title"
             variants={itemVariants}
-            className="mt-5 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-text md:text-5xl lg:text-6xl"
+            className="mt-5 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-accent md:text-5xl lg:text-6xl"
           >
             Find something worth{' '}
             <span className="bg-brand-gradient bg-clip-text text-transparent">learning</span>

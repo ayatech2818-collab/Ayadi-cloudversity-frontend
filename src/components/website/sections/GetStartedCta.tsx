@@ -1,12 +1,19 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useMotionValue, useReducedMotion, useSpring } from 'framer-motion';
 import { ArrowUpRight, BookOpen } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { PointerEvent } from 'react';
 
 const highlights = ['200+ Courses', 'Flexible Learning', 'Expert Instructors'];
+
+/* Degrees of tilt at the very edge of the card. Small on purpose — past ~6deg
+ * the text starts to look like it is sliding off a table. */
+const MAX_TILT = 4;
+
+/* Loose enough to trail the cursor, damped enough not to wobble on release. */
+const TILT_SPRING = { stiffness: 210, damping: 24, mass: 0.45 };
 
 /*
  * Sits between the last section and the footer, and deliberately overlaps the
@@ -16,11 +23,34 @@ const highlights = ['200+ Courses', 'Flexible Learning', 'Expert Instructors'];
 export default function GetStartedCta() {
   const reduceMotion = useReducedMotion();
 
-  // Feeds the cursor position to the spotlight overlay without re-rendering.
+  /* The pointer writes to these; the springs smooth them and feed the card's
+   * transform. Nothing here goes through React state, so moving the cursor
+   * never re-renders the component. */
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const rotateX = useSpring(tiltX, TILT_SPRING);
+  const rotateY = useSpring(tiltY, TILT_SPRING);
+
+  // Feeds the cursor position to the spotlight overlay and the 3D tilt.
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    event.currentTarget.style.setProperty('--spot-x', `${event.clientX - rect.left}px`);
-    event.currentTarget.style.setProperty('--spot-y', `${event.clientY - rect.top}px`);
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    event.currentTarget.style.setProperty('--spot-x', `${x}px`);
+    event.currentTarget.style.setProperty('--spot-y', `${y}px`);
+
+    // A finger dragging the page should not tip the card.
+    if (reduceMotion || event.pointerType !== 'mouse') return;
+
+    // -0.5 … 0.5, measured from the centre of the card.
+    tiltY.set((x / rect.width - 0.5) * MAX_TILT * 2);
+    tiltX.set((0.5 - y / rect.height) * MAX_TILT * 2);
+  };
+
+  const handlePointerLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
   };
 
   return (
@@ -54,8 +84,13 @@ export default function GetStartedCta() {
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-20 mx-auto max-w-[1180px]"
       >
-        <div
+        {/* transformPerspective lives on the card itself rather than as a
+            `perspective` on the parent, so the tilt cannot be flattened by any
+            page it gets dropped into. */}
+        <motion.div
           onPointerMove={handlePointerMove}
+          onPointerLeave={handlePointerLeave}
+          style={{ rotateX, rotateY, transformPerspective: 1400 }}
           className="
             group
             relative
@@ -332,7 +367,7 @@ export default function GetStartedCta() {
               </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </section>
   );

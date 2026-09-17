@@ -109,12 +109,11 @@ export default function Footer() {
                 className="inline-block rounded-sm transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-300"
               >
                 <Image
-                  src="/images/ayadi-logo-white.svg"
+                  src="/images/ayadi-logo-white.png"
                   alt="Ayadi Cloudversity"
                   width={200}
-                  height={46}
-                  unoptimized
-                  className="h-auto w-[190px]"
+                  height={109}
+                  className="h-12 w-auto object-contain sm:h-14"
                 />
               </Link>
 

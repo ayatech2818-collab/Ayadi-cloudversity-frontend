@@ -1,0 +1,148 @@
+import type { BrandId, BrandSectionData, BrandTabInfo } from './types';
+
+export const brandTabs: BrandTabInfo[] = [
+  {
+    id: 'ayadi',
+    name: 'AYADI CLOUDVERSITY',
+    subtitle: 'Learning & Professional Programs',
+    tagline: 'Main Learning Platform',
+    iconName: 'GraduationCap',
+  },
+  {
+    id: 'ayatech',
+    name: 'AYATECH',
+    subtitle: 'Technology & AI',
+    tagline: 'Tech & Software Hub',
+    iconName: 'Cpu',
+  },
+  {
+    id: 'netscape',
+    name: 'NETSCAPE',
+    subtitle: 'Teacher Development',
+    tagline: 'Educator Academy',
+    iconName: 'BookOpen',
+  },
+];
+
+export const brandContentMap: Record<BrandId, BrandSectionData> = {
+  ayadi: {
+    eyebrow: 'Ayadi Cloudversity',
+    title: 'Learning for Every Journey',
+    description:
+      'Explore programs designed to help you develop practical skills, strengthen your career, and continue learning at every stage.',
+    brandBadge: 'Core Ecosystem',
+    ctaText: 'Explore Ayadi Programs →',
+    courses: [
+      {
+        id: 'ayadi-1',
+        title: 'Python Full Stack Development',
+        category: 'Technology',
+        level: 'Advanced',
+        duration: '12 Weeks',
+        description: 'Build real-world full-stack web applications with Python, contemporary frameworks, and modern databases.',
+        image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=1200&q=80',
+        badge: 'Popular',
+      },
+      {
+        id: 'ayadi-2',
+        title: 'Digital Marketing Mastery',
+        category: 'Business & Growth',
+        level: 'Intermediate',
+        duration: '8 Weeks',
+        description: 'Learn data-driven marketing campaigns, brand positioning, and omnichannel analytics to accelerate growth.',
+        image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80',
+        badge: 'Featured',
+      },
+      {
+        id: 'ayadi-3',
+        title: 'UI/UX Design & Design Systems',
+        category: 'Creative & Design',
+        level: 'Beginner',
+        duration: '6 Weeks',
+        description: 'Master human-centric interface design, wireframing, interactive prototyping, and design systems.',
+        image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=80',
+        badge: 'Hands-on',
+      },
+    ],
+  },
+  ayatech: {
+    eyebrow: 'AyaTech Ecosystem',
+    title: 'Technology & AI, Powered by AyaTech',
+    description:
+      'Discover technology-focused programs built around modern software development, artificial intelligence, programming, and emerging technologies.',
+    brandBadge: 'Technology & AI Hub',
+    ctaText: 'Explore AyaTech →',
+    courses: [
+      {
+        id: 'ayatech-1',
+        title: 'Applied Generative AI & LLM Systems',
+        category: 'Artificial Intelligence',
+        level: 'Advanced',
+        duration: '10 Weeks',
+        description: 'Architect production-grade LLM applications, RAG pipelines, fine-tuning workflows, and agentic systems.',
+        image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80',
+        badge: 'Next-Gen AI',
+      },
+      {
+        id: 'ayatech-2',
+        title: 'Cloud Architecture & DevOps at Scale',
+        category: 'Cloud Engineering',
+        level: 'Intermediate',
+        duration: '12 Weeks',
+        description: 'Deploy resilient cloud infrastructure with Docker, Kubernetes, automated CI/CD pipelines, and Terraform.',
+        image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+        badge: 'High Demand',
+      },
+      {
+        id: 'ayatech-3',
+        title: 'Modern Software Engineering & Distributed Systems',
+        category: 'Software Architecture',
+        level: 'Advanced',
+        duration: '14 Weeks',
+        description: 'Design high-throughput distributed microservices, event-driven architectures, and secure API networks.',
+        image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80',
+        badge: 'Enterprise',
+      },
+    ],
+  },
+  netscape: {
+    eyebrow: 'Netscape Educator Academy',
+    title: 'Empowering Educators',
+    description:
+      'Explore teacher training and education-focused programs designed to support educators and modern learning environments.',
+    brandBadge: 'Educator Development',
+    ctaText: 'Explore Netscape →',
+    courses: [
+      {
+        id: 'netscape-1',
+        title: 'Modern Classroom Pedagogy & Active Learning',
+        category: 'Teacher Training',
+        level: 'All Levels',
+        duration: '6 Weeks',
+        description: 'Transform classroom engagement with student-centered teaching methodologies, peer collaboration, and active evaluation.',
+        image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=80',
+        badge: 'Foundational',
+      },
+      {
+        id: 'netscape-2',
+        title: 'EdTech & Digital Classroom Mastery',
+        category: 'Educational Technology',
+        level: 'Intermediate',
+        duration: '8 Weeks',
+        description: 'Leverage digital whiteboards, AI-assisted grading, interactive simulations, and hybrid learning platforms.',
+        image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80',
+        badge: 'EdTech',
+      },
+      {
+        id: 'netscape-3',
+        title: 'STEM Educator Certification & Curriculum Design',
+        category: 'STEM Teaching',
+        level: 'Advanced',
+        duration: '10 Weeks',
+        description: 'Develop experiential STEM curricula, project-based science learning modules, and computational thinking programs.',
+        image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1200&q=80',
+        badge: 'Certified',
+      },
+    ],
+  },
+};

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMotionValue, useReducedMotion, useSpring } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import type { PointerEvent } from 'react';
 
@@ -42,6 +43,63 @@ export function handleSpotlight(event: PointerEvent<HTMLElement>) {
   const rect = event.currentTarget.getBoundingClientRect();
   event.currentTarget.style.setProperty('--spot-x', `${event.clientX - rect.left}px`);
   event.currentTarget.style.setProperty('--spot-y', `${event.clientY - rect.top}px`);
+}
+
+/* Loose enough to trail the cursor, damped enough not to wobble on release. */
+const TILT_SPRING = { stiffness: 210, damping: 24, mass: 0.45 };
+
+/*
+ * Cursor-driven 3D tilt, and the spotlight position in the same pass — one
+ * getBoundingClientRect per move rather than two listeners each measuring.
+ *
+ * Everything runs through MotionValues, so moving the cursor across a card
+ * never re-renders React.
+ *
+ * Spread the result onto a `motion.*` element:
+ *   const tilt = useCardTilt();
+ *   <motion.article {...tilt} className={CARD_CHROME}>
+ *
+ * `maxTilt` is degrees at the very edge. Keep it small — past ~6deg the text
+ * starts to look like it is sliding off a table, and big cards need less than
+ * small ones.
+ */
+export function useCardTilt(maxTilt = 4) {
+  const reduceMotion = useReducedMotion();
+
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const rotateX = useSpring(tiltX, TILT_SPRING);
+  const rotateY = useSpring(tiltY, TILT_SPRING);
+
+  const onPointerMove = (event: PointerEvent<HTMLElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    event.currentTarget.style.setProperty('--spot-x', `${x}px`);
+    event.currentTarget.style.setProperty('--spot-y', `${y}px`);
+
+    // A finger dragging the page should not tip the card.
+    if (reduceMotion || event.pointerType !== 'mouse') return;
+
+    // -0.5 … 0.5, measured from the centre of the card.
+    tiltY.set((x / rect.width - 0.5) * maxTilt * 2);
+    tiltX.set((0.5 - y / rect.height) * maxTilt * 2);
+  };
+
+  const onPointerLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+  };
+
+  /* transformPerspective rides on the card itself rather than as a
+     `perspective` on the parent, so the tilt cannot be flattened by whatever
+     page the card is dropped into. */
+  return {
+    style: { rotateX, rotateY, transformPerspective: 1400 },
+    onPointerMove,
+    onPointerLeave,
+  };
 }
 
 export function CardDecor() {

@@ -41,7 +41,7 @@ export default function PostCard({
 
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-linear-to-t from-[#04231c]/45 via-transparent to-transparent"
+          className="absolute inset-0 bg-linear-to-t from-accent-strong/50 via-transparent to-transparent"
         />
 
         <span className="absolute left-4 top-4 rounded-full bg-surface/90 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary ring-1 ring-inset ring-primary/20">
@@ -62,7 +62,7 @@ export default function PostCard({
           </span>
         </div>
 
-        <h3 className="mt-4 text-lg font-bold leading-snug tracking-[-0.02em] text-text transition-colors duration-300 group-hover:text-primary">
+        <h3 className="mt-4 text-lg font-bold leading-snug tracking-[-0.02em] text-accent transition-colors duration-300 group-hover:text-primary">
           <Link
             href={`/blog/${post.slug}`}
             className="after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"

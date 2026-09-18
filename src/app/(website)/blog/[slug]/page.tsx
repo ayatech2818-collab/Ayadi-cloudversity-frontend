@@ -57,7 +57,10 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
       ========================================================= */}
       <section className="relative isolate overflow-hidden px-5 pb-12 pt-32 sm:px-8 sm:pt-36 lg:px-16 lg:pb-16 lg:pt-44">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+          {/* One of each, so both brand hues are in the air before either
+              appears as a solid element. */}
           <div className="absolute -right-32 -top-40 size-[560px] rounded-full bg-primary/[0.07] blur-[130px]" />
+          <div className="absolute -left-40 top-1/3 size-[420px] rounded-full bg-accent/[0.07] blur-[130px]" />
         </div>
 
         <div className="mx-auto max-w-[1180px]">
@@ -79,7 +82,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
               {post.category}
             </span>
 
-            <h1 className="mt-5 text-[2.25rem] font-semibold leading-[1.05] tracking-[-0.04em] text-text sm:text-5xl lg:text-6xl">
+            <h1 className="mt-5 text-[2.25rem] font-semibold leading-[1.05] tracking-[-0.04em] text-accent sm:text-5xl lg:text-6xl">
               {post.title}
             </h1>
 
@@ -98,7 +101,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
 
               <span className="flex items-center gap-2">
                 <UserRound aria-hidden="true" size={16} className="text-primary" />
-                <span className="font-semibold text-text">{post.author}</span>
+                <span className="font-semibold text-accent">{post.author}</span>
               </span>
             </div>
           </div>
@@ -112,6 +115,12 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         <div className="mx-auto max-w-[1180px]">
           <div className="relative aspect-[21/9] overflow-hidden rounded-2xl bg-primary/5 ring-1 ring-inset ring-border sm:rounded-3xl">
             <BlogCover src={post.image} alt="" sizes="(min-width: 1180px) 1180px, 100vw" priority className="object-cover" />
+
+            {/* Same navy scrim the cards use, so the cover belongs to the set */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-linear-to-t from-accent-strong/35 via-transparent to-transparent"
+            />
           </div>
         </div>
       </section>
@@ -124,7 +133,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
           <article className="max-w-[68ch]">
             {post.content.map((section, index) => (
               <section key={section.heading} id={toId(section.heading)} className={index === 0 ? 'scroll-mt-28' : 'mt-14 scroll-mt-28'}>
-                <h2 className="flex items-baseline gap-3 text-2xl font-semibold tracking-[-0.03em] text-text sm:text-3xl">
+                <h2 className="flex items-baseline gap-3 text-2xl font-semibold tracking-[-0.03em] text-accent sm:text-3xl">
                   <span aria-hidden="true" className="font-mono text-xs font-bold tracking-[0.18em] text-primary">
                     {String(index + 1).padStart(2, '0')}
                   </span>
@@ -197,7 +206,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
             <div className="mt-10 rounded-2xl bg-surface p-6 ring-1 ring-inset ring-border">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">About Ayadi</p>
 
-              <h2 className="mt-4 text-lg font-bold leading-snug tracking-[-0.02em] text-text">
+              <h2 className="mt-4 text-lg font-bold leading-snug tracking-[-0.02em] text-accent">
                 Learning that goes beyond the classroom.
               </h2>
 
@@ -232,11 +241,11 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
               Keep reading
             </span>
 
-            <h2 id="related-heading" className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-text sm:text-3xl">
+            <h2 id="related-heading" className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-accent sm:text-3xl">
               Related articles
             </h2>
 
-            <ul className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3 pb-50">
               {related.map((item) => (
                 <li key={item.slug}>
                   <PostCard post={item} sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" />

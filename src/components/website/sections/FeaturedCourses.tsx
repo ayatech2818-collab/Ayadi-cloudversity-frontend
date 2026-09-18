@@ -299,14 +299,16 @@ export default function FeaturedCourses() {
                   items-center
                   justify-center
                   rounded-full
-                  bg-[#62e62b]
-                  text-[#182653]
+                  bg-accent
+                  text-white
                   shadow-[0_12px_28px_rgba(24,38,83,0.18)]
                   transition
                   duration-300
                   hover:scale-105
                   hover:bg-[#b8f94a]
                   hover:shadow-lg
+                  hover:cursor-pointer
+                  hover:text-accent
                   focus-visible:outline-2
                   focus-visible:outline-offset-4
                   focus-visible:outline-lime-300
@@ -378,7 +380,7 @@ export default function FeaturedCourses() {
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     className={`block h-1.5 rounded-full transition-colors duration-300 ${
                       isActive
-                        ? 'bg-[#62e62b]'
+                        ? 'bg-[#b8f94a]'
                         : 'bg-white/35 group-hover/dot:bg-white/55'
                     }`}
                   />
@@ -562,7 +564,7 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
           {course.duration}
         </span>
 
-        <h3 className="mt-3 text-lg font-semibold leading-snug tracking-[-0.02em] text-black">{course.title}</h3>
+        <h3 className="mt-3 text-lg font-semibold leading-snug tracking-[-0.02em] text-accent">{course.title}</h3>
 
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-black/80">{course.description}</p>
 

@@ -13,6 +13,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState, type SVGProps } from 'react';
+import { Images } from 'lucide-react';
+import { EnrollmentModal } from '@/components/website/enrollment/EnrollmentModal';
 
 /* ==================================================
    ICONS
@@ -58,6 +60,7 @@ const navigation = [
   { href: '/about', label: 'About', Icon: AboutIcon },
   { href: '/courses', label: 'Courses', Icon: CoursesIcon },
   { href: '/blog', label: 'Blog', Icon: BlogIcon },
+  { href: '/media', label: 'media', Icon: Images },
 ];
 
 /*
@@ -93,6 +96,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [isCompact, setIsCompact] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEnrollOpen, setIsEnrollOpen] = useState(false);
 
   const { scrollY, scrollYProgress } = useScroll();
 
@@ -126,7 +130,8 @@ export function Navbar() {
     : 'max-w-[180px] opacity-100';
 
   return (
-    <motion.header
+    <>
+      <motion.header
       initial={reduceMotion ? false : { opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -255,9 +260,12 @@ export function Navbar() {
 
           {/* ---------- ACTIONS ---------- */}
           <div className="flex shrink-0 items-center gap-2">
-            <Link
-              href="/enroll"
-              onClick={closeMenu}
+            <button
+              type="button"
+              onClick={() => {
+                setIsEnrollOpen(true);
+                closeMenu();
+              }}
               className={`
                 hidden
                 items-center
@@ -277,13 +285,14 @@ export function Navbar() {
                 focus-visible:outline-2
                 focus-visible:outline-offset-4
                 focus-visible:outline-accent
+                cursor-pointer
                 md:inline-flex
                 ${isCompact ? 'px-4 py-2 text-[13px]' : 'px-5 py-2.5 text-sm'}
               `}
             >
               Enroll Now
               <ArrowUpRight className="size-4" />
-            </Link>
+            </button>
 
             <button
               type="button"
@@ -372,12 +381,16 @@ export function Navbar() {
                 })}
 
                 <motion.div variants={mobileItemVariants}>
-                  <Link
-                    href="/enroll"
-                    onClick={closeMenu}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEnrollOpen(true);
+                      closeMenu();
+                    }}
                     className="
                       mt-2
                       flex
+                      w-full
                       items-center
                       justify-center
                       gap-2
@@ -390,18 +403,21 @@ export function Navbar() {
                       text-white
                       shadow-md
                       shadow-accent/30
+                      cursor-pointer
                     "
                   >
                     Enroll Now
                     <ArrowUpRight className="size-4" />
-                  </Link>
+                  </button>
                 </motion.div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </nav>
-    </motion.header>
+      </motion.header>
+      <EnrollmentModal isOpen={isEnrollOpen} onClose={() => setIsEnrollOpen(false)} />
+    </>
   );
 }
 

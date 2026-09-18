@@ -132,7 +132,7 @@ export default function AboutContent() {
                 <span className="block overflow-hidden pb-[0.08em]">
                   <motion.span variants={lineUp} className="block">
                     shapes{' '}
-                    <span className="relative inline-block">
+                    <span className="relative inline-block text-accent-soft">
                       futures.
                       <motion.span
                         aria-hidden="true"
@@ -154,7 +154,7 @@ export default function AboutContent() {
               <motion.div variants={fadeUp} className="mt-9 flex flex-wrap items-center gap-3">
                 <a
                   href="#mission"
-                  className="group inline-flex items-center gap-2.5 rounded-full bg-brand-gradient px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors duration-300 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                  className="group inline-flex items-center gap-2.5 rounded-full bg-accent-gradient px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors duration-300 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
                 >
                   Discover our mission
                   <ArrowUpRight
@@ -318,7 +318,7 @@ export default function AboutContent() {
           >
             <Quote aria-hidden="true" size={22} className="text-primary" />
 
-            <p className="mt-5 max-w-4xl text-xl font-medium leading-9 text-text sm:text-2xl">
+            <p className="mt-5 max-w-4xl text-xl font-medium leading-9 text-accent-soft sm:text-2xl">
               We believe that when curiosity meets direction, students unlock their fullest potential — and we are
               dedicated to guiding them every step of the way.
             </p>
@@ -510,7 +510,7 @@ function ScrollReveal({ text }: { text: string }) {
   return (
     <p
       ref={ref}
-      className="text-2xl font-medium leading-[1.45] tracking-[-0.02em] text-text sm:text-[1.75rem] sm:leading-[1.4]"
+      className="text-2xl font-medium leading-[1.45] tracking-[-0.02em] text-accent-soft sm:text-[1.75rem] sm:leading-[1.4]"
     >
       {reduceMotion
         ? text

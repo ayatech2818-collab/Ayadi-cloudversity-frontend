@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
-import { CARD_CHROME, CardDecor, handleSpotlight } from '@/components/website/ui/card-chrome';
+import { CARD_CHROME, CardDecor, useCardTilt } from '@/components/website/ui/card-chrome';
 
 import BlogCover from './BlogCover';
 import PostCard from './PostCard';
@@ -39,6 +39,11 @@ export default function BlogList() {
   const start = reduceMotion ? 'visible' : 'hidden';
 
   const gridRef = useRef<HTMLDivElement>(null);
+
+  /* 3 rather than 4 degrees: the featured card is nearly 1180px wide, and a
+     large surface needs less rotation than a small one to read as the same
+     amount of tilt. */
+  const featuredTilt = useCardTilt(3);
 
   const [category, setCategory] = useState('All');
   const [page, setPage] = useState(1);
@@ -75,8 +80,10 @@ export default function BlogList() {
       ========================================================= */}
       <section className="relative isolate overflow-hidden px-5 pb-16 pt-32 sm:px-8 sm:pt-36 lg:px-16 lg:pb-20 lg:pt-44">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+          {/* One of each, so the page's two hues are present in the atmosphere
+              before either shows up as a solid element. */}
           <div className="absolute -right-32 -top-40 size-[560px] rounded-full bg-primary/[0.07] blur-[130px]" />
-          <div className="absolute -left-40 top-1/3 size-[420px] rounded-full bg-brand-end/[0.06] blur-[130px]" />
+          <div className="absolute -left-40 top-1/3 size-[420px] rounded-full bg-accent/[0.07] blur-[130px]" />
         </div>
 
         <motion.div variants={stagger} initial={start} animate="visible" className="mx-auto max-w-[1180px]">
@@ -94,14 +101,14 @@ export default function BlogList() {
 
               <span className="block overflow-hidden pb-[0.08em]">
                 <motion.span variants={lineUp} className="block">
-                  <span className="relative inline-block">
+                  <span className="relative inline-block text-accent-soft">
                     learning.
                     <motion.span
                       aria-hidden="true"
                       initial={reduceMotion ? false : { scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ delay: 0.75, duration: 0.8, ease: EASE }}
-                      className="absolute -bottom-0.5 left-0 h-[4px] w-full origin-left rounded-full bg-primary"
+                      className="absolute -bottom-0.5 left-0 h-[4px] w-full origin-left rounded-full bg-brand-gradient"
                     />
                   </span>
                 </motion.span>
@@ -134,7 +141,7 @@ export default function BlogList() {
             </h2>
 
             <motion.div variants={fadeUp} initial={start} whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
-              <article onPointerMove={handleSpotlight} className={`${CARD_CHROME} md:grid md:grid-cols-2`}>
+              <motion.article {...featuredTilt} className={`${CARD_CHROME} md:grid md:grid-cols-2`}>
                 <CardDecor />
 
                 <div className="relative aspect-[16/10] overflow-hidden bg-primary/5 md:aspect-auto md:min-h-[360px]">
@@ -148,7 +155,7 @@ export default function BlogList() {
 
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 bg-linear-to-t from-[#04231c]/45 via-transparent to-transparent"
+                    className="absolute inset-0 bg-linear-to-t from-accent-strong/50 via-transparent to-transparent"
                   />
                 </div>
 
@@ -167,7 +174,7 @@ export default function BlogList() {
                     </span>
                   </div>
 
-                  <h3 className="mt-5 text-2xl font-semibold leading-[1.15] tracking-[-0.03em] text-text transition-colors duration-300 group-hover:text-primary sm:text-3xl lg:text-4xl">
+                  <h3 className="mt-5 text-2xl font-semibold leading-[1.15] tracking-[-0.03em] text-accent transition-colors duration-300 group-hover:text-primary sm:text-3xl lg:text-4xl">
                     <Link
                       href={`/blog/${featured.slug}`}
                       className="after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
@@ -198,7 +205,7 @@ export default function BlogList() {
                     />
                   </span>
                 </div>
-              </article>
+              </motion.article>
             </motion.div>
           </div>
         </section>
@@ -207,7 +214,7 @@ export default function BlogList() {
       {/* =========================================================
           GRID
       ========================================================= */}
-      <section aria-labelledby="articles-heading" className="px-5 pb-24 sm:px-8 lg:px-16 lg:pb-32">
+      <section aria-labelledby="articles-heading" className="px-5 pb-24 sm:px-8 lg:px-16 lg:pb-82">
         <div ref={gridRef} className="mx-auto max-w-[1180px] scroll-mt-28">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -215,7 +222,7 @@ export default function BlogList() {
 
               <h2
                 id="articles-heading"
-                className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-text sm:text-3xl"
+                className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-accent sm:text-3xl"
               >
                 From the Ayadi community
               </h2>
@@ -238,9 +245,11 @@ export default function BlogList() {
                   type="button"
                   onClick={() => changeCategory(name)}
                   aria-pressed={isActive}
-                  className={`rounded-full px-4 py-2 text-xs font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                  /* Selected state is navy across the page; green stays on the
+                     marks, icons and hover hints. */
+                  className={`rounded-full px-4 py-2 text-xs font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                     isActive
-                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                      ? 'bg-accent-gradient text-white shadow-lg shadow-accent/25'
                       : 'bg-surface text-muted ring-1 ring-inset ring-border hover:text-primary hover:ring-primary/30'
                   }`}
                 >
@@ -288,9 +297,9 @@ export default function BlogList() {
                     onClick={() => goToPage(number)}
                     aria-label={`Page ${number}`}
                     aria-current={isCurrent ? 'page' : undefined}
-                    className={`size-10 rounded-full text-sm font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                    className={`size-10 rounded-full text-sm font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                       isCurrent
-                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                        ? 'bg-accent-gradient text-white shadow-lg shadow-accent/25'
                         : 'text-muted ring-1 ring-inset ring-border hover:text-primary hover:ring-primary/30'
                     }`}
                   >

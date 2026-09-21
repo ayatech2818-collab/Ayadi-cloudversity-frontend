@@ -1,0 +1,540 @@
+/*
+ * The Ayadi Universe — the Home page's opening story.
+ *
+ * Two layouts from one markup:
+ *
+ *  - flow (default, and always on phones / tablets / reduced motion / no JS):
+ *    the acts stack down the page as ordinary sections, everything visible.
+ *  - cinematic (`data-mode="cinematic"`, set by the component only on a large
+ *    screen with motion welcome): the stage is pinned to the viewport and the
+ *    acts are layered on top of each other; GSAP scrubs between them.
+ *
+ * Only layout lives here. Look-and-feel is Tailwind in the components, over
+ * the tokens in globals.css. No GSAP-animated element carries a CSS transform
+ * of its own — GSAP would read it as pixels and fight it — so everything it
+ * moves is positioned with left/top/margins instead.
+ */
+
+.root {
+  position: relative;
+  --globe: min(84vw, 400px);
+  --logo: min(44vw, 180px);
+}
+
+.root[data-mode='cinematic'] {
+  /* Globe and logo are sized by height: the whole story has to fit one screen. */
+  --globe: min(62vh, 540px, 80vw);
+  --logo: min(24vh, 210px);
+  --eco-w: min(50vw, calc((100svh - 300px) / 0.94), 720px);
+  /* Where the logo sits in act one; the globe settles 10vh lower in act two. */
+  --centre: 36%;
+  /* Clearance for the fixed navbar. */
+  --nav: 88px;
+}
+
+.stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.root[data-mode='cinematic'] .stage {
+  height: 100svh;
+}
+
+/* ================= light, not space =================
+   A universe in the site's own daylight: mint and teal washes, the faintest
+   navy above, and a sparse field of green points for stars. */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 42%, color-mix(in srgb, var(--color-brand-end) 12%, transparent), transparent 70%),
+    radial-gradient(ellipse 40% 35% at 16% 10%, color-mix(in srgb, var(--color-accent-soft) 7%, transparent), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 86% 82%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 70%),
+    var(--color-page);
+}
+
+.stars {
+  position: absolute;
+  inset: -10%;
+  background-image:
+    radial-gradient(circle, color-mix(in srgb, var(--color-primary) 32%, transparent) 1px, transparent 1.6px),
+    radial-gradient(circle, color-mix(in srgb, var(--color-brand-end) 26%, transparent) 1.2px, transparent 2px);
+  background-size:
+    46px 46px,
+    83px 83px;
+  background-position:
+    0 0,
+    21px 37px;
+  mask-image: radial-gradient(ellipse at 50% 45%, #000 15%, transparent 72%);
+}
+
+/* ================= act one — the logo ================= */
+
+.intro {
+  position: relative;
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 7rem 1.25rem 3rem;
+  text-align: center;
+}
+
+.introLogo {
+  width: var(--logo);
+}
+
+.introCopy {
+  max-width: 60rem;
+  margin-top: 2rem;
+}
+
+.cue {
+  display: none;
+}
+
+.root[data-mode='cinematic'] .intro {
+  position: absolute;
+  inset: 0;
+  display: block;
+  min-height: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* In the pinned story the logo is the one inside the globe. */
+.root[data-mode='cinematic'] .introLogo {
+  display: none;
+}
+
+.root[data-mode='cinematic'] .introCopy {
+  position: absolute;
+  left: 50%;
+  width: min(92vw, 60rem);
+  max-width: none;
+  margin: 0 0 0 calc(min(92vw, 60rem) / -2);
+  top: calc(var(--centre) + var(--logo) * 0.62 + 2vh);
+  pointer-events: auto;
+}
+
+.root[data-mode='cinematic'] .cue {
+  display: inline-flex;
+}
+
+/* ================= act two — the globe ================= */
+
+.globeAct {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1.25rem 4rem;
+  text-align: center;
+}
+
+.root[data-mode='cinematic'] .globeAct {
+  position: absolute;
+  inset: 0;
+  display: block;
+  padding: 0;
+  pointer-events: none;
+}
+
+.globeCamera {
+  position: relative;
+  width: var(--globe);
+  height: var(--globe);
+  perspective: calc(var(--globe) * 3);
+}
+
+.root[data-mode='cinematic'] .globeCamera {
+  position: absolute;
+  left: calc(50% - var(--globe) / 2);
+  top: calc(var(--centre) - var(--globe) / 2);
+}
+
+.globeCaption {
+  margin-top: 2rem;
+}
+
+.root[data-mode='cinematic'] .globeCaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0;
+  top: calc(var(--centre) + 10vh + var(--globe) / 2 + 1vh);
+}
+
+.globeWorld,
+.globeShell,
+.globeTilt,
+.globeSpin {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.globeTilt {
+  transform: rotateX(-16deg) rotateZ(-12deg);
+}
+
+.globeSpin {
+  animation: spinY 70s linear infinite;
+}
+
+/* Rings read their opacity from a variable GSAP scrubs on the shell. Opacity
+   on the shell itself would flatten the sphere into a picture of itself. */
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--color-brand-end) 38%, transparent);
+  opacity: var(--globe-o, 1);
+}
+
+.meridian {
+  inset: 0;
+}
+
+.equator {
+  inset: 0;
+  border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color-brand-start) 22%, transparent);
+}
+
+.nodePos {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+
+/* Turns back exactly as fast as the globe turns forward, so each point of
+   light keeps facing the viewer instead of going edge-on at the limb. */
+.nodeFace {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  animation: spinY 70s linear infinite reverse;
+}
+
+.nodeDot {
+  position: absolute;
+  width: calc(var(--globe) * 0.024);
+  height: calc(var(--globe) * 0.024);
+  margin: calc(var(--globe) * -0.012);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 24%, var(--dot) 52%, transparent 72%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--dot) 55%, transparent);
+  opacity: var(--globe-o, 1);
+}
+
+.orbit {
+  position: absolute;
+  inset: -15%;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb, var(--color-brand-end) 32%, transparent);
+  opacity: var(--globe-o, 1);
+}
+
+.orbitSpin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  animation: spinZ var(--spin, 22s) linear infinite;
+}
+
+.comet {
+  position: absolute;
+  width: 4px;
+  height: 26px;
+  margin: -13px 0 0 -2px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, transparent, var(--color-brand-end) 60%, #fff);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-brand-end) 45%, transparent);
+  transform: translateX(calc(var(--globe) * 0.65));
+}
+
+.globeHalo {
+  position: absolute;
+  inset: -25%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-brand-start) 22%, transparent),
+    color-mix(in srgb, var(--color-brand-end) 10%, transparent) 55%,
+    transparent
+  );
+  transform: translateZ(calc(var(--globe) * -0.6));
+}
+
+/* The logo is the globe's core. Flow mode shows it at core size; the
+   cinematic story starts it full size and GSAP shrinks it in. */
+.globeLogo {
+  position: absolute;
+  left: calc(50% - var(--logo) / 2);
+  top: calc(50% - var(--logo) * 0.594);
+  width: var(--logo);
+  transform: scale(0.46);
+}
+
+/* The extruded mark turns gently at rest — on [data-mark], because GSAP
+   owns [data-mark-spin] inside it for the scroll turn. */
+.introLogo [data-mark],
+.globeLogo [data-mark] {
+  transform: rotateY(-20deg) rotateX(6deg);
+  animation: markIdle 10s ease-in-out infinite;
+}
+
+/* ================= act three — choose a world ================= */
+
+.chooseAct {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  padding: 3rem 1.25rem;
+}
+
+.chooseHead {
+  max-width: 40rem;
+  text-align: center;
+}
+
+.eco {
+  position: relative;
+  width: 100%;
+  max-width: 44rem;
+}
+
+.chooseButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.root[data-mode='cinematic'] .chooseAct {
+  position: absolute;
+  inset: 0;
+  display: block;
+  padding: 0;
+  pointer-events: none;
+}
+
+.root[data-mode='cinematic'] .chooseHead {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  top: calc(var(--nav) + 2vh);
+  pointer-events: auto;
+}
+
+.root[data-mode='cinematic'] .eco {
+  position: absolute;
+  width: var(--eco-w);
+  max-width: none;
+  left: calc(50% - var(--eco-w) / 2);
+  top: calc(54% - var(--eco-w) * 0.47);
+  pointer-events: auto;
+}
+
+.root[data-mode='cinematic'] .chooseButtons {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4.5vh;
+  pointer-events: auto;
+}
+
+/* ================= acts four to six — the brand chapters ================= */
+
+.chaptersAct {
+  position: relative;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 5rem;
+  scroll-margin-top: 6rem;
+}
+
+.root[data-mode='cinematic'] .chaptersAct {
+  position: absolute;
+  left: 51vw;
+  right: 7vw;
+  top: calc(var(--nav) + 3vh);
+  bottom: 5vh;
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.panels {
+  position: relative;
+}
+
+.root[data-mode='cinematic'] .panels {
+  flex: 1;
+  min-height: 0;
+}
+
+.panel {
+  padding-top: 3rem;
+}
+
+/* Flow layout: only the chosen brand's chapters are on the page. (The pinned
+   story hides the others with opacity instead, so a brand switch can
+   crossfade — nothing transitions out of display: none.) */
+.root:not([data-mode='cinematic'])[data-brand='cloudversity'] .panel[data-brand='ayatech'],
+.root:not([data-mode='cinematic'])[data-brand='ayatech'] .panel[data-brand='cloudversity'] {
+  display: none;
+}
+
+/* Pinned: one chapter at a time, crossfading as the scroll crosses into it. */
+.root[data-mode='cinematic'] .panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(26px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.6s;
+}
+
+.root[data-mode='cinematic'] .panel[data-current] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.55s ease 0.1s,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s,
+    visibility 0s;
+}
+
+/* Cards in the arriving chapter follow it in, one after another. */
+.root[data-mode='cinematic'] .card {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.root[data-mode='cinematic'] .panel[data-current] .card {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(0.2s + var(--i, 0) * 0.06s);
+}
+
+/* Chapter three rests three times; the card for the current rest lights, in
+   step with the 3D world beside it (learn, build, grow / one programme each). */
+.root[data-mode='cinematic'] .card[data-lit] > div {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--color-primary) 45%, transparent),
+    0 22px 44px -24px color-mix(in srgb, var(--color-brand-start) 70%, transparent);
+  translate: 0 -4px;
+}
+
+/* ================= wayfinding ================= */
+
+.rail,
+.skip {
+  display: none;
+}
+
+.root[data-mode='cinematic'] .rail {
+  position: absolute;
+  right: 2.2vw;
+  top: 50%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+  transform: translateY(-50%);
+}
+
+.root[data-mode='cinematic'] .skip {
+  position: absolute;
+  left: 2.5vw;
+  bottom: 3.5vh;
+  z-index: 5;
+  display: inline-flex;
+}
+
+/* ================= parking ================= */
+
+/* Whatever is not on screen yet stops animating. */
+.dormant * {
+  animation-play-state: paused !important;
+}
+
+/* ================= motion ================= */
+
+.riseIn {
+  display: block;
+  animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--rise-delay, 0s) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes markIdle {
+  0%,
+  100% {
+    transform: rotateY(-20deg) rotateX(6deg);
+  }
+  50% {
+    transform: rotateY(16deg) rotateX(-3deg);
+  }
+}
+
+@keyframes spinY {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes spinZ {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

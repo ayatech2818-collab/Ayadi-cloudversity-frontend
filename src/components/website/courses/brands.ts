@@ -29,6 +29,13 @@ export type BrandTheme = {
   outline: string;
 };
 
+/** One figure in a pathway's stat row. Values are strings so "3K+" and
+    "Flexible" can sit in the same run. */
+export type BrandStat = {
+  value: string;
+  label: string;
+};
+
 export type Brand = {
   id: BrandId;
   index: string;
@@ -38,8 +45,11 @@ export type Brand = {
   kind: 'Parent platform' | 'Sub-brand';
   /** The single line that says what this pathway is for. */
   role: string;
-  description: string;
-  highlights: string[];
+  /** The promise, under the name. Shown in the pathway's own brand colour. */
+  tagline: string;
+  /** The opening paragraph of the pathway's scene. */
+  lede: string;
+  stats: BrandStat[];
   icon: LucideIcon;
   theme: BrandTheme;
 };
@@ -52,9 +62,14 @@ export const brands: Brand[] = [
     shortName: 'Ayadi',
     kind: 'Parent platform',
     role: 'The core learning platform',
-    description:
-      'Professional and lifelong programmes for learners at every stage — practical skills, career preparation and personal growth, from preschool foundations through to the workplace.',
-    highlights: ['Career programmes', 'Lifelong learning', 'Workplace readiness'],
+    tagline: 'Learning for Every Journey',
+    lede: 'From school to career, from skills to personal growth — explore a wide range of programmes designed for every learner, at every stage of life.',
+    stats: [
+      { value: '100+', label: 'Programmes' },
+      { value: '3K+', label: 'Learners' },
+      { value: '50+', label: 'Expert Instructors' },
+      { value: 'Flexible', label: 'Learning Modes' },
+    ],
     icon: GraduationCap,
     theme: {
       text: 'text-primary',
@@ -73,9 +88,14 @@ export const brands: Brand[] = [
     shortName: 'AyaTech',
     kind: 'Sub-brand',
     role: 'Technology, software and AI',
-    description:
-      'The technical arm of the ecosystem. Engineering-depth programmes in software development, cloud infrastructure, artificial intelligence and the tools shaping the next decade of work.',
-    highlights: ['Applied AI', 'Cloud & DevOps', 'Software engineering'],
+    tagline: 'Built for What Comes Next',
+    lede: 'The technical arm of the ecosystem — software development, cloud infrastructure and applied AI, taught the way the work is actually done: by building.',
+    stats: [
+      { value: '60+', label: 'Tech Tracks' },
+      { value: '1.2K+', label: 'Builders' },
+      { value: '30+', label: 'Industry Mentors' },
+      { value: 'Project', label: 'Led Learning' },
+    ],
     icon: Cpu,
     theme: {
       text: 'text-accent',
@@ -94,9 +114,14 @@ export const brands: Brand[] = [
     shortName: 'Netscape',
     kind: 'Sub-brand',
     role: 'Training programmes for teachers',
-    description:
-      'Built for educators. Classroom pedagogy, education technology and subject certification designed to develop the people who develop everyone else.',
-    highlights: ['Classroom pedagogy', 'EdTech practice', 'STEM certification'],
+    tagline: 'Teaching the Teachers',
+    lede: 'Built entirely for educators — classroom pedagogy, education technology and subject certification for the people who develop everyone else.',
+    stats: [
+      { value: '40+', label: 'Training Modules' },
+      { value: '800+', label: 'Educators Trained' },
+      { value: '25+', label: 'Master Trainers' },
+      { value: 'Certified', label: 'Pathways' },
+    ],
     icon: BookOpen,
     theme: {
       text: 'text-brand-teal',

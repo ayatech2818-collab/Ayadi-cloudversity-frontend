@@ -17,8 +17,6 @@ import { brandById } from '@/components/website/courses/brands';
 import { brandContentMap } from '@/components/website/courses/dummyData';
 import { learningWorlds } from '@/components/website/courses/journey';
 
-import type { WorldId } from '../hero-ecosystem/Hero3DEcosystem';
-
 /*
  * What the Ayadi Universe says, chapter by chapter.
  *
@@ -33,7 +31,7 @@ import type { WorldId } from '../hero-ecosystem/Hero3DEcosystem';
  * length whichever one the visitor is reading.
  */
 
-export type Brand = WorldId;
+export type Brand = 'cloudversity' | 'ayatech';
 
 export const BRANDS: Brand[] = ['cloudversity', 'ayatech'];
 

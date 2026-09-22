@@ -5,7 +5,7 @@ It records the design system as it exists in the code today, the reasoning
 behind it, and the open questions. When this file and the code disagree, the
 code wins — update this file.
 
-Last updated: 2026-09-21.
+Last updated: 2026-09-22.
 
 ---
 
@@ -13,7 +13,8 @@ Last updated: 2026-09-21.
 
 - **Stack.** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript ·
   Tailwind CSS v4 · framer-motion · GSAP (+ ScrollTrigger) · lucide-react.
-  No Three.js / WebGL anywhere — all 3D is CSS 3D transforms.
+  three.js + React Three Fiber are used **only** by the Home hero (one
+  lazy-loaded WebGL canvas, §9); every other 3D effect is CSS 3D transforms.
 - **Next 16 has breaking changes.** Read `node_modules/next/dist/docs/` before
   using an API (see `AGENTS.md`). Example: `next/image` deprecated `priority`
   in favour of `preload`, and `images.qualities` defaults to `[75]`.
@@ -33,7 +34,7 @@ Last updated: 2026-09-21.
 | Brand | Role | Current colour identity in code |
 |---|---|---|
 | **Ayadi Cloudversity** | Parent platform — the site itself | Green → teal, with navy as the accent colour |
-| **AyaTech** | Sub-brand: technology, software, AI | **Inconsistent — see §13.** Navy on `/courses` and the Home "Learning Pathways" panels; green + white in the Home 3D hero |
+| **AyaTech** | Sub-brand: technology, software, AI | **Inconsistent — see §13.** Navy on `/courses` and the Home "Learning Pathways" panels; green + white in the Home hero's Choose your world card |
 | **Netscape** | Sub-brand: training for teachers | Teal (→ navy) |
 
 `globals.css` states the intended scale: *green (Ayadi) → teal (Netscape) →
@@ -223,13 +224,13 @@ Entrance: `opacity 0 → 1, y 14–40 → 0`, 0.4–0.7s, children staggered 0.1
 | HowItWorks | framer `useScroll` + springs | Pinned 460vh cinematic story, colour grade dark → daylight |
 | Media Reel | framer `useScroll` | Pinned 320vh filmstrip |
 | /courses (CoursesIntro, AyadiJourney) | GSAP + ScrollTrigger | Entrance timeline; pinned three-act scroll story |
-| Home hero — Ayadi Universe | GSAP + ScrollTrigger (pin, scrub, snap) + CSS keyframes + a small rAF loop | Pinned ~6.4-screen story; the 3D worlds transform per chapter; idle loops and pointer tilt inside the ecosystem |
+| Home hero | CSS `position: sticky` stage + one GSAP ScrollTrigger (`scrub: 0.9`, no snap, no JS pin) driving a WebGL scene (three.js / React Three Fiber, custom GLSL) | ~8.45-screen journey on a stationary page: logo → globe → portal, with *Why choose Ayadi* on its glass on the way in → liquid crossing → Choose your world |
 
 **Global keyframes** (`globals.css`): `spark-travel` (offset-path comets),
 `icon-float` (idle bob), `idle-tilt`.
 
 **Budget:** the Home page already has **two pinned scroll stories** — the
-Ayadi Universe hero (~6.4 screens, the owner's choice) and HowItWorks (460vh).
+hero journey (~8.45 screens, 7.25 on phones) and HowItWorks (460vh).
 New sections should be calm: entrance, hover, maybe one small loop. No more
 pinned or scroll-jacked sections on Home.
 
@@ -241,14 +242,15 @@ pinned or scroll-jacked sections on Home.
 
 Order and intent:
 
-1. **Hero = the Ayadi Universe** (`sections/Hero.tsx` →
-   `ayadi-universe/AyadiUniverse.tsx`, §9). A pinned scroll story: the Ayadi
-   logo with the page's eyebrow *"Learning for every next step"*, `h1` *"Start
-   Your Future Education With **Ayadi Cloudversity**"*, paragraph and CTA
-   *"Explore Learning Paths"* (→ `/courses`) → the logo becomes the core of a
-   globe → the camera dives in → *"Choose your world"* (the two 3D worlds) →
-   three chapters of the chosen brand. The old *"The Ayadi approach"* tabs
-   were removed (they switched nothing).
+1. **Hero = the scroll journey** (`sections/Hero.tsx` → `hero/AyadiHero.tsx`,
+   §9). A centred opening: a faint AYADI watermark behind the 3D mark, then eyebrow *"Learning for every next step"*, `h1` *"Start Your Future
+   Education With **Ayadi Cloudversity**"*, paragraph and CTA *"Explore
+   Learning Paths"* (→ `/courses`) → scroll: the mark
+   becomes the core of a globe → the globe becomes a portal, and on its glass,
+   as the camera nears, *"Why choose Ayadi?"* and three cards one by one → the camera flies
+   through its liquid glass → *"Choose your world"* (Ayadi Cloudversity or
+   AyaTech). Stops there. The old *"The Ayadi approach"* tabs were removed
+   (they switched nothing).
 2. **WhyChooseAyadi** — dark emerald→teal rounded panel. Left: "Our Edge"
    pill, "Why Choose **Ayadi**", two paragraphs. Right: three glass feature
    cards (Expert Instructors / Best-in-Class Program / Flexible Learning, tags
@@ -310,166 +312,186 @@ Order and intent:
 
 ---
 
-## 9. Home hero
+## 9. Home hero — `src/components/website/sections/hero/`
 
-### 9.1 The Ayadi Universe — `src/components/website/sections/ayadi-universe/`
+A scroll-driven WebGL journey — *"scroll into the Ayadi digital universe"* —
+that ends at **Choose your world**. The post-choice experience is not built
+yet (see §9.5).
 
-The Home page's opening story. One pinned stage, six resting steps:
+### 9.1 The journey
 
-| Step | Timeline stop | What happens |
-|---|---|---|
-| 1 Logo | 0 | Extruded Ayadi mark (`AyadiMark3D`) centred; eyebrow, `h1`, paragraph, CTA below |
-| 2 Globe | 1.85 | Copy leaves; the mark turns a full 360° and shrinks into the core of a CSS 3D wireframe globe (`UniverseGlobe.tsx`); caption *"Welcome to the Ayadi universe"* |
-| — Dive | 2.15–3.0 | The globe swells past the camera and dissolves; the 3D ecosystem arrives out of depth |
-| 3 Choose | 3.35 | *"Choose your world"*: the ecosystem (§9.2) plus two brand buttons. Worlds are clickable too |
-| 4–6 Chapters | 4.85 / 5.9 / 6.65 · 7.1 · 7.55 | Ecosystem slides left, the chosen world comes into focus (centred, ×1.42) and **transforms per chapter** (§9.3); chapter panels on the right. Chapter 3 rests three times |
+One stage, one ScrollTrigger, one master timeline scrubbed across **8.45
+screens** of scroll (7.25 on phones). The master plays the **story** (`SCORE`
++ `CUES`, `TOTAL = 10` story units) 1:1, except that story 4.9 → 5.55 — the
+portal's glass fading in, the camera on its way to it — is **stretched** over
+2.7 master units for the **Why Choose Ayadi stage** (`STAGE`). The camera
+never stops: it moves more slowly there, plus a steady extra dolly (`push`)
+that is handed back in the fast approach after. Story times in the table
+below are story units; after story 5.55, add 2.05 for master units. No
+snapping: stopping leaves the scene exactly where the scroll is, and
+scrolling back plays it backwards.
 
-- **Files:** `AyadiUniverse.tsx` (mode detection, GSAP timeline, state,
-  rail, skip), `UniverseGlobe.tsx`, `BrandChapters.tsx` (panels +
-  `BrandSwitch`), `content.ts` (chapter data), `universe.module.css`
-  (layout for both modes).
-- **Two layouts, one markup.** Default `data-mode="flow"`: ordinary stacked
-  sections (phones, tablets, short screens, reduced motion, no JS).
-  `data-mode="cinematic"` only when `(min-width: 1024px) and (min-height:
-  700px) and (prefers-reduced-motion: no-preference)` — then the stage is
-  pinned and the acts are layered. `gsap.matchMedia` reverts everything when
-  the query stops matching.
-- **Scroll mechanics.** One ScrollTrigger: `pin`, `scrub: 0.8`, `snap` to the
-  resting steps (`SNAPS`), length `PIN_SCREENS` (6.4) screens. Timings live
-  in `TOTAL`/`STEPS`/`SNAPS`/`CHAPTER_WINDOWS`/`viewAt()` at the top of
-  `AyadiUniverse.tsx`. Continuous
-  moves (logo → globe → dive → ecosystem → slide left) are scrubbed; *which
-  chapter* shows is React state updated only when the step changes, and the
-  panels crossfade with CSS.
-- **The choice never blocks scrolling.** Cloudversity is selected by default;
-  a switch above the chapters changes brand at any point (crossfade in
-  place). Choosing from the buttons or a world scrolls into chapter 1.
-- **Wayfinding:** a progress rail (right edge; jumps to each step) and a
-  *Skip intro* button (bottom left) — cinematic only.
-- **Content** (`content.ts`) reuses existing copy only: `brands.ts`
-  (names, taglines, ledes), `journey.ts` (six subjects), `dummyData.ts`
-  (placeholder programmes, CTAs), the Footer's three Cloudversity pathways.
-  No stats. The one new line is AyaTech chapter 3's text ("By building…").
-  Chapters: Cloudversity — Pathways · Subjects · Programmes; AyaTech —
-  Focus · Tracks · Build. Both brands must keep **exactly three** chapters.
-- **Colours:** light "daylight universe" (mint/teal washes, green star dots),
-  not dark space. AyaTech uses green + white (`from-brand-start
-  to-primary-hover`), Cloudversity the brand gradient.
-- **Rule:** nothing GSAP animates carries a CSS transform of its own (layers
-  are positioned with left/top/margins); the globe fades its rings through a
-  `--globe-o` variable, never opacity on a `preserve-3d` element.
+**The page stands still for the whole journey.** Everything — the opening
+included — lives on one stage that is `position: sticky; top: 0` inside a
+section `100lvh + 845vh` tall (`725vh` on phones). The browser holds the stage
+in place (a JavaScript pin at the very top of a page slips by a frame first);
+scrolling only moves the timeline; when the section runs out the stage lets
+go and the page continues to WhyChooseAyadi. Scrolling back up re-enters it
+the same way. Nothing between the stage and the page's scroller may clip
+(`overflow: hidden/auto`) or sticky stops working.
 
-### 9.2 The 3D ecosystem — `src/components/website/sections/hero-ecosystem/`
-
-(See §9.3 for how the worlds respond to the story's chapters.)
-
-**Concept.** Two floating miniature worlds, **Ayadi Cloudversity** (learning)
-and **AyaTech** (technology), with a small **shared core** between them and a
-curved 3D connection through all three. The core is *not* a third brand — it
-has no label. Used inside the Universe story as the "choose your world"
-scene. Props: `focus` (brings one world forward, sends the rest back, hides
-the arc) and `onSelectWorld` (makes the worlds clickable).
-
-**Technique.** Pure CSS 3D: `perspective` on a camera, `transform-style:
-preserve-3d` down the tree, flat planes placed in space. No WebGL, no new
-dependency. It renders completely on the server.
-
-| File | Contents |
+| Units | What you see |
 |---|---|
-| `Hero3DEcosystem.tsx` | Stage, backdrop washes, pointer tilt (rAF that runs only while settling), offscreen pause (IntersectionObserver → `data-paused`), world hover state, ambient motes |
-| `geometry.ts` | Units, CSS-matching rotation math, the two compositions (`LAYOUTS`), `arcThrough` (circle through 3 points → plane `matrix3d`), `BASE_TILT_X` |
-| `primitives.tsx` | `SceneAnchor` (position → focus → entrance → hover lift → idle float, one transform owner each), `Billboard`, `Orb`, `Prism` (5-face box), `WorldLabel`, `GroundShadow` |
-| `CloudversityWorld.tsx` | Floating island; a spiral of 8 steps climbing a column of light (colour climbs green → teal → hint of navy → white); orbit ring with knowledge nodes; fanned open pages; rising motes |
-| `AyatechWorld.tsx` | Processor chip turned 45° over a grid; lit die; circuit traces with signal pulses; 3 white towers; floating "stack layer" plate. **Green, white and dark green only** |
-| `EcosystemCore.tsx` | Glass sphere (front and back camera-facing discs) around a rotating octahedron crystal; two tilted rings with sweeping arcs |
-| `ConnectionStream.tsx` | SVG arc drawn inside the oriented plane; gradient teal → white → green; particles travelling both ways |
-| `ecosystem.module.css` | All styling and keyframes; uses the tokens |
+| 0 | **Opening** — one centred column at every width, never a grid. A huge, faint **AYADI** watermark; the 3D Ayadi mark in front of it (docked in the logo slot, a soft contact shadow under it); then eyebrow *"Learning for every next step"*, `h1` *"Start Your Future Education With **Ayadi Cloudversity**"*, paragraph, CTA *"Explore Learning Paths"* (→ `/courses`), and *"Scroll to explore"* under the button. Light page |
+| 0.1–2.1 | The copy fades where it stands (0.1–0.9, no scrolling). The mark comes free of its slot, turns to show its extruded depth, the camera pulls back, and the page darkens into deep green space |
+| 1.3–3.1 | A globe draws itself round the mark — latitude rings and meridians, dark glass body, atmosphere, a quiet network of points and arcs. The mark shrinks into its glowing core. Caption *"Welcome to the **Ayadi universe**" / "Learning, from anywhere in the world."* |
+| 3.7–5.5 | **Globe → portal.** The globe tips to face the camera (which has been drifting right and down to face it head-on since 3.0); its rings square off into the portal's frames and its meridians straighten into rails. The core drifts back through the portal and fades. A liquid-glass surface fills the front frame |
+| 4.9–5.55 *(stretched)* | **Why Choose Ayadi, on the glass.** As the glass appears the camera keeps travelling toward it, slowly. On the glass: its shade darkens softly; pill *"Our Edge"* and *"Why Choose **Ayadi**?"* surface; then one card per stretch of scroll — **Expert Instructors**, **Best-in-Class Program**, **Flexible Learning** — each rising out of the glass, tag springing on, accent line drawing; a short hold with all three; then they sink back into the glass, shrink and fade, the heading and shade after them |
+| 5.55–6.5 | **Approach.** The glass brightens and ripples as the camera speeds toward it. Caption *"Step into the Ayadi ecosystem"* (now just after the stage) |
+| 6.15–7.6 | **Crossing.** The camera flies through the surface (z = 0 at ≈ 6.55). A full-screen liquid pass peaks there (flowing refraction, ripples, the membrane's edge sweeping past, slight chromatic split); FOV kicks 40° → 50° → 42°; the far side swaps in under the distortion |
+| 7.0–8.45 | **The far side.** Bright sky, a pale floor with a fine green grid, a soft pool of light behind each card. Eyebrow *"Two worlds, one ecosystem"*, `h2` *"Choose your world"*, then the two cards |
+| 8.45–10 | Hold, then the page scrolls on to WhyChooseAyadi |
 
-**Units.** The stage is always **640 units wide**; `--u: calc(100cqw / 640)`
-(container query) converts units to px, so the scene scales with its column in
-CSS alone. Axes are CSS's own: x right, y down, z toward the viewer. Computed
-numbers are rounded before reaching inline styles, to avoid hydration
-mismatches.
+**Why Choose Ayadi panel** (`WhyStage.tsx`) — the heading and three compact
+card rows, laid out flat (`min(34rem, 92vw)` wide) and kept **on the portal's
+glass** by the scene: every frame `placeInfo()` (scene/HeroScene.tsx)
+projects the glass's centre and size and moves/scales the panel onto it —
+84% of the glass, never below 0.85× — so it grows as the camera nears and
+sways with the pointer's orbit exactly as the glass does. On a phone, where
+the glass is too small to read from, the panel is sized to the screen
+instead. A soft shade behind it (`.whyScrim`) keeps the words readable on the
+brightening glass. The card is the WhyChooseAyadi section's feature card as a
+row: glass surface (no backdrop blur — it would re-blur the live canvas every
+frame) with a faint reflection, white ring, top sheen, cursor spotlight
+(`useCardTilt`'s `--spot-x/--spot-y`), hover lift with lime glow and ring,
+48px icon tile (−6° and 1.05× on hover, conic lime border that shows and
+turns on hover only), icon floating gently, lime tag hanging from the icon,
+accent line that grows on hover, shimmering *"Ayadi"*. Pointer: tilt
+(`useCardTilt(4)`) and spotlight. The copy is the section's, word for word
+(kept in step by hand — the section is untouched). The panel is
+`aria-hidden`: the WhyChooseAyadi section below is its accessible version.
+Still layout: the same panel, dark, between the opening and the choice.
 
-**Compositions** (`LAYOUTS`; switched at `40rem` by CSS custom properties):
-- `wide` (≥ sm, stage 640×600): Cloudversity upper-left `[-148,-112,0]`,
-  core `[48,-34,110]` (forward), AyaTech lower-right `[150,118,24]`, worlds
-  ×0.9.
-- `compact` (phones, 640×470): worlds side by side, core arched above; worlds
-  ×0.84; fewer details (`max-sm:hidden` on pages, extra towers/rings, motes).
+**Choose your world** — two cards (`ChooseWorld.tsx`): **Ayadi Cloudversity**
+(graduation cap, `bg-brand-gradient`, *Education · Learning*, tagline from
+`brands.ts`) and **AyaTech** (CPU, `from-brand-start to-primary-hover` —
+green and white, never navy, *Technology · Development*). Real buttons with
+`aria-pressed`; pointer tilt via `useCardTilt(6)` with the icon and text at
+different depths; cursor light; selected state is a primary ring + check.
 
-**Camera and interaction.** Base look-down `BASE_TILT_X = -18°`. The mouse
-tilts up to ±9° (Y) / ±5° (X) toward the cursor. Hovering a world lifts it
-toward the viewer, brightens its glow and highlights its label. Idle: gentle
-floats, a slow sway of the whole scene, slow spins (helix, crystal),
-particles, breathing light.
+### 9.2 Architecture
 
-**Rules that keep the 3D intact:** only leaf elements get `opacity`,
-`filter`, `overflow` or `mask` (on a `preserve-3d` element they flatten it).
-Glows are radial gradients, not blur filters. One transform owner per
-element.
+| File | Job |
+|---|---|
+| `AyadiHero.tsx` | Mode detection, the **story** (`SCORE` — every rig move; `CUES` — the HTML layers), the **Why stage** (`STAGE`, `PUSH`) and the master timeline that stretches the story for it, the one ScrollTrigger (section top → bottom, `scrub: 0.9`), `measure()` (fits the opening, measures slot, watermark and the Why panel), the pointer/resize listeners, "Skip to the choice" |
+| `WhyStage.tsx` | The Why Choose Ayadi heading and three cards |
+| `rig.ts` | The rig: a plain object of numbers GSAP writes and the scene reads. `RIG_START`, and the quality tiers (`pickQuality`) |
+| `ChooseWorld.tsx` | The two cards. Selection is local state only |
+| `hero.module.css` | Both layouts (below) |
+| `scene/HeroScene.tsx` | The single `<Canvas>`; **Director** (the clock, the camera, docking the mark into its slot); **LiquidPass** (renders the frame) |
+| `scene/Mark.tsx` | The extruded mark (geometry traced from `ayadi-mark.png`) |
+| `scene/GlobePortal.tsx` | Globe body, atmosphere, network, core glow, the lattice (two passes: core + soft halo), the liquid surface |
+| `scene/Environment.tsx` | Backdrop (three skies in one full-screen shader), motes (`Points`), the far side (floor + two glows) |
+| `scene/geometry.ts` · `shaders.ts` · `frame.ts` | Procedural geometry · all GLSL · per-frame shared values |
 
-**Performance and accessibility:** idle motion is compositor-only CSS; the
-pointer loop stops when settled; everything pauses offscreen. Reduced motion
-shows a still scene (no animation, particles or tilt). Touch devices get no
-tilt. The stage is `role="img"` with an `aria-label`; its contents are
-`aria-hidden`.
+**Data flow:** scroll → ScrollTrigger (scrub) → master timeline → story
+timeline (+ stage tweens) → `rig` →
+`gsap.ticker` calls R3F's `advance()` → `useFrame` → uniforms and camera.
+React state changes only for the layout mode, "scene ready" and the chosen
+card — never during animation.
 
-**Tuning:** composition in `geometry.ts` (`LAYOUTS`; the arc recomputes
-itself); tilt strength in `Hero3DEcosystem.tsx` (`TILT`); particle count in
-`ConnectionStream.tsx` (`PARTICLES`).
+**Rules to keep:**
+- **One score.** Every story value moves only through a `SCORE` line. Lines
+  for the same key must not overlap; each starts where the previous one for
+  that key ended. That is what makes it reversible and safe to fling. Add a
+  moment by adding lines, never by animating a story value in `useFrame`.
+  The exceptions are `info` (0 → 1 through the Why stage) and `push`
+  (its extra dolly, 0 → 0.6 → 0), moved only by the master. To give another
+  moment more room, stretch the story the same way rather than retiming
+  `SCORE` — and never across a spot where the camera would stand still.
+- **Idle motion is additive and time-based** (globe's idle turn — which winds
+  down as it becomes the portal — ripples, arcs, motes, the mark's sway). It
+  never writes the rig.
+- **Pointer is secondary:** the camera orbits a few degrees round its target,
+  easing off to a quarter while the mark is docked and letting go entirely
+  during the liquid pass; the mark and globe get a small extra turn. Mouse
+  only — touch gets none.
+- **The look target never falls behind the camera** (`z ≤ camZ − 4`), so the
+  camera flies through the portal without flipping round.
+- **Docking:** the mark lives at the world origin; the Director shifts the
+  projection matrix (elements 8/9) so it lands on `.slot`. The slot is
+  measured relative to the stage — which is exactly the canvas — on every
+  ScrollTrigger refresh and opening reflow, so no scroll offset is involved.
+- **Fit:** the opening no longer scrolls, so it must fit on the stage. On a
+  short screen `measure()` sets `--fit` and the whole column scales down
+  (floor 0.5).
+- **The watermark** has to sit *behind* the 3D mark, and the canvas is opaque
+  under the page's HTML, so it is drawn by the backdrop shader: `.watermark`
+  (hero.module.css) lays it out, `measure()` records its box and font into
+  `rig.watermark`, and `Backdrop` rasterises it once into a small canvas
+  texture and places it on that box every frame (fading with `dock`). The HTML element itself only shows until the scene's
+  first frame, and in the still layout. Change its size, spacing, tint or
+  fade in both places (`BACKDROP_FRAGMENT` mirrors the CSS).
+- **Colour:** every material is a `ShaderMaterial` writing display-space
+  (sRGB) values straight out (Canvas `flat`, no colour-space chunks, RGBA8
+  render target). Don't add three's lit materials — they would render darker
+  through the liquid pass. Palette is in the header of `shaders.ts`.
+- **Render loop:** `frameloop="never"`. The ticker renders only while the
+  hero is on screen, at up to 60 fps while scrolling or pointing (700 ms),
+  30 fps at rest; if frames stay slow while busy it steps DPR down by 0.25.
+  The liquid pass (an extra render-target pass) exists only while
+  `distortion > 0` — about 1.5 of the 10 units.
+- **Quality tiers:** high (≥ 1280 px, > 4 cores): DPR ≤ 1.5, MSAA, 190 motes,
+  160-segment lattice + halo, liquid target ×0.75 · medium (768–1279 px):
+  DPR ≤ 1.25, 130, 128 + halo, ×0.6 · low (< 768 px or ≤ 4 cores): DPR ≤ 1.25,
+  70, 96, no halo, ×0.5. Portrait screens dolly back before the portal by
+  `fit = (1.3 / aspect)^0.85`.
+- **Cleanup:** geometries and the render target are disposed in effect
+  cleanups; R3F disposes the renderer and declarative materials on unmount.
+- **Bundle:** three + React Three Fiber (~245 KB gzipped) live in their own
+  chunk, loaded by `next/dynamic({ ssr: false })` after hydration. Until the
+  first frame is drawn, the static `ayadi-mark.png` stands in the slot.
 
-### 9.3 The worlds tell the chapters
+### 9.3 Two layouts
 
-The chosen world is not a static illustration: it transforms with each
-chapter, driven entirely by CSS custom properties.
+- `data-mode="still"` — SSR default; stays for **reduced motion** or **no
+  WebGL2**. The opening, then Choose your world as an ordinary section, static
+  mark image, no canvas, no pin.
+- `data-mode="cinematic"` — the sticky `100lvh` stage (UI inside keeps to
+  `100svh`) holds the opening, the canvas, captions, cards, the progress line
+  and the skip button; a CSS "shade" stands in for deep space until the
+  canvas has drawn. The opening fades out with `autoAlpha`, so once gone it
+  no longer covers the stage.
 
-- **Signals.** The Universe timeline scrubs `--cp0`, `--cp1`, `--cp2`
-  (0 → 1, `CHAPTER_WINDOWS`) on the ecosystem wrapper. The focus layer
-  (`.focusLayer` in `ecosystem.module.css`) gates them with `--on` so only the
-  world in focus hears them, as `--k0/--k1/--k2`, plus `--kl/--kb/--kg` for
-  the learn/build/grow thirds of chapter 3. Pieces compute scale/translate
-  from these with `calc()`/`clamp()`; opacity is only used on leaves.
-- **Loops** that cycle through items run only while their chapter is on
-  screen (`data-chapter` on the stage + `[data-focus='in']`), so they start
-  from the first item each time.
-- **Layering rule:** position group → chapter/scroll state group → loop group
-  → geometry. Never put two transform writers on one element.
-- **Cloudversity** (`CloudversityWorld.tsx`) — platform + learning core
-  (orb under a spiral of steps) + six learning structures at the six subject
-  angles (book / graduation cap / pages / laptop / creative forms / tree),
-  orbit with knowledge nodes, orbiting pages.
-  1. Pathways: four pathway lines (Academic ↑, Skills →, Career ↓,
-     Creative ←) draw out of the core, end nodes + labels appear, particles
-     run them, the core brightens, the platform widens.
-  2. Subjects: six subject nodes (the `journey.ts` subjects) rise round the
-     ring; a 7.2s loop lights one at a time with a link to the core, and its
-     structure lifts and glows.
-  3. Programmes: structures and core bow out, a portal opens, the three
-     `dummyData` programmes rise one per scroll stop and settle in an arc.
-  A photo panel arrives for each chapter (learning / skills / career).
-- **AyaTech** (`AyatechWorld.tsx`) — processor core with pulse, three zones
-  on the package corners (AI network ↑ back, Cloud cluster ← left, Software
-  stack → right), data columns, server rack, circuit pulses.
-  1. Focus: AI → Cloud → Software each draw their circuit, light their column
-     and grow in.
-  2. Tracks: a branch from the core to each zone, zones spread; a 7.2s loop
-     brings one track forward (brighter, +Z) with data running its branch.
-  3. Build (three stops): Learn — zones draw in, the knowledge node swells;
-     Build — nine blocks leave the core and assemble; Grow — the structure
-     rises, beacon and ring light, rack fully lit.
-- **In step with the text:** in chapter 3 the right-hand card for the current
-  stop lights (`litCard`).
-- **Photos** (`photos.ts`, `PhotoPanel.tsx`): drop files at
-  `public/images/universe/cloudversity-learning.jpg`, `…-skills.jpg`,
-  `…-career.jpg`. `Hero.tsx` (server) checks which exist at build time; missing
-  ones render a tinted placeholder (with the expected path in development).
+**Accessibility:** the `h1` is in the opening; captions are real text; the
+canvas is `aria-hidden`; cards are buttons; "Skip to the choice" stays in the
+tab order from the start (opacity only, shows itself on focus).
 
-**History:** a revision that added three photo cards (Academic Learning /
-Skills & Personal Growth / Career Readiness) into this scene, a "What we
-provide" row, a GSAP scroll drift, and an editorial rewrite of
-WhyChooseAyadi was built and then **rolled back at the owner's request**
-(2026-09-21). Don't reintroduce it without asking.
+### 9.4 Tuning knobs
+
+- Pacing: `SCORE`, `CUES`, `STAGE` (+ `STAGE_FROM`, `STAGE_TO`, `STAGE_LENGTH`, `PUSH`) in
+  `AyadiHero.tsx`; if the stage's length changes, change the section height
+  by the same ratio (`MASTER_TOTAL / TOTAL`) to keep scroll speed; scroll length = the
+  `.root[data-mode='cinematic']` height in `hero.module.css`.
+- Globe/portal shape: `GLOBE_R`, `PORTAL_HALF`, `PORTAL_EXP`, `PORTAL_DEPTH`
+  in `scene/geometry.ts`; the morph itself in `LATTICE_VERTEX`.
+- The liquid: `LIQUID_FRAGMENT` (flow, waves, membrane, split) and
+  `SURFACE_FRAGMENT`.
+- Pointer strength: `direct()` in `HeroScene.tsx`.
+
+### 9.5 History and what is next
+
+- Replaced (2026-09-22): the **Ayadi Universe** — a CSS-3D globe and two
+  chapter-driven CSS-3D worlds (~5.5k lines: `ayadi-universe/AyadiUniverse.tsx`,
+  `UniverseGlobe.tsx`, `hero-ecosystem/*`, `lib/public-asset.ts`). It is in
+  git history at `4de6d65`.
+- Kept, **not rendered**: `ayadi-universe/BrandChapters.tsx` and `content.ts`
+  (the chosen brand's three chapters), with a `universe.module.css` trimmed to
+  the rules they use — material for the post-choice experience, which is to
+  be designed separately and plugs in at `ChooseWorld`'s `onSelect`.
+- An earlier revision with photo cards, a "What we provide" row and an
+  editorial WhyChooseAyadi was **rolled back at the owner's request**
+  (2026-09-21). Don't reintroduce it without asking.
 
 ---
 
@@ -479,7 +501,7 @@ WhyChooseAyadi was built and then **rolled back at the owner's request**
 |---|---|
 | `ayadi-logo.png` (+ `-dark`, `-white`, `-white-trimmed`, `-original`) | Navbar / footer logo |
 | `ayadi-logo-white.svg` | Hand-drawn approximation, **not** the real logo |
-| `ayadi-mark.png` | Mark cut from the logo by colour; used by `AyadiMark3D` |
+| `ayadi-mark.png` | Mark cut from the logo by colour; used by `AyadiMark3D`, as the hero's stand-in mark, and traced for the hero's WebGL mark (`hero/scene/geometry.ts`) |
 | `footer-student.png` | GetStartedCta photo |
 | `journey-step.svg` | Placeholder for HowItWorks step images |
 | `blog/placeholder.svg` | Blog cover placeholder |
@@ -525,7 +547,7 @@ generic stock.
 ## 13. Known inconsistencies and open decisions
 
 1. **AyaTech colour:** navy in `/courses`, LearningPathways panel 02 and the
-   `globals.css` scale; green + white in the Home 3D hero (the owner's latest
+   `globals.css` scale; green + white in the Home hero (the owner's latest
    direction). Needs one answer.
 2. **AyaTech vs Ayatech** spelling.
 3. **Navy is "on trial"** and its hex is unconfirmed.

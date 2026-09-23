@@ -75,7 +75,9 @@ export type Rig = {
   pointerY: number;
   /** performance.now() of the last scroll, pointer move or resize. */
   activeAt: number;
-  /** The hero is on screen — the only time the scene renders at all. */
+  /** The hero has the screen — the only time the scene renders at all. It
+      loses it to the Ayadi journey below once a world has been chosen, so the
+      two cinematics never run at once. */
   live: boolean;
 
   /** The opening's logo slot, in pixels from the stage's top-left (the

@@ -14,23 +14,25 @@
 }
 
 /*
- * The journey's scroll length. The section is the stage plus 8.45 screens
- * (7.25 on phones) — 7 and 6 before the Why stage, grown by MASTER_TOTAL /
- * TOTAL in AyadiHero.tsx so every part outside it keeps its scroll speed. The
- * stage is sticky inside it, so for all of that scroll the page stands still
- * and only the timeline moves. When the section's end arrives the stage lets
- * go and the page carries on. Nothing between the stage and the page's
- * scroller may clip (overflow hidden/auto) — that would break sticky.
+ * The journey's scroll length: 8.45 screens, 7.25 on phones. The last half
+ * screen of it happens after this section ends — the trigger runs on past
+ * the bottom (TAIL in AyadiHero.tsx), through the light and into the world
+ * — so the section itself is that much shorter and the pace of everything
+ * before it is unchanged.
+ *
+ * The stage is sticky inside the section, so until then the page stands
+ * still and only the timeline moves. Nothing between the stage and the
+ * page's scroller may clip (overflow hidden/auto) — that would break sticky.
  */
 .root[data-mode='cinematic'] {
-  height: calc(100vh + 845vh);
-  height: calc(100lvh + 845vh);
+  height: calc(100vh + 795vh);
+  height: calc(100lvh + 795vh);
 }
 
 @media (max-width: 767px) {
   .root[data-mode='cinematic'] {
-    height: calc(100vh + 725vh);
-    height: calc(100lvh + 725vh);
+    height: calc(100vh + 675vh);
+    height: calc(100lvh + 675vh);
   }
 }
 
@@ -410,6 +412,293 @@
     translate: none;
     transition: box-shadow 0.2s ease;
   }
+}
+
+/* ================= the world below =================
+   The chosen world — the Cloudversity journey, or AyaTech's holding card.
+   Positioned, so it paints over the hero's stage rather than under it. */
+
+.world {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- where the world waits ----------
+   In the cinematic layout the world is not below the hero waiting its turn
+   to scroll up — it is pulled up over the hero's last screen *and* made
+   sticky, so once its top edge reaches 84 px (the navbar clearance) it
+   locks there and stays put. The hero's timeline then fades it up in place
+   (WORLD in AyadiHero.tsx) while the light in front of it is still bright:
+   the world never visibly moves — it is revealed, not scrolled into view.
+
+   The margin-top pull-up is generous enough that .world reaches the sticky
+   lock point well before the opacity reveal begins, so there is no window
+   where it could be seen travelling upward. Nothing on .world creates a
+   containing block (no transform, no filter), so the journey's own
+   position: fixed pin inside it works exactly as it does on the courses
+   page. The margin waits until there is something in the box — an empty
+   one must not pull the page up. */
+.root[data-mode='cinematic'] + .world {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.root[data-mode='cinematic'] + .world:not(:empty) {
+  margin-top: -115svh;
+  position: sticky;
+  top: 84px;
+}
+
+/* Once it is the thing on screen (AyadiHero writes data-on). */
+.root[data-mode='cinematic'] + .world[data-on] {
+  pointer-events: auto;
+}
+
+
+/* ================= the light between the worlds =================
+   The hero does not hand the page to the world below it — it goes white, and
+   the world is revealed through the white. One fixed sheet over both of them,
+   driven by the hero's own timeline (VEIL in AyadiHero.tsx): it fills as the
+   choice and the scene dissolve, holds while the world is already in place
+   behind it (sticky), then clears.
+
+   The blur is what makes it light rather than a curtain: while the sheet is
+   half gone, half of what you see is still the soft version of it, so the
+   world settles into focus instead of switching on. It costs a full-screen
+   backdrop pass, which is why it is `visibility: hidden` (autoAlpha) at both
+   ends — outside this one moment it is not there at all. */
+
+.veil {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: radial-gradient(135% 95% at 50% 56%, #ffffff 0%, #ffffff 42%, var(--color-page) 100%);
+  /* Lightning CSS adds the -webkit- form from the browserslist targets;
+     writing it here as well only makes it drop the standard one. */
+  backdrop-filter: blur(12px) saturate(115%);
+}
+
+/* The green this page is lit by, as the air of the moment you arrive in it.
+   Its own layer, so it can outlast the light and still be there over the
+   world's first seconds. */
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      52% 38% at 50% 60%,
+      color-mix(in srgb, var(--color-brand-middle) 24%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      95% 55% at 50% 108%,
+      color-mix(in srgb, var(--color-brand-end) 20%, transparent),
+      transparent 66%
+    ),
+    radial-gradient(
+      75% 45% at 50% -10%,
+      color-mix(in srgb, var(--color-brand-start) 13%, transparent),
+      transparent 70%
+    );
+}
+
+/* ================= the world switcher =================
+   A piece of glass, not a toolbar. A lit top edge and a soft shadow give it
+   thickness; a pane slides under the world you are in; and under the cursor
+   the glass brightens and refracts, the way light moves through water. The
+   whole effect lives in absolutely positioned layers inside the pill, so
+   none of it can shift the page, and the pill itself never scales.
+
+   Shown while a world has the screen (AyadiHero writes data-on). Hidden is
+   invisible *and* out of the tab order. */
+
+.switcher {
+  position: fixed;
+  top: 6rem;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.38);
+  backdrop-filter: blur(18px) saturate(150%);
+  box-shadow:
+    /* the lit rim, then the thickness of the glass, then its shadow */
+    inset 0 0 0 1px rgb(255 255 255 / 0.5),
+    inset 0 1px 1px rgb(255 255 255 / 0.8),
+    inset 0 -8px 14px -10px color-mix(in srgb, var(--color-primary) 32%, transparent),
+    0 16px 38px -24px rgb(4 76 59 / 0.55);
+  opacity: 0;
+  visibility: hidden;
+  translate: -50% -10px;
+  transition:
+    opacity 0.45s ease,
+    translate 0.45s ease,
+    visibility 0s linear 0.45s;
+}
+
+.switcher[data-on] {
+  opacity: 1;
+  visibility: visible;
+  translate: -50% 0;
+  transition:
+    opacity 0.45s ease,
+    translate 0.45s ease,
+    visibility 0s;
+}
+
+/* The world you are in: a clearer pane of the same glass, one step nearer. */
+.switcherPane {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: calc(50% - 0.25rem);
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.58);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.75),
+    inset 0 1px 1px rgb(255 255 255 / 0.9),
+    0 6px 14px -9px rgb(4 76 59 / 0.45);
+  transition: translate 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.switcher[data-world='ayatech'] .switcherPane {
+  translate: 100% 0;
+}
+
+/* ---------- what the cursor does ----------
+   Both follow --x / --y, written by WorldSwitcher on pointer move, and both
+   fade rather than jump, so the light drifts after the cursor instead of
+   snapping to it. */
+
+.switcherLens,
+.switcherGlow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.switcher:hover .switcherLens,
+.switcher:focus-within .switcherLens,
+.switcher:hover .switcherGlow,
+.switcher:focus-within .switcherGlow {
+  opacity: 1;
+}
+
+/* Refraction: a lens of glass over the glass, only where the cursor is. */
+.switcherLens {
+  backdrop-filter: blur(3px) saturate(190%) brightness(1.06);
+  mask-image: radial-gradient(circle 44px at var(--x, 50%) var(--y, 50%), #000 20%, transparent 72%);
+}
+
+/* And the light itself: white at the centre, brand green around it. */
+.switcherGlow {
+  background:
+    radial-gradient(circle 46px at var(--x, 50%) var(--y, 50%), rgb(255 255 255 / 0.7), transparent 70%),
+    radial-gradient(
+      circle 88px at var(--x, 50%) var(--y, 50%),
+      color-mix(in srgb, var(--color-brand-middle) 22%, transparent),
+      transparent 72%
+    );
+  filter: blur(7px);
+}
+
+.switch {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--color-muted);
+  transition: color 0.35s ease;
+}
+
+.switch:hover {
+  color: var(--color-accent);
+}
+
+.switch[aria-pressed='true'] {
+  color: var(--color-primary);
+}
+
+/* Inside the button: the pill clips, so an outset ring would be cut off. */
+.switch:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -3px;
+}
+
+@media (max-width: 640px) {
+  .switcher {
+    top: 4.75rem;
+  }
+
+  .switch {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.68rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switcher,
+  .switcherPane,
+  .switch {
+    transition: none;
+  }
+
+  /* Light that follows the cursor is motion; leave the glass still. */
+  .switcherLens,
+  .switcherGlow {
+    display: none;
+  }
+}
+
+/* ================= AyaTech, until it has a world =================
+   Where that world's experience will play (AyatechWorld.tsx). No panel and
+   no card — the same open page the Cloudversity world plays on, with the
+   words standing in the middle of it. */
+
+.soon {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: 7rem 1.25rem 4rem;
+}
+
+.soonCard {
+  max-width: 32rem;
+  text-align: center;
+}
+
+.soonIcon {
+  display: inline-grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 1rem;
+  color: #ffffff;
+  background: var(--background-image-brand-gradient);
+  box-shadow: 0 14px 28px -14px rgb(4 76 59 / 0.7);
 }
 
 /* ================= Why Choose Ayadi — on the portal's glass =================

@@ -58,6 +58,14 @@ const TILE_EVEN = { filter: 'blur(0px)', autoAlpha: 1, x: 0, y: 0, scale: 1, zIn
 const ACT_PADDING = 'px-5 py-8 pb-14 sm:px-8 sm:py-10 sm:pb-16 lg:px-12';
 const HERO_GRID = 'mx-auto grid w-full max-w-[1180px] items-center gap-12 lg:grid-cols-[1.12fr_0.88fr]';
 
+/* The card the acts play inside: rounded, lifted off the page and clipping
+   its own contents, so the collage can fly outward without spilling across
+   the section. The Home page passes `bare` and keeps only the clipping —
+   there the journey is not a panel on a page, it is the world you have
+   walked into, and a card edge would say otherwise. */
+const CARD =
+  'mx-4 my-10 rounded-[24px] bg-linear-to-b from-white via-[#f7fbf9] to-white shadow-[0_50px_120px_-55px_rgba(20,29,63,0.45)] ring-1 ring-inset ring-border/70 sm:mx-6 sm:rounded-[32px]';
+
 /* The collage's box, shared by the 3D plane and the flat overlay that sits on
    top of it. Both have to measure the same or the script and the sparks drift
    off the cluster. */
@@ -89,7 +97,14 @@ const SPARKS = [
  * a laptop. That constraint — not taste — sets the type scale and the collage
  * sizing below; check it again before adding a line to any act.
  */
-export function AyadiJourney({ onSelectBrand }: { onSelectBrand: (id: BrandId) => void }) {
+export function AyadiJourney({
+  onSelectBrand,
+  bare = false,
+}: {
+  onSelectBrand: (id: BrandId) => void;
+  /** Without the card around it — see CARD above. */
+  bare?: boolean;
+}) {
   const scope = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
 
@@ -197,13 +212,16 @@ export function AyadiJourney({ onSelectBrand }: { onSelectBrand: (id: BrandId) =
           /* 84px is the clearance the sticky brand tabs below already use for
              the fixed navbar, so the card's top edge lands clear of it. */
           gsap.set(stageEl, { height: 'calc(100svh - 84px)', overflow: 'hidden' });
+          /* The breath between the card's edge and the stage's. Without a
+             card there is no edge, and the acts take the whole screen. */
+          const inset = bare ? 0 : 14;
           gsap.set(q('[data-card]'), {
             position: 'absolute',
             margin: '0px',
-            top: 14,
-            right: 14,
-            bottom: 14,
-            left: 14,
+            top: inset,
+            right: inset,
+            bottom: inset,
+            left: inset,
             width: 'auto',
             height: 'auto',
           });
@@ -511,20 +529,16 @@ export function AyadiJourney({ onSelectBrand }: { onSelectBrand: (id: BrandId) =
     }, scope);
 
     return () => context.revert();
-  }, []);
+  }, [bare]);
 
   const Icon = brand.icon;
 
   return (
     <section ref={scope} aria-label={brand.name} className="relative isolate">
       <div ref={stage} className="relative">
-        {/* The card everything plays inside. Rounded, lifted off the page and
-            clipping its own contents, so the collage can fly outward without
-            spilling across the section. */}
-        <div
-          data-card
-          className="relative isolate mx-4 my-10 overflow-hidden rounded-[24px] bg-linear-to-b from-white via-[#f7fbf9] to-white shadow-[0_50px_120px_-55px_rgba(20,29,63,0.45)] ring-1 ring-inset ring-border/70 sm:mx-6 sm:rounded-[32px]"
-        >
+        {/* Everything plays inside this. It always clips; whether it also
+            looks like a card is the caller's business. */}
+        <div data-card className={`relative isolate overflow-hidden${bare ? '' : ` ${CARD}`}`}>
           {/* ================= ACT ONE — the platform ================= */}
           <div
             data-act="hero"

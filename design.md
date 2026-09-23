@@ -223,16 +223,17 @@ Entrance: `opacity 0 → 1, y 14–40 → 0`, 0.4–0.7s, children staggered 0.1
 | Most sections | framer-motion | Entrance variants, hover, loops |
 | HowItWorks | framer `useScroll` + springs | Pinned 460vh cinematic story, colour grade dark → daylight |
 | Media Reel | framer `useScroll` | Pinned 320vh filmstrip |
-| /courses (CoursesIntro, AyadiJourney) | GSAP + ScrollTrigger | Entrance timeline; pinned three-act scroll story |
-| Home hero | CSS `position: sticky` stage + one GSAP ScrollTrigger (`scrub: 0.9`, no snap, no JS pin) driving a WebGL scene (three.js / React Three Fiber, custom GLSL) | ~8.45-screen journey on a stationary page: logo → globe → portal, with *Why choose Ayadi* on its glass on the way in → liquid crossing → Choose your world |
+| /courses (CoursesIntro, AyadiJourney) | GSAP + ScrollTrigger | Entrance timeline; pinned three-act scroll story — the same journey that *is* Cloudversity's world on Home (§9.5) |
+| Home hero | CSS `position: sticky` stage + one GSAP ScrollTrigger (`scrub: 0.9`, no snap, no JS pin) driving a WebGL scene (three.js / React Three Fiber, custom GLSL) | ~8.45-screen journey on a stationary page: logo → globe → portal, with *Why choose Ayadi* on its glass on the way in → liquid crossing → Choose your world → dissolve into the active world's own journey |
 
 **Global keyframes** (`globals.css`): `spark-travel` (offset-path comets),
 `icon-float` (idle bob), `idle-tilt`.
 
-**Budget:** the Home page already has **two pinned scroll stories** — the
-hero journey (~8.45 screens, 7.25 on phones) and HowItWorks (460vh).
-New sections should be calm: entrance, hover, maybe one small loop. No more
-pinned or scroll-jacked sections on Home.
+**Budget:** the Home page has **three pinned scroll stories** — the hero
+journey (~8.45 screens, 7.25 on phones), the active world's journey right
+after it, and HowItWorks (460vh). The first two never render at the same
+time (§9.5). New sections should be calm: entrance, hover, maybe one small
+loop. No more pinned or scroll-jacked sections on Home.
 
 ---
 
@@ -249,8 +250,13 @@ Order and intent:
    becomes the core of a globe → the globe becomes a portal, and on its glass,
    as the camera nears, *"Why choose Ayadi?"* and three cards one by one → the camera flies
    through its liquid glass → *"Choose your world"* (Ayadi Cloudversity or
-   AyaTech). Stops there. The old *"The Ayadi approach"* tabs were removed
-   (they switched nothing).
+   AyaTech). **Ayadi Cloudversity is the world you are already in** — it is
+   selected when the choice appears, and the hero dissolves straight into
+   its three-act journey on this same page (§9.5); the choice switches
+   worlds rather than unlocking one, and a small floating switcher carries
+   on doing that once a world has the screen. AyaTech's world is still to be
+   built. The old *"The Ayadi approach"* tabs were removed (they switched
+   nothing).
 2. **WhyChooseAyadi** — dark emerald→teal rounded panel. Left: "Our Edge"
    pill, "Why Choose **Ayadi**", two paragraphs. Right: three glass feature
    cards (Expert Instructors / Best-in-Class Program / Flexible Learning, tags
@@ -305,6 +311,10 @@ Order and intent:
   2. `AyadiJourney` — pinned three-act GSAP scroll story (platform → floating
      photo collage → subject grid). Uses `AyadiMark3D` (the logo extruded by
      stacking the PNG 9× along z — the reference technique for CSS 3D here).
+     The same component *is* Cloudversity's world on Home (§9.5), where it
+     is passed `bare` — the card around it (`CARD`) is this page's framing,
+     not the journey's. The plan is to drop it from this page once Home has
+     been signed off, so keep it one component rather than forking it.
   3. `CourseBrandTabs` — sticky brand switcher below the navbar.
   4. `BrandCourses` — programme cards for the active brand (dummy data in
      `dummyData.ts`).
@@ -315,8 +325,9 @@ Order and intent:
 ## 9. Home hero — `src/components/website/sections/hero/`
 
 A scroll-driven WebGL journey — *"scroll into the Ayadi digital universe"* —
-that ends at **Choose your world**. The post-choice experience is not built
-yet (see §9.5).
+that ends at **Choose your world** and dissolves into the world it lands in:
+Ayadi Cloudversity by default, whose experience is the existing three-act
+journey (§9.5). AyaTech's world is not built yet (§9.6).
 
 ### 9.1 The journey
 
@@ -333,11 +344,13 @@ scrolling back plays it backwards.
 
 **The page stands still for the whole journey.** Everything — the opening
 included — lives on one stage that is `position: sticky; top: 0` inside a
-section `100lvh + 845vh` tall (`725vh` on phones). The browser holds the stage
+section `100lvh + 795vh` tall (`675vh` on phones). The browser holds the stage
 in place (a JavaScript pin at the very top of a page slips by a frame first);
-scrolling only moves the timeline; when the section runs out the stage lets
-go and the page continues to WhyChooseAyadi. Scrolling back up re-enters it
-the same way. Nothing between the stage and the page's scroller may clip
+scrolling only moves the timeline. The timeline then runs half a screen past
+the section (`TAIL`), which is where the light clears and the world takes
+over (§9.5) — by then the stage has let go, behind that light, and the page
+is already in the world. Scrolling back up re-enters it the same way.
+Nothing between the stage and the page's scroller may clip
 (`overflow: hidden/auto`) or sticky stops working.
 
 | Units | What you see |
@@ -377,16 +390,22 @@ Still layout: the same panel, dark, between the opening and the choice.
 `brands.ts`) and **AyaTech** (CPU, `from-brand-start to-primary-hover` —
 green and white, never navy, *Technology · Development*). Real buttons with
 `aria-pressed`; pointer tilt via `useCardTilt(6)` with the icon and text at
-different depths; cursor light; selected state is a primary ring + check.
+different depths; cursor light; selected state is a primary ring + check —
+**Cloudversity wears it from the moment the cards arrive**, because that is
+the world the page is already in. Choosing switches worlds; nothing has to
+be clicked to go on (§9.5).
 
 ### 9.2 Architecture
 
 | File | Job |
 |---|---|
-| `AyadiHero.tsx` | Mode detection, the **story** (`SCORE` — every rig move; `CUES` — the HTML layers), the **Why stage** (`STAGE`, `PUSH`) and the master timeline that stretches the story for it, the one ScrollTrigger (section top → bottom, `scrub: 0.9`), `measure()` (fits the opening, measures slot, watermark and the Why panel), the pointer/resize listeners, "Skip to the choice" |
+| `AyadiHero.tsx` | Mode detection, the **story** (`SCORE` — every rig move; `CUES` — the HTML layers), the **Why stage** (`STAGE`, `PUSH`) and the master timeline that stretches the story for it, the **dissolve out** (`CHOOSE_OUT`, `CURTAIN`), the one ScrollTrigger (section top → bottom, `scrub: 0.9`), `measure()` (fits the opening, measures slot, watermark and the Why panel), the pointer/resize listeners, "Skip to the choice", and which world is mounted below (§9.5) |
 | `WhyStage.tsx` | The Why Choose Ayadi heading and three cards |
 | `rig.ts` | The rig: a plain object of numbers GSAP writes and the scene reads. `RIG_START`, and the quality tiers (`pickQuality`) |
-| `ChooseWorld.tsx` | The two cards. Selection is local state only |
+| `ChooseWorld.tsx` | The two cards, at the end of the hero. Which one is selected is the active world |
+| `WorldSwitcher.tsx` | The floating glass pill — the active world, and the way to the other one — for as long as a world has the screen. Writes the cursor into `--x`/`--y` and nothing else |
+| `AyatechWorld.tsx` | AyaTech's holding card, until its own journey exists |
+| `courses/AyadiJourney.tsx` | **Reused, not rebuilt**: Cloudversity's world, three acts. Owns its own pin, its own ScrollTriggers and its own cleanup |
 | `hero.module.css` | Both layouts (below) |
 | `scene/HeroScene.tsx` | The single `<Canvas>`; **Director** (the clock, the camera, docking the mark into its slot); **LiquidPass** (renders the frame) |
 | `scene/Mark.tsx` | The extruded mark (geometry traced from `ayadi-mark.png`) |
@@ -478,8 +497,139 @@ tab order from the start (opacity only, shows itself on focus).
 - The liquid: `LIQUID_FRAGMENT` (flow, waves, membrane, split) and
   `SURFACE_FRAGMENT`.
 - Pointer strength: `direct()` in `HeroScene.tsx`.
+- The dissolve into the world: `CHOOSE_OUT`, `CURTAIN`, `VEIL`,
+  `ATMOSPHERE`, `WORLD`, `SHOWN_AT`, `TAIL`, `DARK_AT` in `AyadiHero.tsx`;
+  the pull-up on `.world` and the two sheets in `hero.module.css`. Three
+  rules hold it together, and all three are geometry, not taste: the world's
+  pin must engage **before** the light thins enough to show it
+  (`pin ≈ release − (pullUp − 1 + 84px/vh) / unit`, worst case on the
+  tallest screens); the light must be opaque **before** the sticky stage
+  lets go (`release = MASTER_TOTAL × section / (section + TAIL)`); and the
+  reveal must end early enough to leave act one a hold. Change the pull-up,
+  `TAIL` or the section height and re-check all three.
 
-### 9.5 History and what is next
+### 9.5 The worlds — how the hero becomes one
+
+The hero does not end and hand over to something else: it **dissolves into
+the world it is already in**. `world` (`AyadiHero`) starts at
+`'cloudversity'`, and that world's experience is
+`courses/AyadiJourney.tsx` — the three-act story the courses page runs,
+reused exactly, mounted directly under the hero. Nothing is clicked to get
+there, no route changes, no page is left.
+
+**The dissolve** is the last screen and a half of the hero's own scrubbed
+timeline, in master units:
+
+| | |
+|---|---|
+| 9.9 → 10.5 | the choice arrives, Cloudversity already selected |
+| 10.5 → 10.8 | it holds |
+| ~9.9 → ~11.1 | the world composes itself and pins, unseen (its own triggers) |
+| 10.8 → 11.15 | `CHOOSE_OUT` — heading and cards dissolve |
+| 10.85 → 11.13 | `VEIL.in` — a sheet of light fills the screen |
+| 10.85 → 11.25 | `CURTAIN` — the scene dissolves behind it |
+| 10.95 → 11.3 | `ATMOSPHERE.in` — green air rises inside the light |
+| 11.2 (`DARK_AT`) | the scene is ~3% visible: it stops rendering |
+| 11.13 → 11.23 | full white — a beat, ~7vh, no more |
+| 11.22 → 11.52 | `WORLD` — the world fades up **in place**, behind the light |
+| 11.23 → 11.61 | `VEIL.out` — the light clears off it |
+| 11.34 | the sticky stage lets go — behind the world, unseen |
+| 11.4 (`SHOWN_AT`) | the world takes the pointer; the switcher comes out |
+| 11.58 → 11.98 | `ATMOSPHERE.out` — the green air thins out last |
+| ~11.95 | act one's own hold runs out and it moves on, as it always does |
+
+The world is **edge to edge**: the journey is passed `bare`, so it keeps the
+clipping it needs and drops the card — no rounded box, no ring, no shadow,
+no margins, and its acts take the whole pinned stage rather than sitting
+14px inside it — and plays straight on the page colour, which is what the
+hero has just dissolved into. Nothing wraps it on this side either:
+`.world` is a bare positioning box. `/courses` keeps the card (§8.3): there
+it really is a panel on a page.
+
+**The light** (`.veil` + `.atmosphere`, `hero.module.css`) is what makes that
+one move rather than two. Both are fixed sheets over the hero *and* the
+world, driven by the hero's own timeline: white fills the screen as the
+choice and the scene dissolve into it, green air rises inside it, and then it
+clears. While it clears it is still blurring what is behind it
+(`backdrop-filter`), so the world settles into focus rather than switching
+on — and because the sheet covers everything, the two things that would
+otherwise give the seam away happen invisibly inside it: the sticky stage
+letting go, and the world climbing the last of the way into place. Outside
+this moment both sheets are `visibility: hidden`, so the full-screen backdrop
+pass costs nothing.
+
+**Nothing travels.** The world does not scroll up into view like a next
+section: it is pulled up `-104svh` over the hero's last screen, so it
+composes (its own approach timeline) and then **pins** — its own
+ScrollTrigger, no new one — around master 11.1, while the white is at full.
+By the time a single pixel of it can be seen (11.24) it has been standing
+still for a while. All the hero does is stop hiding it: `.world` is
+`opacity: 0` in the cinematic layout and the timeline fades it up in place.
+Opacity only — a transform or a filter on that wrapper would become the
+containing block for the `position: fixed` its pin uses and the pin would
+come apart; the focus comes from the light in front of it instead. It takes
+no clicks until `SHOWN_AT`, so the choice above it stays reachable while it
+waits. Verified still-before-seen from 600px to 2000px of viewport height.
+
+The pull-up spends a little of act one's own hold — the journey's pinned
+timeline starts at its pin, and the hero's last three quarters of a unit run
+alongside it — which is why the reveal is short: 54vh of act one on screen
+against 56vh on `/courses`, with ~25vh of it settled and still before it
+moves on. Phones cannot pin (the journey only pins from 768px), so there the
+world arrives already filling the screen and then scrolls on, like the rest
+of the mobile page.
+
+`.world` is positioned (`z-index: 1`) so it paints over the stage, and the
+pull-up only applies once it has something in it (`:not(:empty)`) and only
+in the cinematic layout. Scrolling back up plays the whole thing backwards:
+the light returns, the scene returns, the choice returns.
+
+**One cinematic at a time** is a consequence of those numbers, not a special
+case: the scene stops drawing at 11.66 and the world's first tween starts at
+11.82. `rig.live` (`sync()`) holds the rule — the hero has the screen, the
+world does not, and the curtain has not fallen — fed by two
+IntersectionObservers and the trigger's own progress. Only the active world
+is mounted: switching takes the other one's GSAP context, triggers and pin
+with it.
+
+**The switcher** (`WorldSwitcher.tsx`) is a piece of glass, not a toolbar: a
+pill fixed near the top centre (`6rem`, `4.75rem` on phones — clear of the
+navbar), translucent white over `blur(18px) saturate(150%)`, a lit rim and
+inner highlight for thickness, one soft shadow. No gradient fills. The world
+you are in is a clearer **pane** of the same glass that slides between the
+two halves (`translate`, 0.55s); its label turns primary green. Both halves
+are `flex: 1 1 0`, so they are exactly half the pill each and the pane lines
+up with either.
+
+Under the cursor the glass answers in two layers, both following `--x`/`--y`
+(written on pointer move, mouse only — no state, no re-render): a **lens**,
+a masked `backdrop-filter` circle that brightens and refracts what is behind
+it, and a **glow**, white at the centre fading through brand green, blurred
+7px. They fade in and out over half a second, so the light drifts after the
+cursor rather than snapping to it. Both are absolutely positioned inside the
+pill and the pill never scales, so none of it can move the page; both are
+dropped entirely under `prefers-reduced-motion: reduce`. (The pill's own
+backdrop-filter makes it a backdrop root, so how much of the page the lens
+really refracts is up to the engine — it is a bloom either way.)
+
+Shown while a world holds most of the screen (`data-on`, written straight to
+the DOM) and hidden — `visibility`, so it leaves the tab order too — before
+and after. Two `aria-pressed` buttons, focus ring drawn inside (the pill
+clips). Switching from inside a world lands at the new world's own start
+(its pin's `start`, read off its ScrollTrigger); switching from up in the
+hero just changes what is waiting below.
+
+**The journey's chunk** is fetched and mounted in the first idle moment after
+the page loads — it is the default world, not something a click unlocks —
+so it is long ready by the time the dissolve reaches it. Its own calls to
+action scroll to the courses further down this page rather than leaving for
+`/courses`.
+
+**AyaTech** renders `AyatechWorld.tsx`: the brand's own words, centred on the
+same open page, with no panel around them either. It is the seam, not a
+design — when that journey is built it replaces that file.
+
+### 9.6 History and what is next
 
 - Replaced (2026-09-22): the **Ayadi Universe** — a CSS-3D globe and two
   chapter-driven CSS-3D worlds (~5.5k lines: `ayadi-universe/AyadiUniverse.tsx`,
@@ -487,8 +637,11 @@ tab order from the start (opacity only, shows itself on focus).
   git history at `4de6d65`.
 - Kept, **not rendered**: `ayadi-universe/BrandChapters.tsx` and `content.ts`
   (the chosen brand's three chapters), with a `universe.module.css` trimmed to
-  the rules they use — material for the post-choice experience, which is to
-  be designed separately and plugs in at `ChooseWorld`'s `onSelect`.
+  the rules they use — material for **AyaTech's** world, the one choice that
+  still opens into nothing.
+- Next, once the Home worlds are signed off: drop `AyadiJourney` from
+  `/courses` so the three acts live in one place, and build AyaTech's world
+  in place of `AyatechWorld.tsx`.
 - An earlier revision with photo cards, a "What we provide" row and an
   editorial WhyChooseAyadi was **rolled back at the owner's request**
   (2026-09-21). Don't reintroduce it without asking.

@@ -44,14 +44,16 @@ const WORLDS: World[] = [
 /*
  * The end of the hero's journey: the two worlds, as two cards.
  *
- * Choosing only marks the card for now — what each world opens into is the
- * next piece of work, and plugs in at `onSelect`.
+ * Ayadi Cloudversity is already the world you are in — its experience is
+ * waiting directly below (AyadiHero) — so it arrives selected and nothing
+ * has to be clicked to go on. Choosing switches which world the page
+ * continues into; AyaTech's own is still to be built.
  */
 export function ChooseWorld({
   selected,
   onSelect,
 }: {
-  selected: WorldId | null;
+  selected: WorldId;
   onSelect: (world: WorldId) => void;
 }) {
   return (

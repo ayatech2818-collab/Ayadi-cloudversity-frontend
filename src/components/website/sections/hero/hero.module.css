@@ -367,6 +367,7 @@
    nothing in between flattens it. */
 .cardIconLayer {
   transform: translateZ(34px);
+  transform-style: preserve-3d;
 }
 
 .cardText {
@@ -381,6 +382,389 @@
   border-radius: 1rem;
   color: white;
   box-shadow: 0 14px 28px -14px rgb(4 76 59 / 0.7);
+}
+
+/* ================= Cloudversity World Emerald Glass Card ================= */
+
+.card[data-world='cloudversity'] {
+  background:
+    radial-gradient(130% 90% at 85% 15%, rgb(16 185 129 / 0.22) 0%, transparent 60%),
+    radial-gradient(90% 70% at 10% 90%, rgb(13 148 136 / 0.28) 0%, transparent 65%),
+    linear-gradient(155deg, #032820 0%, #064537 45%, #083d33 80%, #03241d 100%);
+  box-shadow:
+    inset 0 1px 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 0 0 1px rgb(52 211 153 / 0.28),
+    inset 0 -12px 24px -10px rgb(1 18 14 / 0.75),
+    0 1px 2px rgb(4 76 59 / 0.12),
+    0 22px 50px -22px rgb(2 44 34 / 0.7),
+    0 45px 85px -42px rgb(2 44 34 / 0.6);
+}
+
+.card[data-world='cloudversity']:hover {
+  translate: 0 -4px;
+  box-shadow:
+    inset 0 1px 2px 0 rgb(255 255 255 / 0.55),
+    inset 0 0 0 1px rgb(110 231 183 / 0.55),
+    inset 0 -12px 24px -10px rgb(1 18 14 / 0.85),
+    0 1px 2px rgb(4 76 59 / 0.12),
+    0 30px 65px -22px rgb(16 185 129 / 0.52),
+    0 55px 100px -40px rgb(2 44 34 / 0.75);
+}
+
+.card[data-world='cloudversity'][aria-pressed='true'] {
+  box-shadow:
+    inset 0 1px 2px 0 rgb(255 255 255 / 0.6),
+    inset 0 0 0 2px rgb(52 211 153 / 0.9),
+    inset 0 -12px 24px -10px rgb(1 18 14 / 0.85),
+    0 1px 2px rgb(4 76 59 / 0.12),
+    0 30px 65px -22px rgb(16 185 129 / 0.58),
+    0 55px 100px -40px rgb(2 44 34 / 0.75),
+    0 0 35px -6px rgb(16 185 129 / 0.4);
+}
+
+.card[data-world='cloudversity'] .cardLight {
+  background: radial-gradient(
+    340px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgb(110 231 183 / 0.28) 0%,
+    rgb(52 211 153 / 0.14) 40%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+}
+
+.card[data-world='cloudversity'] .cardCheck {
+  background: #10b981;
+  box-shadow:
+    0 0 16px rgb(16 185 129 / 0.8),
+    inset 0 1px 1px rgb(255 255 255 / 0.6);
+}
+
+.card[data-world='cloudversity'] .cardIconLayer {
+  width: 100%;
+}
+
+/* Card Text Styling */
+.cardTitle {
+  color: var(--color-text);
+  transition: color 0.3s ease;
+}
+
+.cardKind {
+  color: var(--color-primary);
+  transition: color 0.3s ease;
+}
+
+.cardLine {
+  color: var(--color-muted);
+  transition: color 0.3s ease;
+}
+
+.card[data-world='cloudversity'] .cardTitle {
+  color: #ffffff;
+  text-shadow: 0 2px 14px rgb(1 20 16 / 0.85);
+}
+
+.card[data-world='cloudversity'] .cardKind {
+  color: #6ee7b7;
+  text-shadow: 0 1px 8px rgb(1 20 16 / 0.6);
+  letter-spacing: 0.18em;
+}
+
+.card[data-world='cloudversity'] .cardLine {
+  color: rgb(220 252 231 / 0.82);
+  text-shadow: 0 1px 6px rgb(1 20 16 / 0.7);
+}
+
+/* ---------- Large 3D Cloudversity Brand Hero Stage ---------- */
+
+.cloudHeroArea {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 5.75rem;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  perspective: 800px;
+}
+
+@media (min-width: 640px) {
+  .cloudHeroArea {
+    height: 6.75rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .card[data-world='cloudversity'] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.15rem;
+    padding: 1.35rem 1.25rem;
+  }
+}
+
+/* Glass pedestal / atmospheric stage */
+.cloudGlassStage {
+  position: absolute;
+  inset: 0;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: linear-gradient(
+    145deg,
+    rgb(2 38 30 / 0.72) 0%,
+    rgb(4 66 52 / 0.58) 55%,
+    rgb(13 90 75 / 0.42) 100%
+  );
+  box-shadow:
+    inset 0 1px 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 0 0 1px rgb(52 211 153 / 0.24),
+    inset 0 -8px 18px -4px rgb(1 18 14 / 0.65),
+    0 12px 28px -12px rgb(2 28 22 / 0.75);
+  transform: translateZ(8px);
+  transition:
+    box-shadow 0.4s ease,
+    border-color 0.4s ease,
+    transform 0.4s ease;
+}
+
+.card:hover .cloudGlassStage {
+  transform: translateZ(12px);
+  box-shadow:
+    inset 0 1px 2px 0 rgb(255 255 255 / 0.55),
+    inset 0 0 0 1px rgb(110 231 183 / 0.48),
+    inset 0 -8px 18px -4px rgb(1 18 14 / 0.75),
+    0 16px 36px -10px rgb(16 185 129 / 0.35);
+}
+
+.card[aria-pressed='true'] .cloudGlassStage {
+  box-shadow:
+    inset 0 1px 2px 0 rgb(255 255 255 / 0.65),
+    inset 0 0 0 1px rgb(52 211 153 / 0.6),
+    inset 0 -8px 18px -4px rgb(1 18 14 / 0.75),
+    0 18px 40px -10px rgb(16 185 129 / 0.45);
+}
+
+.cloudStageGlow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(52 211 153 / 0.38) 0%,
+    rgb(13 148 136 / 0.16) 55%,
+    transparent 80%
+  );
+  pointer-events: none;
+}
+
+.cloudStageRefraction {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    180px circle at calc(var(--spot-x, 80px) - 1.75rem) calc(var(--spot-y, 60px) - 1.75rem),
+    rgb(255 255 255 / 0.36) 0%,
+    rgb(110 231 183 / 0.22) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.card:hover .cloudStageRefraction {
+  opacity: 1;
+}
+
+.cloudStageSheen {
+  position: absolute;
+  inset-inline: 1rem;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
+  pointer-events: none;
+}
+
+/* Contact shadow underneath the large floating 3D logo */
+.cloudLogoShadow {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  width: 10.5rem;
+  height: 0.75rem;
+  translate: -50% 0;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse at center, rgb(1 16 12 / 0.78) 0%, transparent 75%);
+  transform: translateZ(14px);
+  filter: blur(2.5px);
+  pointer-events: none;
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.card:hover .cloudLogoShadow {
+  transform: translateZ(16px) scale(0.92);
+  opacity: 0.75;
+}
+
+@media (max-width: 639px) {
+  .cloudLogoShadow {
+    width: 8rem;
+    height: 0.6rem;
+    bottom: 0.4rem;
+  }
+}
+
+/* 3D Floating Stage holding the large logo */
+.cloudFloatStage {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  transform: translate3d(0, 0, 26px) rotateX(2deg) rotateY(-2deg);
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.card:hover .cloudFloatStage {
+  transform: translate3d(0, -2.5px, 36px) rotateX(3.5deg) rotateY(-3deg);
+}
+
+.card[aria-pressed='true'] .cloudFloatStage {
+  transform: translate3d(0, -1.5px, 30px) rotateX(2.5deg) rotateY(-2.5deg);
+}
+
+.card[aria-pressed='true']:hover .cloudFloatStage {
+  transform: translate3d(0, -3px, 38px) rotateX(4deg) rotateY(-3.5deg);
+}
+
+.cloudFloatAnim {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+/* Large official logo image asset */
+.cloudLogoImage {
+  display: block;
+  width: auto;
+  max-width: 13rem;
+  height: auto;
+  max-height: 5.5rem;
+  object-fit: contain;
+  user-select: none;
+  filter:
+    drop-shadow(0 2px 5px rgb(1 16 12 / 0.75))
+    drop-shadow(0 8px 18px rgb(1 16 12 / 0.5))
+    drop-shadow(0 0 16px rgb(110 231 183 / 0.35));
+  transition:
+    filter 0.4s ease,
+    transform 0.4s ease;
+}
+
+.card:hover .cloudLogoImage {
+  filter:
+    drop-shadow(0 3px 8px rgb(1 16 12 / 0.8))
+    drop-shadow(0 14px 24px rgb(1 16 12 / 0.6))
+    drop-shadow(0 0 22px rgb(110 231 183 / 0.55))
+    brightness(1.06);
+}
+
+.card[aria-pressed='true'] .cloudLogoImage {
+  filter:
+    drop-shadow(0 3px 8px rgb(1 16 12 / 0.85))
+    drop-shadow(0 12px 22px rgb(1 16 12 / 0.62))
+    drop-shadow(0 0 24px rgb(52 211 153 / 0.6))
+    brightness(1.08);
+}
+
+@media (max-width: 639px) {
+  .cloudLogoImage {
+    max-width: 9.5rem;
+    max-height: 4.25rem;
+  }
+}
+
+/* Specular light sweep crossing the logo on hover */
+.cloudLightSweep {
+  position: absolute;
+  inset: -30% -50%;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.15) 46%,
+    rgb(255 255 255 / 0.55) 50%,
+    rgb(255 255 255 / 0.15) 54%,
+    transparent 65%
+  );
+  opacity: 0;
+  transform: translateX(-40%);
+  mix-blend-mode: overlay;
+  transition:
+    opacity 0.4s ease,
+    transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.card:hover .cloudLightSweep {
+  opacity: 0.85;
+  transform: translateX(40%);
+}
+
+/* Subtle continuous floating animation */
+@media (prefers-reduced-motion: no-preference) {
+  .cloudFloatAnim {
+    animation: cloudFloatMotion 4.8s ease-in-out infinite;
+  }
+}
+
+@keyframes cloudFloatMotion {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg);
+  }
+  50% {
+    transform: translate3d(0, -2.5px, 6px) rotateX(-1deg) rotateY(1.5deg);
+  }
+}
+
+@media (hover: none) {
+  .cloudFloatAnim {
+    animation: none;
+  }
+
+  .cloudFloatStage {
+    transform: translate3d(0, 0, 18px);
+  }
+
+  .cloudLogoShadow {
+    transform: translateZ(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloudGlassStage,
+  .cloudFloatStage,
+  .cloudFloatAnim,
+  .cloudLogoShadow,
+  .cloudLogoImage,
+  .cloudLightSweep {
+    animation: none;
+    transition: none;
+  }
+
+  .cloudFloatStage {
+    transform: translate3d(0, 0, 14px);
+  }
+
+  .cloudLogoShadow {
+    transform: translateZ(8px);
+  }
 }
 
 .cardCheck {
@@ -444,7 +828,7 @@
 }
 
 .root[data-mode='cinematic'] + .world:not(:empty) {
-  margin-top: -115svh;
+  margin-top: -135svh;
   position: sticky;
   top: 84px;
 }
@@ -455,18 +839,13 @@
 }
 
 
-/* ================= the light between the worlds =================
-   The hero does not hand the page to the world below it — it goes white, and
-   the world is revealed through the white. One fixed sheet over both of them,
-   driven by the hero's own timeline (VEIL in AyadiHero.tsx): it fills as the
-   choice and the scene dissolve, holds while the world is already in place
-   behind it (sticky), then clears.
-
-   The blur is what makes it light rather than a curtain: while the sheet is
-   half gone, half of what you see is still the soft version of it, so the
-   world settles into focus instead of switching on. It costs a full-screen
-   backdrop pass, which is why it is `visibility: hidden` (autoAlpha) at both
-   ends — outside this one moment it is not there at all. */
+/* ================= the liquid veil between the worlds =================
+   The selected world component is revealed in place (sticky at top: 84px)
+   through this premium liquid glass refraction veil.
+   Translucent emerald, teal, and luminous water radial gradients combine with
+   backdrop blur and saturation so the world component's presence is felt softly,
+   gradually resolving from a shimmering liquid lens into razor-sharp clarity
+   without translating vertically. */
 
 .veil {
   position: fixed;
@@ -475,15 +854,15 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  background: radial-gradient(135% 95% at 50% 56%, #ffffff 0%, #ffffff 42%, var(--color-page) 100%);
-  /* Lightning CSS adds the -webkit- form from the browserslist targets;
-     writing it here as well only makes it drop the standard one. */
-  backdrop-filter: blur(12px) saturate(115%);
+  background:
+    radial-gradient(ellipse 95% 75% at 50% 50%, rgb(255 255 255 / 0.52) 0%, rgb(240 253 250 / 0.32) 45%, transparent 80%),
+    radial-gradient(circle 75% at 50% 45%, rgb(110 231 183 / 0.28) 0%, rgb(16 185 129 / 0.16) 42%, transparent 72%),
+    radial-gradient(circle 85% at 50% 65%, rgb(13 148 136 / 0.15) 0%, transparent 68%);
+  backdrop-filter: blur(14px) saturate(140%) brightness(1.04);
 }
 
-/* The green this page is lit by, as the air of the moment you arrive in it.
-   Its own layer, so it can outlast the light and still be there over the
-   world's first seconds. */
+/* The liquid emerald light consistent with Choose World cards: soft radial glow,
+   refraction, and water atmosphere. */
 .atmosphere {
   position: fixed;
   inset: 0;
@@ -493,20 +872,23 @@
   pointer-events: none;
   background:
     radial-gradient(
-      52% 38% at 50% 60%,
-      color-mix(in srgb, var(--color-brand-middle) 24%, transparent),
-      transparent 70%
+      60% 45% at 50% 50%,
+      rgb(110 231 183 / 0.25) 0%,
+      rgb(16 185 129 / 0.16) 35%,
+      rgb(13 148 136 / 0.08) 60%,
+      transparent 75%
     ),
     radial-gradient(
-      95% 55% at 50% 108%,
-      color-mix(in srgb, var(--color-brand-end) 20%, transparent),
-      transparent 66%
+      90% 55% at 50% 95%,
+      rgb(16 185 129 / 0.2) 0%,
+      transparent 65%
     ),
     radial-gradient(
-      75% 45% at 50% -10%,
-      color-mix(in srgb, var(--color-brand-start) 13%, transparent),
-      transparent 70%
+      75% 45% at 50% 5%,
+      rgb(110 231 183 / 0.18) 0%,
+      transparent 60%
     );
+  mix-blend-mode: screen;
 }
 
 /* ================= the world switcher =================

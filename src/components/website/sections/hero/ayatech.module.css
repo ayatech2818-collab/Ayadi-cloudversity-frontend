@@ -1,0 +1,675 @@
+/* =========================================================================
+   AyaTech Cinematic Experience
+   Visual Language: Deep emerald, dark teal, subtle cyan, glass refraction,
+   digital light, luminous network circuits, futuristic yet minimal.
+   ========================================================================= */
+
+.section {
+  position: relative;
+  width: 100%;
+  background: radial-gradient(
+    circle at 50% 30%,
+    rgba(6, 44, 34, 0.85) 0%,
+    rgba(3, 19, 14, 0.96) 60%,
+    #020b08 100%
+  );
+  color: #f1f5f3;
+  overflow: clip;
+}
+
+/* Stage: the pinned viewing port on desktop */
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  max-height: 100svh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+}
+
+/* Atmospheric ambient background layers */
+.atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ambientGlowPrimary {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: min(85vw, 900px);
+  height: min(85vw, 900px);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(16, 185, 129, 0.14) 0%,
+    rgba(13, 148, 136, 0.08) 45%,
+    transparent 70%
+  );
+  filter: blur(60px);
+  border-radius: 50%;
+}
+
+.ambientGlowSecondary {
+  position: absolute;
+  bottom: 15%;
+  right: 15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(6, 182, 212, 0.09) 0%,
+    rgba(30, 43, 87, 0.12) 50%,
+    transparent 70%
+  );
+  filter: blur(80px);
+  border-radius: 50%;
+}
+
+/* Digital Grid floor / backdrop */
+.digitalGrid {
+  position: absolute;
+  inset: -20%;
+  background-image: 
+    linear-gradient(rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center center;
+  transform: perspective(600px) rotateX(45deg) translateY(10%);
+  opacity: 0.45;
+  mask-image: radial-gradient(circle at 50% 50%, black 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 20%, transparent 75%);
+  pointer-events: none;
+}
+
+/* Particles / subtle digital sparks */
+.particlesOverlay {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(16, 185, 129, 0.3) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* =========================================================================
+   SCENE CONTAINER & ACTS
+   All cinematic acts share the 3D stage
+   ========================================================================= */
+
+.actsContainer {
+  position: relative;
+  width: 100%;
+  max-width: 1380px;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  padding: 0 1.5rem;
+}
+
+/* Common Act layer */
+.actLayer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+.actLayer[data-active='true'] {
+  pointer-events: auto;
+}
+
+/* =========================================================================
+   ACT 1: INTRO ATMOSPHERE & INITIAL TITLE
+   ========================================================================= */
+
+.introBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 1.1rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.12);
+  backdrop-filter: blur(12px);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #34d399;
+}
+
+.pulseIndicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 10px #34d399;
+  animation: pulseBeacon 2s infinite ease-in-out;
+}
+
+@keyframes pulseBeacon {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+.introTitle {
+  font-size: clamp(2.8rem, 6.5vw, 5.8rem);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-align: center;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #ffffff 30%, #a7f3d0 70%, #2dd4bf 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
+}
+
+.introSub {
+  font-size: clamp(1rem, 2vw, 1.45rem);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #6ee7b7;
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+.introTagline {
+  font-size: clamp(0.9rem, 1.3vw, 1.125rem);
+  color: #94a3b8;
+  max-width: 32rem;
+  text-align: center;
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+/* =========================================================================
+   DIGITAL CORE (Central 3D Holographic Element)
+   ========================================================================= */
+
+.coreWrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 260px;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.coreRingOuter {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px dashed rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.15);
+  animation: rotateClockwise 28s linear infinite;
+}
+
+.coreRingMiddle {
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(13, 148, 136, 0.4);
+  border-top-color: #34d399;
+  border-bottom-color: #22d3ee;
+  animation: rotateCounter 18s linear infinite;
+}
+
+.coreRingInner {
+  position: absolute;
+  inset: 48px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(45, 212, 191, 0.45);
+  animation: rotateClockwise 12s linear infinite;
+}
+
+.coreCenterHex {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(6, 44, 34, 0.95), rgba(15, 23, 42, 0.9));
+  border: 1.5px solid rgba(52, 211, 153, 0.5);
+  box-shadow: 
+    0 0 30px rgba(16, 185, 129, 0.35),
+    inset 0 0 25px rgba(16, 185, 129, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #34d399;
+  backdrop-filter: blur(14px);
+  transform: rotate(45deg);
+}
+
+.coreInnerContent {
+  transform: rotate(-45deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.coreGlowPulse {
+  position: absolute;
+  inset: -15%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 65%);
+  animation: coreGlowPulse 4s ease-in-out infinite;
+}
+
+@keyframes rotateClockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotateCounter {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes coreGlowPulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.95); }
+  50% { opacity: 0.9; transform: scale(1.15); }
+}
+
+/* =========================================================================
+   SVG NETWORK CONSTELLATION
+   Connection lines connecting core & 5 nodes
+   ========================================================================= */
+
+.networkSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.circuitLine {
+  stroke: rgba(16, 185, 129, 0.28);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  fill: none;
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.4));
+}
+
+.circuitLineActive {
+  stroke: #2dd4bf;
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+  fill: none;
+  filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.8));
+}
+
+/* =========================================================================
+   CAPABILITY NODES (5 Specialized Broad Areas)
+   1. Cyber Security
+   2. Artificial Intelligence
+   3. Software Development
+   4. Digital Technology
+   5. Innovation
+   ========================================================================= */
+
+.nodesContainer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.nodeCard {
+  position: absolute;
+  width: min(310px, 85vw);
+  padding: 1.25rem 1.4rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    140deg,
+    rgba(6, 44, 34, 0.72) 0%,
+    rgba(15, 23, 42, 0.82) 100%
+  );
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  box-shadow: 
+    0 16px 36px -12px rgba(2, 11, 8, 0.85),
+    0 0 28px -6px rgba(16, 185, 129, 0.16);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  pointer-events: auto;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  will-change: transform, opacity;
+}
+
+.nodeCard:hover {
+  border-color: rgba(52, 211, 153, 0.55);
+  box-shadow: 
+    0 20px 42px -10px rgba(2, 11, 8, 0.95),
+    0 0 36px rgba(16, 185, 129, 0.32);
+  transform: translateY(-4px) scale(1.02);
+}
+
+.nodeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.nodeIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(13, 148, 136, 0.1));
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  color: #34d399;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+}
+
+.nodeIndex {
+  font-family: monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #2dd4bf;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+}
+
+.nodeTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.35rem;
+}
+
+.nodeDesc {
+  font-size: 0.825rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+
+.nodeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6ee7b7;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* =========================================================================
+   ACT 5: AYA TECH IDENTITY REVEAL
+   ========================================================================= */
+
+.identityContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 960px;
+  padding: 2.5rem 1.5rem;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.identityCard {
+  position: relative;
+  width: 100%;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 4vw, 3rem);
+  border-radius: 2rem;
+  background: linear-gradient(
+    145deg,
+    rgba(6, 44, 34, 0.85) 0%,
+    rgba(11, 26, 36, 0.92) 50%,
+    rgba(3, 19, 14, 0.95) 100%
+  );
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  box-shadow: 
+    0 28px 64px -16px rgba(0, 0, 0, 0.9),
+    0 0 48px -10px rgba(16, 185, 129, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.identityHeaderPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 1.25rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  font-size: 0.775rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #34d399;
+  margin-bottom: 1.25rem;
+}
+
+.identityMainHeading {
+  font-size: clamp(2.6rem, 5.8vw, 4.8rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.identitySubHeading {
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #34d399, #2dd4bf);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 1rem;
+}
+
+.identityMotto {
+  font-size: clamp(1.2rem, 2.5vw, 1.85rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #f1f5f3;
+  margin-bottom: 0.5rem;
+}
+
+.identityTagline {
+  font-size: clamp(0.95rem, 1.4vw, 1.2rem);
+  font-weight: 600;
+  color: #2dd4bf;
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.identityLede {
+  font-size: clamp(0.875rem, 1.2vw, 1.05rem);
+  color: #cbd5e1;
+  max-width: 44rem;
+  margin: 0 auto 2rem;
+  line-height: 1.7;
+}
+
+/* Capability Pills */
+.pillarsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-bottom: 2.25rem;
+}
+
+.pillarChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.pillarChip:hover {
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(52, 211, 153, 0.45);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+/* Action CTA */
+.ctaGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.primaryCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #059669, #0d9488);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 
+    0 12px 28px -8px rgba(16, 185, 129, 0.5),
+    0 0 20px rgba(13, 148, 136, 0.3);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.primaryCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 16px 36px -6px rgba(16, 185, 129, 0.65),
+    0 0 30px rgba(13, 148, 136, 0.45);
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+}
+
+/* =========================================================================
+   MOBILE / RESPONSIVE FLOW LAYOUT
+   ========================================================================= */
+
+@media (max-width: 1024px) {
+  .stage {
+    perspective: 800px;
+  }
+  
+  .nodeCard {
+    width: min(280px, 85vw);
+    padding: 1.1rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .section {
+    padding-bottom: 5rem;
+  }
+
+  .stage {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    padding: 3rem 1rem;
+    display: block;
+  }
+
+  .actsContainer {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+    padding: 0;
+  }
+
+  .actLayer {
+    position: relative;
+    inset: auto;
+    height: auto;
+    pointer-events: auto;
+  }
+
+  .coreWrapper {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin: 2rem auto;
+  }
+
+  .networkSvg {
+    display: none;
+  }
+
+  .nodesContainer {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    pointer-events: auto;
+    margin: 1.5rem 0;
+  }
+
+  .nodeCard {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    transform: none !important;
+  }
+
+  .identityContainer {
+    position: relative;
+    padding: 0;
+  }
+
+  .identityCard {
+    padding: 2rem 1.25rem;
+  }
+}

@@ -29,7 +29,8 @@ export function CoursesPageContent() {
 
       {/* Pinned three-act sequence for the parent platform. AyaTech and
           Netscape get their own journeys once Ayadi's is signed off. */}
-      <AyadiJourney onSelectBrand={selectAndScroll} />
+          
+      {/* <AyadiJourney onSelectBrand={selectAndScroll} /> */}
 
       <CourseBrandTabs activeBrand={activeBrand} onSelectBrand={setActiveBrand} />
 

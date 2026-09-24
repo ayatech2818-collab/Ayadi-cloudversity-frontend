@@ -227,14 +227,14 @@ const PORTAL_CAPTION = {
    puts the light back and the choice with it. */
 const CHOOSE_OUT = [10.8, 0.35] as const;
 const CURTAIN = [10.85, 0.4] as const;
-const VEIL = { in: [10.85, 0.28], out: [11.23, 0.38] } as const;
+const VEIL = { in: [10.85, 0.28], out: [11.22, 0.38] } as const;
 const ATMOSPHERE = { in: [10.95, 0.35], out: [11.58, 0.4] } as const;
 
 /* The world's own reveal: opacity only. It cannot be moved, scaled or
    blurred from here — a transform or a filter on its wrapper would become
    the containing block for the `position: fixed` its own pin uses, and the
    pin would come apart. The focus comes from the light in front of it. */
-const WORLD = [11.22, 0.3] as const;
+const WORLD = [11.12, 0.38] as const;
 
 /* The hero's timeline has to keep running after its stage lets go — that is
    where the world arrives and the light clears — so the trigger ends TAIL

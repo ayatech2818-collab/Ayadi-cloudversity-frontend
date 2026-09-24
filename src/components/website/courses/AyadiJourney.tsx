@@ -133,6 +133,22 @@ export function AyadiJourney({
 
         const words = q('[data-intro-word]');
 
+        if (bare) {
+          /* When bare (embedded in the Hero), the journey is revealed in place
+             at top: 84px through the liquid veil. All intro elements are pre-composed
+             at rest so there is zero bottom-to-top travel or internal scrub. */
+          gsap.set(q('[data-intro]'), { autoAlpha: 1, y: 0 });
+          gsap.set(words, { yPercent: 0 });
+          gsap.set(q('[data-intro="rule"]'), { autoAlpha: 1, y: 0, scaleX: 1, transformOrigin: 'left center' });
+          gsap.set(q('[data-card]'), { autoAlpha: 1, y: 0, scale: 1 });
+          gsap.set(q('[data-mark]'), { autoAlpha: 1, rotationY: -20, rotationX: 7, z: 0 });
+          gsap.set(q('[data-intro="eyebrow"], [data-intro="line"], [data-intro="stat"], [data-intro="ghost"]'), {
+            autoAlpha: 1,
+            y: 0,
+          });
+          return;
+        }
+
         gsap.set(q('[data-intro]'), { autoAlpha: 0, y: 18 });
         gsap.set(words, { yPercent: 115 });
         /* Rides in with the eyebrow around it, so it only needs its width. */

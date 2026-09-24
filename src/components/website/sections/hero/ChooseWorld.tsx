@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Check, Cpu, GraduationCap, type LucideIcon } from 'lucide-react';
 
@@ -101,15 +102,49 @@ function WorldCard({
       <span aria-hidden="true" className={styles.cardLight} />
 
       <span className={`${styles.cardLayer} ${styles.cardIconLayer}`}>
-        <span className={`${styles.cardIcon} ${world.fill}`}>
-          <Icon aria-hidden="true" size={26} strokeWidth={1.9} />
-        </span>
+        {world.id === 'cloudversity' ? (
+          <span className={styles.cloudHeroArea} aria-hidden="true">
+            {/* Ambient emerald stage / glass pedestal */}
+            <span className={styles.cloudGlassStage}>
+              <span className={styles.cloudStageGlow} />
+              <span className={styles.cloudStageRefraction} />
+              <span className={styles.cloudStageSheen} />
+            </span>
+
+            {/* Contact shadow underneath the large floating 3D logo */}
+            <span className={styles.cloudLogoShadow} />
+
+            {/* Floating 3D Brand Logo */}
+            <span className={styles.cloudFloatStage}>
+              <span className={styles.cloudFloatAnim}>
+                <Image
+                  src="/image/ayadi-logo-white.png"
+                  alt="Ayadi Cloudversity"
+                  width={3116}
+                  height={1701}
+                  priority
+                  unoptimized
+                  className={styles.cloudLogoImage}
+                />
+                <span className={styles.cloudLightSweep} />
+              </span>
+            </span>
+          </span>
+        ) : (
+          <span className={`${styles.cardIcon} ${world.fill}`}>
+            <Icon aria-hidden="true" size={26} strokeWidth={1.9} />
+          </span>
+        )}
       </span>
 
       <span className={`${styles.cardLayer} ${styles.cardText}`}>
-        <span className="block text-xl font-extrabold tracking-[-0.03em] text-text sm:text-2xl">{world.name}</span>
-        <span className="mt-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-primary">{world.kind}</span>
-        <span className="mt-3 hidden text-sm font-medium text-muted sm:block">{world.line}</span>
+        <span className={`${styles.cardTitle} block text-xl font-extrabold tracking-[-0.03em] sm:text-2xl`}>
+          {world.name}
+        </span>
+        <span className={`${styles.cardKind} mt-1 block text-[11px] font-bold uppercase tracking-[0.16em]`}>
+          {world.kind}
+        </span>
+        <span className={`${styles.cardLine} mt-3 hidden text-sm font-medium sm:block`}>{world.line}</span>
       </span>
 
       <span aria-hidden="true" className={styles.cardCheck}>

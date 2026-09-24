@@ -88,7 +88,6 @@ function WorldCard({
 }) {
   /* MotionValues all the way down: tilting never re-renders. */
   const tilt = useCardTilt(6);
-  const Icon = world.icon;
 
   return (
     <motion.button
@@ -131,8 +130,32 @@ function WorldCard({
             </span>
           </span>
         ) : (
-          <span className={`${styles.cardIcon} ${world.fill}`}>
-            <Icon aria-hidden="true" size={26} strokeWidth={1.9} />
+          <span className={styles.ayatechHeroArea} aria-hidden="true">
+            {/* Ambient teal/emerald glass pedestal */}
+            <span className={styles.ayatechGlassStage}>
+              <span className={styles.ayatechStageGlow} />
+              <span className={styles.ayatechStageRefraction} />
+              <span className={styles.ayatechStageSheen} />
+            </span>
+
+            {/* Contact shadow underneath the large floating 3D logo */}
+            <span className={styles.ayatechLogoShadow} />
+
+            {/* Floating 3D Brand Logo */}
+            <span className={styles.ayatechFloatStage}>
+              <span className={styles.ayatechFloatAnim}>
+                <Image
+                  src="/images/Ayatech.png"
+                  alt="AyaTech"
+                  width={1000}
+                  height={450}
+                  priority
+                  unoptimized
+                  className={styles.ayatechLogoImage}
+                />
+                <span className={styles.ayatechLightSweep} />
+              </span>
+            </span>
           </span>
         )}
       </span>

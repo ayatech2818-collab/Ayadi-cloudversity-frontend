@@ -439,8 +439,65 @@
     inset 0 1px 1px rgb(255 255 255 / 0.6);
 }
 
-.card[data-world='cloudversity'] .cardIconLayer {
+.card[data-world='cloudversity'] .cardIconLayer,
+.card[data-world='ayatech'] .cardIconLayer {
   width: 100%;
+}
+
+/* ================= AyaTech World Emerald/Teal Glass Card ================= */
+
+.card[data-world='ayatech'] {
+  background:
+    radial-gradient(130% 90% at 85% 15%, rgb(20 184 166 / 0.22) 0%, transparent 60%),
+    radial-gradient(90% 70% at 10% 90%, rgb(16 185 129 / 0.22) 0%, transparent 65%),
+    radial-gradient(100% 60% at 50% 10%, rgb(6 182 212 / 0.12) 0%, transparent 55%),
+    linear-gradient(155deg, #02231e 0%, #043831 45%, #05302b 80%, #021a17 100%);
+  box-shadow:
+    inset 0 1px 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 0 0 1px rgb(45 212 191 / 0.28),
+    inset 0 -12px 24px -10px rgb(1 18 16 / 0.75),
+    0 1px 2px rgb(4 76 59 / 0.12),
+    0 22px 50px -22px rgb(2 38 32 / 0.7),
+    0 45px 85px -42px rgb(2 38 32 / 0.6);
+}
+
+.card[data-world='ayatech']:hover {
+  translate: 0 -4px;
+  box-shadow:
+    inset 0 1px 2px 0 rgb(255 255 255 / 0.55),
+    inset 0 0 0 1px rgb(94 234 212 / 0.55),
+    inset 0 -12px 24px -10px rgb(1 18 16 / 0.85),
+    0 1px 2px rgb(4 76 59 / 0.12),
+    0 30px 65px -22px rgb(20 184 166 / 0.52),
+    0 55px 100px -40px rgb(2 38 32 / 0.75);
+}
+
+.card[data-world='ayatech'][aria-pressed='true'] {
+  box-shadow:
+    inset 0 1px 2px 0 rgb(255 255 255 / 0.6),
+    inset 0 0 0 2px rgb(45 212 191 / 0.9),
+    inset 0 -12px 24px -10px rgb(1 18 16 / 0.85),
+    0 1px 2px rgb(4 76 59 / 0.12),
+    0 30px 65px -22px rgb(20 184 166 / 0.58),
+    0 55px 100px -40px rgb(2 38 32 / 0.75),
+    0 0 35px -6px rgb(20 184 166 / 0.4);
+}
+
+.card[data-world='ayatech'] .cardLight {
+  background: radial-gradient(
+    340px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgb(94 234 212 / 0.28) 0%,
+    rgb(20 184 166 / 0.14) 40%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+}
+
+.card[data-world='ayatech'] .cardCheck {
+  background: #0d9488;
+  box-shadow:
+    0 0 16px rgb(13 148 136 / 0.8),
+    inset 0 1px 1px rgb(255 255 255 / 0.6);
 }
 
 /* Card Text Styling */
@@ -459,7 +516,8 @@
   transition: color 0.3s ease;
 }
 
-.card[data-world='cloudversity'] .cardTitle {
+.card[data-world='cloudversity'] .cardTitle,
+.card[data-world='ayatech'] .cardTitle {
   color: #ffffff;
   text-shadow: 0 2px 14px rgb(1 20 16 / 0.85);
 }
@@ -470,9 +528,20 @@
   letter-spacing: 0.18em;
 }
 
+.card[data-world='ayatech'] .cardKind {
+  color: #5eead4;
+  text-shadow: 0 1px 8px rgb(1 20 18 / 0.6);
+  letter-spacing: 0.18em;
+}
+
 .card[data-world='cloudversity'] .cardLine {
   color: rgb(220 252 231 / 0.82);
   text-shadow: 0 1px 6px rgb(1 20 16 / 0.7);
+}
+
+.card[data-world='ayatech'] .cardLine {
+  color: rgb(204 251 241 / 0.82);
+  text-shadow: 0 1px 6px rgb(1 20 18 / 0.7);
 }
 
 /* ---------- Large 3D Cloudversity Brand Hero Stage ---------- */
@@ -495,7 +564,8 @@
 }
 
 @media (max-width: 639px) {
-  .card[data-world='cloudversity'] {
+  .card[data-world='cloudversity'],
+  .card[data-world='ayatech'] {
     flex-direction: column;
     align-items: flex-start;
     gap: 1.15rem;
@@ -767,6 +837,293 @@
   }
 }
 
+/* ---------- Large 3D AyaTech Brand Hero Stage ---------- */
+
+.ayatechHeroArea {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 5.75rem;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  perspective: 800px;
+}
+
+@media (min-width: 640px) {
+  .ayatechHeroArea {
+    height: 6.75rem;
+  }
+}
+
+/* Glass pedestal / atmospheric stage */
+.ayatechGlassStage {
+  position: absolute;
+  inset: 0;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: linear-gradient(
+    145deg,
+    rgb(2 34 30 / 0.72) 0%,
+    rgb(4 58 52 / 0.58) 55%,
+    rgb(13 78 72 / 0.42) 100%
+  );
+  box-shadow:
+    inset 0 1px 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 0 0 1px rgb(45 212 191 / 0.24),
+    inset 0 -8px 18px -4px rgb(1 18 16 / 0.65),
+    0 12px 28px -12px rgb(2 28 24 / 0.75);
+  transform: translateZ(8px);
+  transition:
+    box-shadow 0.4s ease,
+    border-color 0.4s ease,
+    transform 0.4s ease;
+}
+
+.card:hover .ayatechGlassStage {
+  transform: translateZ(12px);
+  box-shadow:
+    inset 0 1px 2px 0 rgb(255 255 255 / 0.55),
+    inset 0 0 0 1px rgb(94 234 212 / 0.48),
+    inset 0 -8px 18px -4px rgb(1 18 16 / 0.75),
+    0 16px 36px -10px rgb(20 184 166 / 0.35);
+}
+
+.card[aria-pressed='true'] .ayatechGlassStage {
+  box-shadow:
+    inset 0 1px 2px 0 rgb(255 255 255 / 0.65),
+    inset 0 0 0 1px rgb(45 212 191 / 0.6),
+    inset 0 -8px 18px -4px rgb(1 18 16 / 0.75),
+    0 18px 40px -10px rgb(20 184 166 / 0.45);
+}
+
+.ayatechStageGlow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(45 212 191 / 0.35) 0%,
+    rgb(13 148 136 / 0.18) 55%,
+    transparent 80%
+  );
+  pointer-events: none;
+}
+
+.ayatechStageRefraction {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    180px circle at calc(var(--spot-x, 80px) - 1.75rem) calc(var(--spot-y, 60px) - 1.75rem),
+    rgb(255 255 255 / 0.36) 0%,
+    rgb(94 234 212 / 0.22) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.card:hover .ayatechStageRefraction {
+  opacity: 1;
+}
+
+.ayatechStageSheen {
+  position: absolute;
+  inset-inline: 1rem;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
+  pointer-events: none;
+}
+
+/* Contact shadow underneath the large floating 3D logo */
+.ayatechLogoShadow {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  width: 10.5rem;
+  height: 0.75rem;
+  translate: -50% 0;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse at center, rgb(1 18 16 / 0.78) 0%, transparent 75%);
+  transform: translateZ(14px);
+  filter: blur(2.5px);
+  pointer-events: none;
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.card:hover .ayatechLogoShadow {
+  transform: translateZ(16px) scale(0.92);
+  opacity: 0.75;
+}
+
+@media (max-width: 639px) {
+  .ayatechLogoShadow {
+    width: 8rem;
+    height: 0.6rem;
+    bottom: 0.4rem;
+  }
+}
+
+/* 3D Floating Stage holding the large logo */
+.ayatechFloatStage {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  transform: translate3d(0, 0, 26px) rotateX(2deg) rotateY(-2deg);
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.card:hover .ayatechFloatStage {
+  transform: translate3d(0, -2.5px, 36px) rotateX(3.5deg) rotateY(-3deg);
+}
+
+.card[aria-pressed='true'] .ayatechFloatStage {
+  transform: translate3d(0, -1.5px, 30px) rotateX(2.5deg) rotateY(-2.5deg);
+}
+
+.card[aria-pressed='true']:hover .ayatechFloatStage {
+  transform: translate3d(0, -3px, 38px) rotateX(4deg) rotateY(-3.5deg);
+}
+
+.ayatechFloatAnim {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+/* Large official logo image asset */
+.ayatechLogoImage {
+  display: block;
+  width: auto;
+  max-width: 13.5rem;
+  height: auto;
+  max-height: 5rem;
+  object-fit: contain;
+  user-select: none;
+  filter:
+    drop-shadow(0 2px 5px rgb(1 18 16 / 0.75))
+    drop-shadow(0 8px 18px rgb(1 18 16 / 0.5))
+    drop-shadow(0 0 12px rgb(255 255 255 / 0.45))
+    drop-shadow(0 0 18px rgb(94 234 212 / 0.4));
+  transition:
+    filter 0.4s ease,
+    transform 0.4s ease;
+}
+
+.card:hover .ayatechLogoImage {
+  filter:
+    drop-shadow(0 3px 8px rgb(1 18 16 / 0.8))
+    drop-shadow(0 14px 24px rgb(1 18 16 / 0.6))
+    drop-shadow(0 0 16px rgb(255 255 255 / 0.65))
+    drop-shadow(0 0 24px rgb(94 234 212 / 0.6))
+    brightness(1.08);
+}
+
+.card[aria-pressed='true'] .ayatechLogoImage {
+  filter:
+    drop-shadow(0 3px 8px rgb(1 18 16 / 0.85))
+    drop-shadow(0 12px 22px rgb(1 16 14 / 0.62))
+    drop-shadow(0 0 18px rgb(255 255 255 / 0.7))
+    drop-shadow(0 0 26px rgb(45 212 191 / 0.65))
+    brightness(1.1);
+}
+
+@media (max-width: 639px) {
+  .ayatechLogoImage {
+    max-width: 10rem;
+    max-height: 3.8rem;
+  }
+}
+
+/* Specular light sweep crossing the logo on hover */
+.ayatechLightSweep {
+  position: absolute;
+  inset: -30% -50%;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.15) 46%,
+    rgb(255 255 255 / 0.55) 50%,
+    rgb(255 255 255 / 0.15) 54%,
+    transparent 65%
+  );
+  opacity: 0;
+  transform: translateX(-40%);
+  mix-blend-mode: overlay;
+  transition:
+    opacity 0.4s ease,
+    transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.card:hover .ayatechLightSweep {
+  opacity: 0.85;
+  transform: translateX(40%);
+}
+
+/* Subtle continuous floating animation */
+@media (prefers-reduced-motion: no-preference) {
+  .ayatechFloatAnim {
+    animation: ayatechFloatMotion 5.2s ease-in-out infinite;
+    animation-delay: -1.8s;
+  }
+}
+
+@keyframes ayatechFloatMotion {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg);
+  }
+  50% {
+    transform: translate3d(0, -2.5px, 6px) rotateX(1deg) rotateY(-1.5deg);
+  }
+}
+
+@media (hover: none) {
+  .ayatechFloatAnim {
+    animation: none;
+  }
+
+  .ayatechFloatStage {
+    transform: translate3d(0, 0, 18px);
+  }
+
+  .ayatechLogoShadow {
+    transform: translateZ(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ayatechGlassStage,
+  .ayatechFloatStage,
+  .ayatechFloatAnim,
+  .ayatechLogoShadow,
+  .ayatechLogoImage,
+  .ayatechLightSweep {
+    animation: none;
+    transition: none;
+  }
+
+  .ayatechFloatStage {
+    transform: translate3d(0, 0, 14px);
+  }
+
+  .ayatechLogoShadow {
+    transform: translateZ(8px);
+  }
+}
+
 .cardCheck {
   position: absolute;
   top: 1rem;
@@ -828,7 +1185,7 @@
 }
 
 .root[data-mode='cinematic'] + .world:not(:empty) {
-  margin-top: -135svh;
+  margin-top: -175svh;
   position: sticky;
   top: 84px;
 }

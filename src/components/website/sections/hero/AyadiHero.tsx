@@ -14,6 +14,7 @@ import { AyatechWorld } from './AyatechWorld';
 import { ChooseWorld, type WorldId } from './ChooseWorld';
 import styles from './hero.module.css';
 import { createRig, pickQuality, RIG_START, type Quality, type Rig, type StoryKey } from './rig';
+import { playWorldEntrance, playWorldTransitionOut } from './worldEntrance';
 import { WhyStage } from './WhyStage';
 import { WorldSwitcher } from './WorldSwitcher';
 
@@ -303,6 +304,8 @@ export function AyadiHero() {
      time: the hero on screen, the world on screen, the scene dissolved. */
   const seen = useRef({ hero: false, world: false, dark: false, shown: false });
   const restart = useRef(false);
+  const isSwitching = useRef(false);
+  const activeEntranceTl = useRef<gsap.core.Timeline | null>(null);
   const rig = useRef<Rig>(createRig());
 
   const [mode, setMode] = useState<'still' | 'cinematic'>('still');
@@ -349,11 +352,46 @@ export function AyadiHero() {
 
   /* Switching worlds while you are inside one drops you at the start of the
      other; from the hero it only changes what is waiting below. */
-  const chooseWorld = (next: WorldId) => {
-    if (next === world) return;
-    restart.current = seen.current.world;
-    setWorld(next);
-  };
+  const chooseWorld = useCallback(
+    (next: WorldId) => {
+      if (next === world) return;
+      if (isSwitching.current) return;
+
+      // If the reader is not currently viewing the world (e.g. they are in the hero section),
+      // simply update what is waiting below without triggering cinematic world swap.
+      if (!seen.current.world) {
+        setWorld(next);
+        return;
+      }
+
+      isSwitching.current = true;
+      restart.current = true;
+
+      // Kill any active entrance animation
+      if (activeEntranceTl.current) {
+        activeEntranceTl.current.kill();
+        activeEntranceTl.current = null;
+      }
+
+      // 1. Transition OUT using the liquid veil / atmosphere
+      playWorldTransitionOut({
+        veil: veilRef.current,
+        air: airRef.current,
+        worldEl: worldRef.current,
+        onComplete: () => {
+          if (next === 'cloudversity' && !Journey) {
+            void loadJourney().then((module) => {
+              setJourney(() => module.AyadiJourney);
+              setWorld(next);
+            });
+          } else {
+            setWorld(next);
+          }
+        },
+      });
+    },
+    [world, Journey],
+  );
 
   /* ---------- which layout ---------- */
   useIsomorphicLayoutEffect(() => {
@@ -788,7 +826,39 @@ export function AyadiHero() {
       top: pinned ? pinned.start : element.getBoundingClientRect().top + window.scrollY - NAV_CLEARANCE,
       behavior: 'instant',
     });
+
+    // 2. Play the INITIAL ENTRANCE ANIMATION for the newly mounted world
+    activeEntranceTl.current = playWorldEntrance({
+      world,
+      worldEl: element,
+      veil: veilRef.current,
+      air: airRef.current,
+      onComplete: () => {
+        isSwitching.current = false;
+        activeEntranceTl.current = null;
+      },
+    });
   }, [world, Journey]);
+
+  /* If the user scrolls during the short entrance animation, complete it immediately
+     so the existing ScrollTrigger journey takes over without any delay or collision. */
+  useEffect(() => {
+    const handleScrollInterrupt = () => {
+      if (isSwitching.current && activeEntranceTl.current) {
+        activeEntranceTl.current.progress(1);
+      }
+    };
+    window.addEventListener('wheel', handleScrollInterrupt, { passive: true });
+    window.addEventListener('touchmove', handleScrollInterrupt, { passive: true });
+    return () => {
+      window.removeEventListener('wheel', handleScrollInterrupt);
+      window.removeEventListener('touchmove', handleScrollInterrupt);
+      if (activeEntranceTl.current) {
+        activeEntranceTl.current.kill();
+        activeEntranceTl.current = null;
+      }
+    };
+  }, []);
 
   /* ---------- live input ---------- */
   useEffect(() => {

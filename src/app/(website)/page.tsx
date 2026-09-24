@@ -10,7 +10,7 @@ export default function WebsiteHomePage() {
   return (
     <>
       <Hero />
-      <WhyChooseAyadi />
+      {/* <WhyChooseAyadi /> */}
       <LearningPathways />
       <CEOMessage />
       <HowItWorks />

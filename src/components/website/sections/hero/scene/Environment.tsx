@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import * as THREE from 'three';
 
 import type { Rig, WatermarkSpec } from '../rig';
+import { AYADI_BOX, AYADI_PATH } from '../wordmark';
 import type { Frame } from './frame';
 import { buildParticles, fullscreenTriangle } from './geometry';
 import {
@@ -86,9 +87,10 @@ export function Backdrop({ rig, frame }: Props) {
 
 /* ---------- the opening's AYADI watermark ----------
    The page lays it out (.watermark in hero.module.css) and AyadiHero measures
-   it into the rig; here it is rasterised with the same font, size and
-   spacing, then placed on the element's box (stage pixels, as the canvas
-   is) every frame, fading as the mark comes free. */
+   it into the rig; here the official AYADI letterforms (wordmark.ts — the
+   same path the page draws) are rasterised into that box, then placed on it
+   (stage pixels, as the canvas is) every frame, fading as the logo comes
+   free. */
 
 type WatermarkLayer = {
   texture: THREE.CanvasTexture | null;
@@ -99,8 +101,6 @@ type WatermarkLayer = {
   shownAt: number;
   alive: boolean;
 };
-
-const WATERMARK_TEXT = 'AYADI';
 
 function smoothstep(edge0: number, edge1: number, x: number) {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
@@ -117,7 +117,7 @@ function updateWatermark(
 ) {
   const spec = r.watermark;
 
-  /* Redraw after every re-measure (resize, font swap) while it can be seen. */
+  /* Redraw after every re-measure (resize, reflow) while it can be seen. */
   if (!layer.pending && layer.drawn !== spec.version && spec.width > 0 && r.dock > 0.3) {
     const version = spec.version;
     layer.pending = true;
@@ -156,17 +156,10 @@ function updateWatermark(
   u.uWatermarkAlpha.value = appear * smoothstep(0.35, 1, r.dock);
 }
 
-/* White ink on transparent, laid out the way CSS lays out the element: the
-   same box, left padding and letter spacing, and the baseline where
-   line-height: 1 puts it. Only the alpha is used — the shader tints it. */
+/* White ink on transparent: the official letterforms, stretched to the
+   element's box exactly as the page's SVG is (its viewBox is AYADI_BOX).
+   Only the alpha is used — the shader tints it. */
 async function drawWatermark(spec: WatermarkSpec, dpr: number) {
-  const font = `${spec.fontWeight} ${spec.fontSize}px ${spec.fontFamily}`;
-  try {
-    await document.fonts?.load(font, WATERMARK_TEXT);
-  } catch {
-    /* Draw with whatever font is available. */
-  }
-
   const scale = Math.min(Math.max(dpr, 1), 2048 / spec.width);
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(spec.width * scale);
@@ -174,28 +167,10 @@ async function drawWatermark(spec: WatermarkSpec, dpr: number) {
   const context = canvas.getContext('2d');
   if (!context) return null;
 
-  context.scale(scale, scale);
-  context.font = font;
-  context.fillStyle = '#fff';
-  context.textBaseline = 'alphabetic';
   context.filter = `blur(${scale}px)`;
-
-  const metrics = context.measureText(WATERMARK_TEXT);
-  const ascent = metrics.fontBoundingBoxAscent || spec.fontSize * 0.8;
-  const descent = metrics.fontBoundingBoxDescent || spec.fontSize * 0.2;
-  const baseline = (spec.height + ascent - descent) / 2;
-
-  /* Canvas letter spacing is recent; without it, letters go down one by one. */
-  if (typeof context.letterSpacing === 'string') {
-    context.letterSpacing = `${spec.letterSpacing}px`;
-    context.fillText(WATERMARK_TEXT, spec.paddingLeft, baseline);
-  } else {
-    let x = spec.paddingLeft;
-    for (const letter of WATERMARK_TEXT) {
-      context.fillText(letter, x, baseline);
-      x += context.measureText(letter).width + spec.letterSpacing;
-    }
-  }
+  context.scale((spec.width * scale) / AYADI_BOX[2], (spec.height * scale) / AYADI_BOX[3]);
+  context.fillStyle = '#fff';
+  context.fill(new Path2D(AYADI_PATH), 'evenodd');
 
   return new THREE.CanvasTexture(canvas);
 }

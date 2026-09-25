@@ -98,17 +98,12 @@ export type Rig = {
 };
 
 export type WatermarkSpec = {
-  /** Pixels from the stage's top-left, as the slot. */
+  /** Pixels from the stage's top-left, as the slot — the box the official
+      AYADI letterforms are drawn into (wordmark.ts). */
   left: number;
   top: number;
   width: number;
   height: number;
-  /** Pixels as drawn on screen (after the opening's --fit scale). */
-  fontSize: number;
-  letterSpacing: number;
-  paddingLeft: number;
-  fontFamily: string;
-  fontWeight: string;
   /** Bumped on every measure, so the scene knows to redraw. */
   version: number;
 };
@@ -162,11 +157,6 @@ export function createRig(): Rig {
       top: 0,
       width: 0,
       height: 0,
-      fontSize: 0,
-      letterSpacing: 0,
-      paddingLeft: 0,
-      fontFamily: 'sans-serif',
-      fontWeight: '800',
       version: 0,
     },
     infoWidth: 0,

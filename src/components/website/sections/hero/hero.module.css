@@ -74,49 +74,44 @@
   scale: var(--fit, 1);
 }
 
-/* The mark and its watermark. Sized by the slot; everything else hangs off it. */
+/* The logo and its watermark. Sized by the slot; everything else hangs off it. */
 .brand {
   position: relative;
   margin-bottom: clamp(1.25rem, 4svh, 2.5rem);
 }
 
-/* Where the 3D mark docks. Its box is the mark's own proportions. */
+/* Where the 3D logo docks. Its box is the official lockup's own proportions
+   (the artwork is 3116 × 1701), so the scene fits the whole logo to it. Sized
+   by width: wide enough to be the first thing read, never so tall that the
+   opening stops fitting a laptop. */
 .slot {
   position: relative;
-  height: clamp(7rem, 19svh, 11rem);
-  aspect-ratio: 592 / 712;
+  width: clamp(13rem, 62vw, 16rem);
+  aspect-ratio: 3116 / 1701;
 }
 
 @media (min-width: 768px) {
   .slot {
-    height: clamp(8.5rem, 23svh, 15rem);
+    width: clamp(16rem, min(30vw, 46svh), 27.5rem);
   }
 }
 
 /*
- * A huge, faint AYADI behind the mark — an imprint more than a word. Centred
- * on the mark's upper half, so the mark covers its middle. Brand green to
- * teal, fading downwards, softened a touch.
- *
- * Padding-left matches the letter spacing, so the ink sits centred in the box.
- * The backdrop shader reads this box, font and spacing (AyadiHero measure()),
- * so keep them in CSS rather than in a transform.
+ * A huge, faint AYADI behind the logo — an imprint more than a word, and in
+ * the official letterforms (wordmark.ts), never a stand-in typeface. Centred
+ * on the logo's own AYADI (46.5% down the lockup), so the two read as one
+ * name at two depths. Brand green to teal, fading downwards, softened a
+ * touch. The backdrop shader reads this element's box (AyadiHero measure())
+ * and draws the same path into it.
  */
 .watermark {
   position: absolute;
-  top: 38%;
+  top: 46.5%;
   left: 50%;
+  width: min(64vw, 58rem);
+  height: auto;
   translate: -50% -50%;
-  padding-left: 0.14em;
-  font-size: min(17vw, 15rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.14em;
-  white-space: nowrap;
-  color: transparent;
-  background: linear-gradient(90deg, var(--color-brand-middle), var(--color-brand-end));
-  background-clip: text;
-  -webkit-background-clip: text;
+  overflow: visible;
   opacity: 0.075;
   filter: blur(1px);
   mask-image: linear-gradient(to bottom, #000 15%, rgb(0 0 0 / 0.45) 85%);

@@ -2,8 +2,8 @@
 
 import gsap from 'gsap';
 
+import { playAyatechIntro } from './ayatechIntro';
 import type { WorldId } from './ChooseWorld';
-import stylesAyatech from './ayatech.module.css';
 
 interface TransitionOutOptions {
   veil: HTMLElement | null;
@@ -124,131 +124,14 @@ export function playWorldEntrance({
 
   // 3. World-specific element entrance animations
   if (world === 'ayatech') {
-    animateAyatechEntrance(tl, worldEl);
+    /* AyaTech's intro runs on its own clock (ayatechIntro.ts): longer than
+       this entrance, and it must not hold the switcher while it plays. */
+    playAyatechIntro(worldEl);
   } else if (world === 'cloudversity') {
     animateCloudversityEntrance(tl, worldEl);
   }
 
   return tl;
-}
-
-/**
- * AyaTech World Entrance:
- * Reveals the existing Scene 1 elements (physical spotlights, 3D Digital Core, and intro identity).
- */
-function animateAyatechEntrance(tl: gsap.core.Timeline, worldEl: HTMLElement) {
-  const stage = (worldEl.querySelector(`.${stylesAyatech.stage}`) || worldEl.firstElementChild) as HTMLElement | null;
-  const spotPrimary = worldEl.querySelector('[data-element="spotlight-primary"]');
-  const spotSecondary = worldEl.querySelector('[data-element="spotlight-secondary"]');
-  const spotAccent = worldEl.querySelector('[data-element="spotlight-accent"]');
-  const core = worldEl.querySelector('[data-element="core"]');
-  const introAct = worldEl.querySelector('[data-act="intro"]');
-
-  const badge = introAct?.querySelector(`.${stylesAyatech.introBadge}`) || introAct?.children[0];
-  const logoWrap = introAct?.querySelector(`.${stylesAyatech.introLogoWrap}`) || introAct?.children[1];
-  const title = introAct?.querySelector(`.${stylesAyatech.introTitle}`) || introAct?.children[2];
-  const motto = introAct?.querySelector(`.${stylesAyatech.introMotto}`) || introAct?.children[3];
-  const tagline = introAct?.querySelector(`.${stylesAyatech.introTagline}`) || introAct?.children[4];
-  const hint = introAct?.querySelector(`.${stylesAyatech.introScrollHint}`) || introAct?.children[5];
-
-  // Subtle upward glide & scale on the inner stage
-  if (stage) {
-    gsap.set(stage, { y: 16, scale: 0.988 });
-    tl.to(
-      stage,
-      {
-        y: 0,
-        scale: 1,
-        duration: 1.1,
-        ease: 'power2.out',
-        clearProps: 'transform',
-      },
-      0,
-    );
-  }
-
-  // Physical spotlights bloom softly into their normal Scene 1 rest states
-  if (spotPrimary) {
-    gsap.set(spotPrimary, { scale: 0.35, autoAlpha: 0 });
-    tl.to(
-      spotPrimary,
-      {
-        scale: 0.65,
-        autoAlpha: 0.28,
-        duration: 1.2,
-        ease: 'power2.out',
-      },
-      0.05,
-    );
-  }
-  if (spotSecondary) {
-    gsap.set(spotSecondary, { scale: 0.3, autoAlpha: 0 });
-    tl.to(
-      spotSecondary,
-      {
-        scale: 0.55,
-        autoAlpha: 0.16,
-        duration: 1.2,
-        ease: 'power2.out',
-      },
-      0.1,
-    );
-  }
-  if (spotAccent) {
-    gsap.set(spotAccent, { scale: 0.3, autoAlpha: 0 });
-    tl.to(
-      spotAccent,
-      {
-        scale: 0.5,
-        autoAlpha: 0.1,
-        duration: 1.1,
-        ease: 'power2.out',
-      },
-      0.15,
-    );
-  }
-
-  // 3D Digital Core materializes smoothly into its initial rest state
-  if (core) {
-    gsap.set(core, { autoAlpha: 0, scale: 0.6, rotation: -30 });
-    tl.to(
-      core,
-      {
-        autoAlpha: 0.55,
-        scale: 0.8,
-        rotation: 0,
-        duration: 1.2,
-        ease: 'power3.out',
-      },
-      0.1,
-    );
-  }
-
-  // Intro Scene 1 text and branding elements reveal with coordinated cadence
-  if (badge) {
-    gsap.set(badge, { autoAlpha: 0, y: 10 });
-    tl.to(badge, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 0.15);
-  }
-  if (logoWrap) {
-    gsap.set(logoWrap, { autoAlpha: 0, y: 14, scale: 0.94 });
-    tl.to(logoWrap, { autoAlpha: 1, y: 0, scale: 1, duration: 0.8, ease: 'power2.out' }, 0.25);
-  }
-  if (title) {
-    gsap.set(title, { autoAlpha: 0, y: 16 });
-    tl.to(title, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power2.out' }, 0.35);
-  }
-  if (motto) {
-    gsap.set(motto, { autoAlpha: 0, y: 12 });
-    tl.to(motto, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 0.45);
-  }
-  if (tagline) {
-    gsap.set(tagline, { autoAlpha: 0, y: 10 });
-    tl.to(tagline, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 0.52);
-  }
-  if (hint) {
-    gsap.set(hint, { autoAlpha: 0, y: 8 });
-    tl.to(hint, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 0.6);
-  }
 }
 
 /**

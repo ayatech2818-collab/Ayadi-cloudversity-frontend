@@ -18,6 +18,15 @@ import { useEffect, useLayoutEffect, useRef } from 'react';
 import { brandById } from '@/components/website/courses/brands';
 
 import styles from './ayatech.module.css';
+import {
+  AYATECH_LOGO,
+  FIELD,
+  POINTS,
+  SIGNALS,
+  stopAyatechIntro,
+  TRACES,
+  type SignalId,
+} from './ayatechIntro';
 
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
@@ -590,7 +599,11 @@ export function AyatechWorld({ bare = true }: { bare?: boolean }) {
       );
     }, scope);
 
-    return () => ctx.revert();
+    return () => {
+      /* The intro runs on its own clock (ayatechIntro.ts); leaving the world ends it. */
+      stopAyatechIntro(scope);
+      ctx.revert();
+    };
   }, []);
 
   return (
@@ -603,12 +616,12 @@ export function AyatechWorld({ bare = true }: { bare?: boolean }) {
     >
       <div ref={stageRef} className={styles.stage}>
         {/* Atmospheric ambient background layers with blurred physical spotlights */}
-        <div aria-hidden="true" className={styles.atmosphere}>
+        <div data-intro="atmosphere" aria-hidden="true" className={styles.atmosphere}>
           <div data-element="spotlight-primary" className={styles.spotlightPrimary} />
           <div data-element="spotlight-secondary" className={styles.spotlightSecondary} />
           <div data-element="spotlight-accent" className={styles.spotlightAccent} />
-          <div className={styles.digitalGrid} />
-          <div className={styles.particlesOverlay} />
+          <div data-intro="grid" className={styles.digitalGrid} />
+          <div data-intro="particles" className={styles.particlesOverlay} />
         </div>
 
         {/* Central 3D Digital Core */}
@@ -723,32 +736,95 @@ export function AyatechWorld({ bare = true }: { bare?: boolean }) {
 
         {/* Acts Container */}
         <div className={styles.actsContainer}>
-          {/* SCENE 1: Intro Atmosphere & Central World Header with official AyaTech logo */}
-          <div data-act="intro" className={styles.actLayer}>
-            <div className={styles.introBadge}>
-              <span className={styles.pulseIndicator} />
-              <span>Technology · Development</span>
+          {/* SCENE 1: the intro — AyaTech's identity. The official logo,
+              centred on the stage, in a pool of light, with the ecosystem it
+              stands for signalling round it. This is its resting state,
+              where the scroll journey starts; entering the world assembles
+              it (ayatechIntro.ts). */}
+          <div data-act="intro" className={`${styles.actLayer} ${styles.introAct}`}>
+            <div className={styles.introStage}>
+              <span data-intro="halo" aria-hidden="true" className={styles.introHalo} />
+              <span data-intro="bloom" aria-hidden="true" className={styles.introBloom} />
+
+              <div aria-hidden="true" className={styles.introField}>
+                <svg
+                  viewBox={`0 0 ${FIELD.width} ${FIELD.height}`}
+                  preserveAspectRatio="none"
+                  className={styles.introTraces}
+                >
+                  <g className={styles.introPoints}>
+                    {POINTS.map(([cx, cy]) => (
+                      <circle key={`${cx}-${cy}`} data-intro="point" cx={cx} cy={cy} r={1.6} />
+                    ))}
+                  </g>
+                  {TRACES.map(({ signal, d, end }) => (
+                    <g key={d} data-ambient={signal ? undefined : ''}>
+                      <path data-intro="trace" d={d} pathLength={1} className={styles.introTrace} />
+                      {signal && <path data-intro="pulse" d={d} pathLength={1} className={styles.introPulse} />}
+                      <circle
+                        data-intro="terminal"
+                        data-signal={signal}
+                        cx={end[0]}
+                        cy={end[1]}
+                        r={2.8}
+                        className={styles.introTerminal}
+                      />
+                    </g>
+                  ))}
+                </svg>
+
+                {CAPABILITIES.map(({ id, title }) => {
+                  const { at, label } = SIGNALS[id as SignalId];
+                  return (
+                    <span
+                      key={id}
+                      data-intro="signal"
+                      data-label={label}
+                      style={{ left: `${(at[0] / FIELD.width) * 100}%`, top: `${(at[1] / FIELD.height) * 100}%` }}
+                      className={styles.introSignal}
+                    >
+                      <span data-intro="signal-dot" className={styles.introSignalDot} />
+                      <span className={styles.introSignalLabel}>{title}</span>
+                    </span>
+                  );
+                })}
+              </div>
+
+              <h1 data-intro="logo" className={styles.introLogo}>
+                <Image
+                  src={AYATECH_LOGO}
+                  alt="AyaTech"
+                  width={1000}
+                  height={450}
+                  priority
+                  unoptimized
+                  className={styles.introLogoImg}
+                />
+                <span
+                  data-intro="sheen"
+                  aria-hidden="true"
+                  style={{ maskImage: `url(${AYATECH_LOGO})`, WebkitMaskImage: `url(${AYATECH_LOGO})` }}
+                  className={styles.introSheen}
+                />
+              </h1>
             </div>
 
-            <div className={styles.introLogoWrap}>
-              <Image
-                src="/images/Ayatech.png"
-                alt="AyaTech"
-                width={1000}
-                height={450}
-                priority
-                unoptimized
-                className={styles.introLogoImg}
-              />
+            <div className={styles.introCopy}>
+              <div data-intro="badge" className={styles.introBadge}>
+                <span className={styles.pulseIndicator} />
+                <span>Technology · Development</span>
+              </div>
+              <p data-intro="motto" className={styles.introMotto}>
+                Learn. Build. Innovate.
+              </p>
+              <p data-intro="tagline" className={styles.introTagline}>
+                Built for What Comes Next
+              </p>
+              <span data-intro="hint" className={styles.introScrollHint}>
+                <Zap size={14} className="text-emerald-600" />
+                <span>Scroll into the technology ecosystem</span>
+              </span>
             </div>
-
-            <h1 className={styles.introTitle}>AYA TECH</h1>
-            <p className={styles.introMotto}>Learn. Build. Innovate.</p>
-            <p className={styles.introTagline}>Built for What Comes Next</p>
-            <span className={styles.introScrollHint}>
-              <Zap size={14} className="text-emerald-600" />
-              <span>Scroll into the technology ecosystem</span>
-            </span>
           </div>
 
           {/* SCENES 3 & 4: 3D Spatial Capability Nodes (Zero course-specific names) */}

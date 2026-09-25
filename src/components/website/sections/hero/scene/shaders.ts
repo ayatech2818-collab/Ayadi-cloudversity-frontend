@@ -199,6 +199,74 @@ export const LOGO_FRAGMENT = /* glsl */ `
   }
 `;
 
+/* ---------- the wordmark ----------
+   AYADI and CLOUDVERSITY, in the brand's own ink (#17221a). Seen head-on the
+   face is that colour and nothing else; the depth lives in the bevels and
+   sides — a soft satin highlight, a faint cool rim — so it reads as a
+   machined plate rather than as a flat logo, and never as chrome.
+
+   It dissolves into the mark: letters farthest from it go first, the edge
+   travelling in toward it and catching a little of its green as it passes,
+   so the lockup gathers into its symbol rather than simply fading. */
+
+export const WORDMARK_VERTEX = /* glsl */ `
+  varying vec3 vNormal;
+  varying vec3 vObjectNormal;
+  varying vec3 vView;
+  varying vec2 vXY;
+
+  void main() {
+    vObjectNormal = normal;
+    vXY = position.xy;
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    vView = -mv.xyz;
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+
+export const WORDMARK_FRAGMENT = /* glsl */ `
+  uniform vec3 uKey;
+  uniform float uFade;
+  uniform float uWord;
+  uniform vec2 uCentre;
+  uniform float uReach;
+
+  varying vec3 vNormal;
+  varying vec3 vObjectNormal;
+  varying vec3 vView;
+  varying vec2 vXY;
+
+  const float SOFT = 0.9;
+
+  void main() {
+    vec3 N = normalize(vNormal);
+    vec3 V = normalize(vView);
+    vec3 L = normalize(uKey);
+
+    vec3 ink = vec3(0.090, 0.133, 0.102);
+    vec3 side = vec3(0.19, 0.25, 0.21);
+    float face = smoothstep(0.55, 0.92, abs(vObjectNormal.z));
+    vec3 base = mix(side, ink, face);
+
+    float diffuse = max(dot(N, L), 0.0);
+    vec3 H = normalize(L + V);
+    float spec = pow(max(dot(N, H), 0.0), 26.0);
+    float rim = pow(1.0 - max(dot(N, V), 0.0), 2.5);
+
+    vec3 col = base * (0.74 + 0.36 * diffuse);
+    col += vec3(0.86, 1.0, 0.92) * spec * 0.22 * (1.0 - 0.75 * face);
+    col += vec3(0.55, 0.85, 0.62) * rim * 0.14;
+
+    float d = distance(vXY, uCentre);
+    float alpha = clamp((uWord * (uReach + SOFT) - d) / SOFT, 0.0, 1.0);
+    float edge = alpha * (1.0 - alpha) * 4.0;
+    col += vec3(0.553, 0.776, 0.247) * edge * 0.35 * (1.0 - uWord);
+
+    gl_FragColor = vec4(col, alpha * uFade);
+  }
+`;
+
 /* ---------- the globe ---------- */
 
 export const SHELL_VERTEX = /* glsl */ `

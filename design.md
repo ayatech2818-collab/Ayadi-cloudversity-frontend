@@ -244,9 +244,11 @@ loop. No more pinned or scroll-jacked sections on Home.
 Order and intent:
 
 1. **Hero = the scroll journey** (`sections/Hero.tsx` → `hero/AyadiHero.tsx`,
-   §9). A centred opening: a faint AYADI watermark behind the 3D mark, then eyebrow *"Learning for every next step"*, `h1` *"Start Your Future
+   §9). A centred opening: a faint AYADI watermark behind the official Ayadi
+   Cloudversity logo in 3D, then eyebrow *"Learning for every next step"*, `h1` *"Start Your Future
    Education With **Ayadi Cloudversity**"*, paragraph and CTA *"Explore
-   Learning Paths"* (→ `/courses`) → scroll: the mark
+   Learning Paths"* (→ `/courses`) → scroll: the wordmark gathers into
+   the green mark, and the mark
    becomes the core of a globe → the globe becomes a portal, and on its glass,
    as the camera nears, *"Why choose Ayadi?"* and three cards one by one → the camera flies
    through its liquid glass → *"Choose your world"* (Ayadi Cloudversity or
@@ -355,8 +357,8 @@ Nothing between the stage and the page's scroller may clip
 
 | Units | What you see |
 |---|---|
-| 0 | **Opening** — one centred column at every width, never a grid. A huge, faint **AYADI** watermark; the 3D Ayadi mark in front of it (docked in the logo slot, a soft contact shadow under it); then eyebrow *"Learning for every next step"*, `h1` *"Start Your Future Education With **Ayadi Cloudversity**"*, paragraph, CTA *"Explore Learning Paths"* (→ `/courses`), and *"Scroll to explore"* under the button. Light page |
-| 0.1–2.1 | The copy fades where it stands (0.1–0.9, no scrolling). The mark comes free of its slot, turns to show its extruded depth, the camera pulls back, and the page darkens into deep green space |
+| 0 | **Opening** — one centred column at every width, never a grid. A huge, faint **AYADI** watermark in the official letterforms; the **official Ayadi Cloudversity logo in 3D** in front of it — mark, AYADI and CLOUDVERSITY, docked in the logo slot, a soft contact shadow under it; then eyebrow *"Learning for every next step"*, `h1` *"Start Your Future Education With **Ayadi Cloudversity**"*, paragraph, CTA *"Explore Learning Paths"* (→ `/courses`), and *"Scroll to explore"* under the button. Light page |
+| 0.1–2.1 | The copy fades where it stands (0.1–0.9, no scrolling). The logo holds its place while the wordmark **gathers into the mark** (~0.45–0.75: AYADI dissolves on a front travelling in toward the mark while CLOUDVERSITY fades out evenly over the same stretch); then the mark comes free of its slot, turns to show its extruded depth, the camera pulls back, and the page darkens into deep green space |
 | 1.3–3.1 | A globe draws itself round the mark — latitude rings and meridians, dark glass body, atmosphere, a quiet network of points and arcs. The mark shrinks into its glowing core. Caption *"Welcome to the **Ayadi universe**" / "Learning, from anywhere in the world."* |
 | 3.7–5.5 | **Globe → portal.** The globe tips to face the camera (which has been drifting right and down to face it head-on since 3.0); its rings square off into the portal's frames and its meridians straighten into rails. The core drifts back through the portal and fades. A liquid-glass surface fills the front frame |
 | 4.9–5.55 *(stretched)* | **Why Choose Ayadi, on the glass.** As the glass appears the camera keeps travelling toward it, slowly. On the glass: its shade darkens softly; pill *"Our Edge"* and *"Why Choose **Ayadi**?"* surface; then one card per stretch of scroll — **Expert Instructors**, **Best-in-Class Program**, **Flexible Learning** — each rising out of the glass, tag springing on, accent line drawing; a short hold with all three; then they sink back into the glass, shrink and fade, the heading and shade after them |
@@ -404,11 +406,15 @@ be clicked to go on (§9.5).
 | `rig.ts` | The rig: a plain object of numbers GSAP writes and the scene reads. `RIG_START`, and the quality tiers (`pickQuality`) |
 | `ChooseWorld.tsx` | The two cards, at the end of the hero. Which one is selected is the active world |
 | `WorldSwitcher.tsx` | The floating glass pill — the active world, and the way to the other one — for as long as a world has the screen. Writes the cursor into `--x`/`--y` and nothing else |
-| `AyatechWorld.tsx` | AyaTech's holding card, until its own journey exists |
+| `AyatechWorld.tsx` | AyaTech's world: one pinned, scrubbed journey — intro, digital core, capability nodes, network, identity card. Scene 1 (the intro) is its rest state |
+| `ayatechIntro.ts` | AyaTech's intro: plays when the world is entered, on its own clock, and lands exactly on Scene 1's rest state (§9.5) |
+| `worldEntrance.ts` | The short entrance after a switch from inside a world: the veil clears, the world fades in; Cloudversity's own entrance; AyaTech hands off to `ayatechIntro.ts` |
 | `courses/AyadiJourney.tsx` | **Reused, not rebuilt**: Cloudversity's world, three acts. Owns its own pin, its own ScrollTriggers and its own cleanup |
 | `hero.module.css` | Both layouts (below) |
 | `scene/HeroScene.tsx` | The single `<Canvas>`; **Director** (the clock, the camera, docking the mark into its slot); **LiquidPass** (renders the frame) |
-| `scene/Mark.tsx` | The extruded mark (geometry traced from `ayadi-mark.png`) |
+| `scene/Mark.tsx` | The official logo in 3D: the extruded mark plus AYADI and CLOUDVERSITY, docked as one lockup; the wordmark gathers into the mark as it undocks, and from there it is the mark alone (§9.2 *The logo*) |
+| `scene/logo-paths.ts` | The official wordmark as outlines, traced from `ayadi-logo-dark.png` — generated, not hand-edited |
+| `wordmark.ts` | AYADI as one 2D path, for the watermark (page SVG + backdrop). three-free, so the page bundle can import it |
 | `scene/GlobePortal.tsx` | Globe body, atmosphere, network, core glow, the lattice (two passes: core + soft halo), the liquid surface |
 | `scene/Environment.tsx` | Backdrop (three skies in one full-screen shader), motes (`Points`), the far side (floor + two glows) |
 | `scene/geometry.ts` · `shaders.ts` · `frame.ts` | Procedural geometry · all GLSL · per-frame shared values |
@@ -437,20 +443,52 @@ card — never during animation.
   only — touch gets none.
 - **The look target never falls behind the camera** (`z ≤ camZ − 4`), so the
   camera flies through the portal without flipping round.
-- **Docking:** the mark lives at the world origin; the Director shifts the
-  projection matrix (elements 8/9) so it lands on `.slot`. The slot is
+- **The logo** is the brand's own artwork, not a redrawing. The green mark
+  is the existing hand-traced extrusion; AYADI and CLOUDVERSITY are traced
+  out of `ayadi-logo-dark.png` (marching squares on the alpha, Douglas–Peucker
+  at 1px — 448 points, 0.8% of the ink off, all of it edge anti-aliasing) and
+  laid round the mark exactly where the artwork has them (`LOCKUP`). Every
+  bevel sits *inside* the outline (`bevelOffset: −bevelSize`), so head-on
+  the silhouette is the artwork's, not a bolder cousin — the mark included
+  (`trueOutline`). Depth is shallow: mark 0.32, AYADI 0.17, CLOUDVERSITY
+  0.05 (hairline strokes, near-zero bevel). The wordmark's face is the
+  official ink `#17221a`; depth lives in a satin bevel highlight and a faint
+  rim (`WORDMARK_FRAGMENT`) — machined, never chrome. Creased normals smooth
+  the traced curves' facets and keep the real corners sharp.
+- **The gather** (Mark.tsx): `gather = smoothstep(0.5, 0.97, dock)`. While
+  it runs the lockup keeps its docked size and layout (`hold`) and the
+  wordmark dissolves on a front travelling in toward the mark, catching a
+  little green as it passes; CLOUDVERSITY isn't cut by the front — it fades
+  as a whole, steadily from full to nothing, over the same stretch of the
+  gather in which the front crosses AYADI (`crossing()`), so the two go
+  together. Each word's uniforms are written separately every frame: R3F
+  copies a `uniforms` prop into each material, so the two never share them.
+  After the gather, the mark slides from its place in the
+  lockup to the centre and grows — and is from there the same mark on the
+  same path into the globe, so nothing after the opening changed. The story
+  turn and the pointer are eased (×0.65) while the wide lockup is whole.
+  Cost: two more draw calls (~16k static vertices) only while the wordmark
+  is visible; it is hidden once gathered.
+- **Docking:** the lockup lives at the world origin; the Director shifts the
+  projection matrix (elements 8/9) so it lands on `.slot`, which has the
+  artwork's proportions (3116 × 1701). The slot is
   measured relative to the stage — which is exactly the canvas — on every
   ScrollTrigger refresh and opening reflow, so no scroll offset is involved.
 - **Fit:** the opening no longer scrolls, so it must fit on the stage. On a
   short screen `measure()` sets `--fit` and the whole column scales down
   (floor 0.5).
-- **The watermark** has to sit *behind* the 3D mark, and the canvas is opaque
-  under the page's HTML, so it is drawn by the backdrop shader: `.watermark`
-  (hero.module.css) lays it out, `measure()` records its box and font into
-  `rig.watermark`, and `Backdrop` rasterises it once into a small canvas
-  texture and places it on that box every frame (fading with `dock`). The HTML element itself only shows until the scene's
-  first frame, and in the still layout. Change its size, spacing, tint or
-  fade in both places (`BACKDROP_FRAGMENT` mirrors the CSS).
+- **The watermark** has to sit *behind* the 3D logo, and the canvas is
+  opaque under the page's HTML, so it is drawn by the backdrop shader:
+  `.watermark` (hero.module.css) is an SVG of the official AYADI
+  letterforms (`wordmark.ts`), `measure()` records its box into
+  `rig.watermark`, and `Backdrop` rasterises the same path once into a small
+  canvas texture and places it on that box every frame (fading with
+  `dock`). It used to be the word set in Manrope 800 — a second AYADI in a
+  different typeface right behind the real one. Centred on the logo's own
+  AYADI; on a phone it is about the logo's size and all but hidden behind
+  it. The HTML element itself only shows until the scene's first frame, and
+  in the still layout. Change its size, tint or fade in both places
+  (`BACKDROP_FRAGMENT` mirrors the CSS).
 - **Colour:** every material is a `ShaderMaterial` writing display-space
   (sRGB) values straight out (Canvas `flat`, no colour-space chunks, RGBA8
   render target). Don't add three's lit materials — they would render darker
@@ -469,7 +507,8 @@ card — never during animation.
   cleanups; R3F disposes the renderer and declarative materials on unmount.
 - **Bundle:** three + React Three Fiber (~245 KB gzipped) live in their own
   chunk, loaded by `next/dynamic({ ssr: false })` after hydration. Until the
-  first frame is drawn, the static `ayadi-mark.png` stands in the slot.
+  first frame is drawn — and always, in the still layout — the official
+  artwork (`ayadi-logo-dark.png`) stands in the slot.
 
 ### 9.3 Two layouts
 
@@ -625,9 +664,22 @@ so it is long ready by the time the dissolve reaches it. Its own calls to
 action scroll to the courses further down this page rather than leaving for
 `/courses`.
 
-**AyaTech** renders `AyatechWorld.tsx`: the brand's own words, centred on the
-same open page, with no panel around them either. It is the seam, not a
-design — when that journey is built it replaces that file.
+**AyaTech** renders `AyatechWorld.tsx`, its own pinned, scrubbed journey.
+Its first screen is the **official AyaTech logo** (`/images/Ayatech.png`,
+never redrawn), centred on the stage in a pool of light, with the five
+capabilities as faint signals wired to it and the copy beneath. **Entering
+the world** plays its intro (`ayatechIntro.ts`, ~3.9 s): the light space
+wakes, circuit traces draw in and run their light to the centre, the logo
+forms out of it (from its centre outward, blur to sharp, 0.92 → 1), one light
+passes across it, the signals appear and send their light in, the centre
+brightens once, and the invitation to scroll comes last. It runs on its own
+clock, not the scroll's and not the switcher's: it only animates *from*
+hidden *to* what AyatechWorld has already set, so wherever it is cut short
+it lands on the journey's start. Scrolling hurries it; scrolling on
+(120 px) finishes it at once; leaving the world stops it. Tablets drop the
+environment's own wiring; phones keep just the logo, its light and the copy;
+reduced motion shows the rest state. It plays when switching in from inside
+a world, not when AyaTech is chosen up in the hero and scrolled into.
 
 ### 9.6 History and what is next
 
@@ -652,9 +704,9 @@ design — when that journey is built it replaces that file.
 
 | File | Use |
 |---|---|
-| `ayadi-logo.png` (+ `-dark`, `-white`, `-white-trimmed`, `-original`) | Navbar / footer logo |
+| `ayadi-logo.png` (+ `-dark`, `-white`, `-white-trimmed`, `-original`) | Navbar / footer logo. `-dark` is also the hero's stand-in logo, and the source its 3D wordmark is traced from (`hero/scene/logo-paths.ts`). `-original` is the same artwork on an A4 canvas with a white wordmark |
 | `ayadi-logo-white.svg` | Hand-drawn approximation, **not** the real logo |
-| `ayadi-mark.png` | Mark cut from the logo by colour; used by `AyadiMark3D`, as the hero's stand-in mark, and traced for the hero's WebGL mark (`hero/scene/geometry.ts`) |
+| `ayadi-mark.png` | Mark cut from the logo by colour; used by `AyadiMark3D`, and traced for the hero's WebGL mark (`hero/scene/geometry.ts`) |
 | `footer-student.png` | GetStartedCta photo |
 | `journey-step.svg` | Placeholder for HowItWorks step images |
 | `blog/placeholder.svg` | Blog cover placeholder |

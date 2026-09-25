@@ -16,6 +16,7 @@ import styles from './hero.module.css';
 import { createRig, pickQuality, RIG_START, type Quality, type Rig, type StoryKey } from './rig';
 import { playWorldEntrance, playWorldTransitionOut } from './worldEntrance';
 import { WhyStage } from './WhyStage';
+import { AYADI_BOX, AYADI_PATH } from './wordmark';
 import { WorldSwitcher } from './WorldSwitcher';
 
 /* three.js and the scene arrive in their own chunk, after the page is up. */
@@ -294,7 +295,7 @@ export function AyadiHero() {
   const openingInnerRef = useRef<HTMLDivElement>(null);
   const whyRef = useRef<HTMLDivElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
-  const watermarkRef = useRef<HTMLSpanElement>(null);
+  const watermarkRef = useRef<SVGSVGElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const veilRef = useRef<HTMLDivElement>(null);
   const airRef = useRef<HTMLDivElement>(null);
@@ -457,21 +458,14 @@ export function AyadiHero() {
 
       const watermark = watermarkRef.current;
       if (!watermark) return;
+      /* The box as drawn — after --fit — which is all the scene needs: the
+         letterforms are the artwork's, stretched to it as the SVG is. */
       const box = watermark.getBoundingClientRect();
-      const style = getComputedStyle(watermark);
-      /* Its box is one line-height: 1 tall, so its height is the font size as
-         drawn — after --fit — and spacing scales with it. */
-      const drawn = box.height / (parseFloat(style.fontSize) || box.height || 1);
       const spec = state.watermark;
       spec.left = box.left - origin.left;
       spec.top = box.top - origin.top;
       spec.width = box.width;
       spec.height = box.height;
-      spec.fontSize = box.height;
-      spec.letterSpacing = (parseFloat(style.letterSpacing) || 0) * drawn;
-      spec.paddingLeft = (parseFloat(style.paddingLeft) || 0) * drawn;
-      spec.fontFamily = style.fontFamily;
-      spec.fontWeight = style.fontWeight;
       spec.version += 1;
     };
     measure();
@@ -929,21 +923,40 @@ export function AyadiHero() {
             <div ref={openingRef} data-h="opening" className={styles.opening}>
               <div ref={openingInnerRef} className={styles.openingInner}>
                 <div className={styles.brand}>
-                  {/* The watermark. With the scene running it is drawn behind the
-                      3D mark by the backdrop shader, measured from this element; this
-                      one only shows until then, and without motion or WebGL. */}
-                  <span ref={watermarkRef} aria-hidden="true" className={styles.watermark}>
-                    AYADI
-                  </span>
+                  {/* The watermark: the official AYADI letterforms, huge and faint.
+                      With the scene running it is drawn behind the 3D logo by the
+                      backdrop shader, measured from this element; this one only
+                      shows until then, and without motion or WebGL. */}
+                  <svg
+                    ref={watermarkRef}
+                    aria-hidden="true"
+                    viewBox={`0 0 ${AYADI_BOX[2]} ${AYADI_BOX[3]}`}
+                    className={styles.watermark}
+                  >
+                    <defs>
+                      <linearGradient id="hero-watermark-ink" x1="0" x2="1" y1="0" y2="0">
+                        <stop offset="0" stopColor="var(--color-brand-middle)" />
+                        <stop offset="1" stopColor="var(--color-brand-end)" />
+                      </linearGradient>
+                    </defs>
+                    <path d={AYADI_PATH} fill="url(#hero-watermark-ink)" fillRule="evenodd" />
+                  </svg>
 
-                  {/* The 3D mark docks here. Until the scene has drawn its first
-                      frame — and always, without motion or WebGL — this image stands in. */}
+                  {/* The official logo, in 3D, docks here. Until the scene has
+                      drawn its first frame — and always, without motion or
+                      WebGL — the artwork itself stands in. */}
                   <div ref={slotRef} aria-hidden="true" className={styles.slot}>
                     <span className={styles.slotGlow} />
-                    <Image src="/images/ayadi-mark.png" alt="" fill sizes="220px" className={styles.fallbackMark} />
+                    <Image
+                      src="/images/ayadi-logo-dark.png"
+                      alt=""
+                      fill
+                      sizes="(min-width: 768px) 440px, 64vw"
+                      className={styles.fallbackMark}
+                    />
                   </div>
 
-                  {/* A soft contact shadow, so the mark reads as lifted off the page. */}
+                  {/* A soft contact shadow, so the logo reads as lifted off the page. */}
                   <span aria-hidden="true" className={styles.lift} />
                 </div>
 

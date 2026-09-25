@@ -1,5 +1,7 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries, toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+
+import { AYADI, CLOUDVERSITY, LOGO_SIZE, MARK_OFFSET, type Glyph } from './logo-paths';
 
 /*
  * Everything the hero draws is built here, once, from code. No models, no
@@ -57,7 +59,19 @@ const BAR_STEP: [number, number] = [84, 135];
 /** Scales the traced pixels so the mark is two world units tall. */
 const MARK_SCALE = 2 / 712;
 
-export function buildMarkGeometry() {
+/** The mark's centre in ayadi-mark.png's pixels — the point
+    buildMarkGeometry() centres on. */
+const MARK_CENTRE = [
+  (BAR.bottomLeft[0] + BAR.topRight[0] + 2 * BAR_STEP[0]) / 2,
+  (BAR.topRight[1] + BAR.bottomLeft[1] + 2 * BAR_STEP[1]) / 2,
+] as const;
+
+/* How far the bevel reaches. Out past the artwork's outline, it makes the
+   mark read bolder than it is; the lockup keeps the bevel inside the
+   outline, so from the front the silhouette is exactly the brand's. */
+const MARK_BEVEL = 0.022;
+
+export function buildMarkGeometry({ trueOutline = false }: { trueOutline?: boolean } = {}) {
   const shapes = [0, 1, 2].map((index) => {
     const dx = BAR_STEP[0] * index;
     const dy = BAR_STEP[1] * index;
@@ -79,12 +93,70 @@ export function buildMarkGeometry() {
     depth: 0.26,
     bevelEnabled: true,
     bevelThickness: 0.03,
-    bevelSize: 0.022,
+    bevelSize: MARK_BEVEL,
+    bevelOffset: trueOutline ? -MARK_BEVEL : 0,
     bevelSegments: 2,
     curveSegments: 10,
   });
   geometry.center();
   return geometry;
+}
+
+/* ---------- the official lockup ----------
+   AYADI and CLOUDVERSITY, from the brand's own artwork (logo-paths.ts),
+   in the same units as the mark and around it exactly as the artwork has
+   them. Shallow: the letters are a machined plate, the mark stands a
+   little proud of them. Each bevel stays inside the outline, so from the
+   front the letterforms are the artwork's, not a bolder cousin. */
+
+/** The lockup's size, and where the mark's centre sits from the lockup's
+    centre (y up) — the mark is built separately, centred on itself. */
+export const LOCKUP = {
+  width: LOGO_SIZE[0] * MARK_SCALE,
+  height: LOGO_SIZE[1] * MARK_SCALE,
+  mark: [
+    (MARK_CENTRE[0] + MARK_OFFSET[0] - LOGO_SIZE[0] / 2) * MARK_SCALE,
+    (LOGO_SIZE[1] / 2 - (MARK_CENTRE[1] + MARK_OFFSET[1])) * MARK_SCALE,
+  ],
+} as const;
+
+function glyphShape(glyph: Glyph) {
+  const points = (flat: number[]) => {
+    const out: THREE.Vector2[] = [];
+    for (let i = 0; i < flat.length; i += 2) {
+      out.push(new THREE.Vector2((flat[i] - LOGO_SIZE[0] / 2) * MARK_SCALE, (LOGO_SIZE[1] / 2 - flat[i + 1]) * MARK_SCALE));
+    }
+    return out;
+  };
+  const shape = new THREE.Shape(points(glyph.outer));
+  shape.holes = glyph.holes.map((hole) => new THREE.Path(points(hole)));
+  return shape;
+}
+
+function extrudeWord(glyphs: Glyph[], depth: number, bevel: number) {
+  const geometry = new THREE.ExtrudeGeometry(glyphs.map(glyphShape), {
+    depth,
+    bevelEnabled: true,
+    bevelThickness: bevel * 1.4,
+    bevelSize: bevel,
+    bevelOffset: -bevel,
+    bevelSegments: 2,
+    curveSegments: 1,
+  });
+  geometry.translate(0, 0, -depth / 2);
+  /* The traced curves are polylines: smooth the shading across their facets
+     (the D's bowl, the S), keep the corners that are really corners crisp. */
+  return toCreasedNormals(geometry, THREE.MathUtils.degToRad(35));
+}
+
+export function buildWordmarkGeometry() {
+  return {
+    /* Its thinnest strokes are ~40px of artwork; 0.012 is a sliver of that. */
+    ayadi: extrudeWord(AYADI, 0.14, 0.012),
+    /* Hairline strokes (~20px): barely any depth and barely any bevel, or
+       the letters would round off into something else. */
+    cloudversity: extrudeWord(CLOUDVERSITY, 0.045, 0.0035),
+  };
 }
 
 /* ---------- the lattice ----------

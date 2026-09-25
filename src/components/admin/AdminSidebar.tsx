@@ -72,13 +72,25 @@ export default function AdminSidebar({
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* ================================================= */}
+      {/* MOBILE OVERLAY */}
+      {/* ================================================= */}
+
       {open && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+          className="
+            fixed inset-0 z-40
+            bg-black/30
+            backdrop-blur-sm
+            lg:hidden
+          "
         />
       )}
+
+      {/* ================================================= */}
+      {/* SIDEBAR */}
+      {/* ================================================= */}
 
       <motion.aside
         initial={false}
@@ -99,7 +111,7 @@ export default function AdminSidebar({
           fixed inset-y-0 left-0 z-50
           flex flex-col
           overflow-hidden
-          bg-[#0b4635]
+          bg-accent-gradient
           text-white
           shadow-[10px_0_40px_rgba(0,0,0,0.06)]
           lg:translate-x-0
@@ -111,10 +123,10 @@ export default function AdminSidebar({
         `}
       >
         {/* ================================================= */}
-        {/* TOP */}
+        {/* TOP / LOGO */}
         {/* ================================================= */}
 
-        <div className="relative flex h-[82px] shrink-0 items-center border-b border-white/10">
+        <div className="relative flex h-[82px] shrink-0 items-center  border-b border-white/10">
           {/* Logo */}
           <div
             className={`
@@ -122,7 +134,7 @@ export default function AdminSidebar({
               transition-all duration-300
               ${
                 expanded
-                  ? "justify-start px-7"
+                  ? "justify-start px-7 pb-3"
                   : "justify-center"
               }
             `}
@@ -161,8 +173,8 @@ export default function AdminSidebar({
                 }}
                 transition={{ duration: 0.2 }}
                 className={`
-                  flex h-9 w-9 items-center
-                  justify-center
+                  flex h-9 w-9
+                  items-center justify-center
                   ${
                     expanded
                       ? "pointer-events-none absolute"
@@ -171,48 +183,63 @@ export default function AdminSidebar({
                 `}
               >
                 <img
-                  src="/images/ayadi-logo-white.png"
+                  src="/images/ayadi-mark.png"
                   alt="Ayadi"
-                  className="h-7 w-7 object-contain"
+                  className="h-8 w-auto object-contain"
                 />
               </motion.div>
             </Link>
           </div>
 
           {/* Pin button */}
-          <button
-            type="button"
-            onClick={onTogglePin}
-            title={
-              pinned
-                ? "Unpin sidebar"
-                : "Keep sidebar expanded"
-            }
-            className={`
-              absolute top-1/2 right-3
-              hidden -translate-y-1/2
-              rounded-lg p-2
-              transition-all
-              lg:block
-              ${
+          {expanded && (
+            <button
+              type="button"
+              onClick={onTogglePin}
+              title={
                 pinned
-                  ? "bg-white/10 text-white"
-                  : "text-white/40 hover:bg-white/10 hover:text-white"
+                  ? "Unpin sidebar"
+                  : "Keep sidebar expanded"
               }
-            `}
-          >
-            {pinned ? (
-              <PinOff size={17} strokeWidth={1.8} />
-            ) : (
-              <Pin size={17} strokeWidth={1.8} />
-            )}
-          </button>
+              className={`
+                absolute top-1/2 right-3
+                hidden -translate-y-1/2
+                rounded-lg p-2
+                transition-all
+                lg:block
+                ${
+                  pinned
+                    ? "bg-white/10 text-white"
+                    : "text-white/40 hover:bg-white/10 hover:text-white"
+                }
+              `}
+            >
+              {pinned ? (
+                <PinOff
+                  size={17}
+                  strokeWidth={1.8}
+                />
+              ) : (
+                <Pin
+                  size={17}
+                  strokeWidth={1.8}
+                />
+              )}
+            </button>
+          )}
 
           {/* Mobile close */}
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 rounded-lg p-2 text-white/60 hover:bg-white/10 hover:text-white lg:hidden"
+            className="
+              absolute right-4
+              rounded-lg p-2
+              text-white/60
+              hover:bg-white/10
+              hover:text-white
+              lg:hidden
+            "
           >
             <X size={20} />
           </button>
@@ -223,6 +250,7 @@ export default function AdminSidebar({
         {/* ================================================= */}
 
         <nav className="flex-1 overflow-y-auto px-3 py-7">
+          {/* Workspace */}
           <motion.div
             initial={false}
             animate={{
@@ -238,6 +266,7 @@ export default function AdminSidebar({
             </p>
           </motion.div>
 
+          {/* Navigation items */}
           <div className="space-y-1.5">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -292,17 +321,26 @@ export default function AdminSidebar({
                         width: expanded ? "auto" : 0,
                       }}
                       transition={{ duration: 0.18 }}
-                      className="overflow-hidden whitespace-nowrap"
+                      className="
+                        overflow-hidden
+                        whitespace-nowrap
+                      "
                     >
                       {item.label}
                     </motion.span>
                   </span>
 
+                  {/* Courses arrow */}
                   {item.label === "Courses" &&
                     expanded && (
                       <ChevronRight
                         size={15}
-                        className="shrink-0 text-white/30 transition-transform group-hover:translate-x-0.5"
+                        className="
+                          shrink-0
+                          text-white/30
+                          transition-transform
+                          group-hover:translate-x-0.5
+                        "
                       />
                     )}
                 </Link>
@@ -348,7 +386,10 @@ export default function AdminSidebar({
                 width: expanded ? "auto" : 0,
               }}
               transition={{ duration: 0.18 }}
-              className="overflow-hidden whitespace-nowrap"
+              className="
+                overflow-hidden
+                whitespace-nowrap
+              "
             >
               Settings
             </motion.span>
@@ -361,7 +402,8 @@ export default function AdminSidebar({
             title={!expanded ? "Logout" : undefined}
             className={`
               mt-1 flex h-11 w-full
-              items-center rounded-xl
+              items-center
+              rounded-xl
               text-sm text-white/60
               transition-all duration-200
               hover:bg-white/[0.07]
@@ -386,7 +428,10 @@ export default function AdminSidebar({
                 width: expanded ? "auto" : 0,
               }}
               transition={{ duration: 0.18 }}
-              className="overflow-hidden whitespace-nowrap"
+              className="
+                overflow-hidden
+                whitespace-nowrap
+              "
             >
               Logout
             </motion.span>

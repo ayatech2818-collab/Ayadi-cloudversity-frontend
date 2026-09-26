@@ -3,7 +3,7 @@ import { api } from "./client";
 export type BlogStatus = "draft" | "published";
 
 export interface Blog {
-  id: string | number;
+  id: string;
   title: string;
   slug: string;
   excerpt: string;
@@ -23,8 +23,8 @@ export interface Blog {
   seo_title?: string | null;
   seo_description?: string | null;
   seo_keywords?: string[] | null;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
   // UI helpers
   date?: string;
   readTime?: string;
@@ -45,6 +45,8 @@ export interface BlogFormData {
   author?: string | null;
   status: BlogStatus;
   is_featured: boolean;
+  published_at?: string | null;
+  reading_time_minutes?: number;
   seo_title?: string | null;
   seo_description?: string | null;
   seo_keywords: string[];

@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Pin,
   PinOff,
+  User,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -37,6 +38,11 @@ const navigation = [
     label: "Courses",
     href: "/admin/courses",
     icon: BookOpen,
+  },
+  {
+    label: "Authors",
+    href: "/admin/authors",
+    icon: User,
   },
   {
     label: "Blogs",

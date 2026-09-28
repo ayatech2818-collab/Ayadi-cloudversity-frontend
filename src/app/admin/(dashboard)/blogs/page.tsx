@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { FileText, Plus } from "lucide-react";
 
 import BlogModal from "@/components/admin/BlogModal";
@@ -52,88 +52,67 @@ export default function BlogsPage() {
 
   const [deleting, setDeleting] = useState(false);
 
-  // GET
-  const fetchBlogs = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const categories = [
+  "All",
+  "Technology",
+  "Education",
+  "AI",
+  "Career",
+  "Learning",
+  "Cloud & DevOps",
+  "Industry Insights",
+  "Student Stories",
+];
 
-      const data = await getBlogs();
-      setBlogs(data);
-    } catch (error) {
-      console.error("Failed to fetch blogs:", error);
-      setError("Failed to load blogs.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // GET
+ const fetchBlogs = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+
+    const data = await getBlogs({
+      search: search.trim() || undefined,
+
+      status:
+        statusFilter !== "All"
+          ? statusFilter
+          : undefined,
+
+      category:
+        categoryFilter !== "All"
+          ? categoryFilter
+          : undefined,
+
+      sort_by: sortBy,
+    });
+
+    setBlogs(data);
+  } catch (error) {
+    console.error("Failed to fetch blogs:", error);
+    setError("Failed to load blogs.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   useEffect(() => {
-    fetchBlogs();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchBlogs();
+    }, 400);
 
-  // Categories
-  const categories = useMemo(() => {
-    const values = new Set<string>();
-
-    blogs.forEach((blog) => {
-      if (blog.category) {
-        values.add(blog.category);
-      }
-    });
-
-    return ["All", ...Array.from(values).sort()];
-  }, [blogs]);
-
-  // Search + filters + sorting
-  const filteredBlogs = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    const result = blogs.filter((blog) => {
-      const matchesSearch =
-        !query ||
-        blog.title.toLowerCase().includes(query) ||
-        blog.excerpt.toLowerCase().includes(query) ||
-        blog.category?.toLowerCase().includes(query);
-
-      const matchesStatus =
-        statusFilter === "All" ||
-        blog.status === statusFilter;
-
-      const matchesCategory =
-        categoryFilter === "All" ||
-        blog.category === categoryFilter;
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesCategory
-      );
-    });
-
-    return [...result].sort((a, b) => {
-      if (sortBy === "title-asc") {
-        return a.title.localeCompare(b.title);
-      }
-
-      if (sortBy === "title-desc") {
-        return b.title.localeCompare(a.title);
-      }
-
-      const dateA = new Date(a.created_at).getTime();
-      const dateB = new Date(b.created_at).getTime();
-
-      return sortBy === "oldest"
-        ? dateA - dateB
-        : dateB - dateA;
-    });
+    return () => clearTimeout(timer);
   }, [
-    blogs,
     search,
     statusFilter,
     categoryFilter,
     sortBy,
   ]);
+
+ 
+
+
 
   const hasFilters =
     search.trim() !== "" ||
@@ -276,7 +255,7 @@ export default function BlogsPage() {
         categoryFilter={categoryFilter}
         sortBy={sortBy}
         categories={categories}
-        resultCount={filteredBlogs.length}
+        resultCount={blogs.length}
         hasActiveFilters={hasFilters}
         onSearchChange={setSearch}
         onStatusChange={setStatusFilter}
@@ -289,9 +268,9 @@ export default function BlogsPage() {
       <section className="px-4 pt-6 sm:px-6 lg:px-8">
         {!loading &&
         !error &&
-        filteredBlogs.length > 0 ? (
+        blogs.length > 0 ? (
           <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-4">
-            {filteredBlogs.map((blog) => (
+            {blogs.map((blog) => (
               <BlogCard
                 key={blog.id}
                 blog={blog}

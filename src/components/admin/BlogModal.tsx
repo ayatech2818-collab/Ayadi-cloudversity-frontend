@@ -55,7 +55,7 @@ function generateSlug(text: string): string {
     .toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, "")
-    .replace(/[\s\_-]+/g, "-")
+    .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
@@ -86,9 +86,8 @@ export default function BlogModal({
 
   // Cover image
   const [coverImage, setCoverImage] = useState("");
-  const [coverImageKey, setCoverImageKey] = useState("");
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImageAlt, setCoverImageAlt] = useState("");
-
   // Tags
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -174,7 +173,7 @@ export default function BlogModal({
 
       // Cover image
       setCoverImage(blog.cover_image || "");
-      setCoverImageKey(blog.cover_image_key || "");
+      setCoverImageFile(null);
       setCoverImageAlt(blog.cover_image_alt || "");
 
       // Tags
@@ -213,7 +212,7 @@ export default function BlogModal({
       setAuthorId("");
 
       setCoverImage("");
-      setCoverImageKey("");
+      setCoverImageFile(null);
       setCoverImageAlt("");
 
       setTags([]);
@@ -437,14 +436,9 @@ export default function BlogModal({
       excerpt: excerpt.trim(),
       content: content.trim(),
 
-      cover_image:
-        coverImage.trim() || null,
+      cover_image: coverImageFile,
 
-      cover_image_key:
-        coverImageKey.trim() || null,
-
-      cover_image_alt:
-        coverImageAlt.trim() || null,
+      cover_image_alt: coverImageAlt.trim() || null,
 
       category:
         category.trim() || null,
@@ -1015,31 +1009,50 @@ export default function BlogModal({
                     Image URL
                   </label>
 
-                  <div className="relative">
-                    <input
-                      type="url"
-                      value={coverImage}
-                      onChange={(event) =>
-                        setCoverImage(
-                          event.target.value
-                        )
-                      }
-                      placeholder="https://images.unsplash.com/..."
-                      className="
-                        h-11 w-full rounded-xl border border-border
-                        bg-surface pl-10 pr-4 text-sm text-text
-                        outline-none transition-all
-                        placeholder:text-muted/60
-                        focus:border-primary
-                        focus:ring-4 focus:ring-primary/10
-                      "
-                    />
+                  <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-text">
+                        Cover Image
+                      </label>
 
-                    <ImageIcon
-                      size={16}
-                      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
-                    />
-                  </div>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+
+                          if (!file) return;
+
+                          setCoverImageFile(file);
+
+                          const previewUrl = URL.createObjectURL(file);
+                          setCoverImage(previewUrl);
+                        }}
+                        className="
+                          block w-full rounded-xl border border-border
+                          bg-surface px-3.5 py-2.5 text-xs text-text
+                          file:mr-3
+                          file:rounded-lg
+                          file:border-0
+                          file:bg-primary
+                          file:px-3
+                          file:py-1.5
+                          file:text-xs
+                          file:font-semibold
+                          file:text-white
+                          hover:file:bg-primary-hover
+                        "
+                      />
+
+                      <p className="mt-1 text-[11px] text-muted">
+                        JPG, PNG or WebP. Select a high-resolution cover image.
+                      </p>
+
+                      {coverImageFile && (
+                        <p className="mt-1 text-[11px] text-primary">
+                          Selected: {coverImageFile.name}
+                        </p>
+                      )}
+                    </div>
 
                   <p className="mt-1 text-[11px] text-muted">
                     Supports high-resolution web formats (JPG, PNG, WebP).

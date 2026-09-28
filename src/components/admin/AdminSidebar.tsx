@@ -51,7 +51,7 @@ const navigation = [
   },
   {
     label: "Media",
-    href: "/admin/media",
+    href: "/admin/galleries",
     icon: Images,
   },
 ];

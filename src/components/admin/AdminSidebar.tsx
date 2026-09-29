@@ -54,6 +54,16 @@ const navigation = [
     href: "/admin/galleries",
     icon: Images,
   },
+  {
+    label: "Category",
+    href: "/admin/main-category",
+    icon: Images,
+  },
+  {
+    label: "Sub-Category",
+    href: "/admin/sub-category",
+    icon: Images,
+  },
 ];
 
 export default function AdminSidebar({

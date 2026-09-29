@@ -136,6 +136,8 @@ export const getBlogs = async (
   return response.data;
 };
 
+
+
 export const getBlog = async (id: string): Promise<Blog> => {
   const response = await api.get<Blog>(`/blogs/${id}`);
   return response.data;

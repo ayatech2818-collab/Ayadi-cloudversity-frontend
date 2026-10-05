@@ -7,7 +7,7 @@ export interface Course {
     category_id: string | null;
     subcategory_id: string | null;
 
-    name: string;
+    title: string;
     slug: string;
     course_code: string;
 
@@ -33,7 +33,7 @@ export interface CourseFormData {
     category_id?: string | null;
     subcategory_id?: string | null;
 
-    name: string;
+    title: string;
     slug: string;
     course_code: string;
 
@@ -77,7 +77,7 @@ const buildCourseFormData = (
         );
     }
 
-    formData.append("name", data.name);
+    formData.append("title", data.title);
     formData.append("slug", data.slug);
     formData.append("course_code", data.course_code);
 

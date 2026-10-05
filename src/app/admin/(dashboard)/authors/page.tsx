@@ -2,21 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import AuthorCard from "@/components/admin/authors/AuthorCard";
+import AuthorDeleteDialog from "@/components/admin/authors/AuthorDeleteDialog";
+import AuthorModal from "@/components/admin/authors/AuthorModal";
+import AuthorsEmptyState from "@/components/admin/authors/AuthorsEmptyState";
+import AuthorsHeader from "@/components/admin/authors/AuthorsHeader";
+import AuthorsSkeleton from "@/components/admin/authors/AuthorsSkeleton";
+import AuthorsToolbar from "@/components/admin/authors/AuthorsToolbar";
+import RestoreAuthorModal from "@/components/admin/authors/RestoreAuthorModal";
 import {
-  ExternalLink,
-  MoreVertical,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  UserRound,
-} from "lucide-react";
-
-import AuthorModal from "@/components/admin/AuthorModal";
-
-import { RotateCcw } from "lucide-react";
-
-import RestoreAuthorModal from "@/components/admin/RestoreAuthorModal";
+  AUTHORS_GRID,
+  filterAuthors,
+  sortAuthors,
+} from "@/components/admin/authors/author-utils";
+import { Toaster, useToasts } from "@/components/admin/ui/Toast";
 
 import {
   createAuthor,
@@ -25,454 +24,253 @@ import {
   updateAuthor,
   type Author,
 } from "@/lib/api/authors";
+import { getApiErrorMessage } from "@/lib/api/errors";
+
+interface AuthorEditor {
+  mode: "create" | "edit";
+  author: Author | null;
+}
 
 export default function AuthorsPage() {
+  const { toasts, toastSuccess, toastError, dismissToast } =
+    useToasts();
+
+  // =========================================================
+  // DATA
+  // =========================================================
+
   const [authors, setAuthors] = useState<Author[]>([]);
-  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [restoreModalOpen, setRestoreModalOpen] = useState(false);
+  // Bumped by "Retry" to run the same request again.
+  const [reloadToken, setReloadToken] = useState(0);
 
-  const [modalOpen, setModalOpen] =
-    useState(false);
+  const [search, setSearch] = useState("");
 
-  const [modalMode, setModalMode] =
-    useState<"create" | "edit">("create");
+  // =========================================================
+  // UI
+  // =========================================================
 
-  const [selectedAuthor, setSelectedAuthor] =
-    useState<Author | null>(null);
+  const [editor, setEditor] = useState<AuthorEditor | null>(null);
+  const [restoreOpen, setRestoreOpen] = useState(false);
 
-  const [menuOpen, setMenuOpen] =
-    useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Author | null>(
+    null
+  );
+  const [deleting, setDeleting] = useState(false);
 
-  /*
-   * Fetch authors
-   */
-  const fetchAuthors = async () => {
-    try {
-      setLoading(true);
-
-      const data = await getAuthors();
-
-      setAuthors(data);
-    } catch (error) {
-      console.error(
-        "Failed to fetch authors:",
-        error
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  // =========================================================
+  // FETCH
+  // =========================================================
 
   useEffect(() => {
-    fetchAuthors();
-  }, []);
+    let cancelled = false;
 
-  /*
-   * Search
-   */
-  const filteredAuthors = useMemo(() => {
-    const query = search
-      .trim()
-      .toLowerCase();
+    getAuthors()
+      .then((data) => {
+        if (cancelled) return;
 
-    if (!query) {
-      return authors;
-    }
+        setAuthors(data);
+        setError(null);
+      })
+      .catch((fetchError) => {
+        if (cancelled) return;
 
-    return authors.filter((author) => {
-      return (
-        author.name
-          .toLowerCase()
-          .includes(query) ||
-        author.designation
-          ?.toLowerCase()
-          .includes(query) ||
-        author.bio
-          ?.toLowerCase()
-          .includes(query)
-      );
-    });
-  }, [authors, search]);
+        console.error("Failed to fetch authors:", fetchError);
 
-  /*
-   * Add author
-   */
-  const handleAddAuthor = () => {
-    setSelectedAuthor(null);
-    setModalMode("create");
-    setModalOpen(true);
-    setMenuOpen(null);
+        setError(
+          getApiErrorMessage(
+            fetchError,
+            "Something went wrong while fetching the authors."
+          )
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadToken]);
+
+  const retry = () => {
+    setLoading(true);
+    setReloadToken((token) => token + 1);
   };
 
-  /*
-   * Edit author
+  const visibleAuthors = useMemo(
+    () => filterAuthors(authors, search),
+    [authors, search]
+  );
+
+  // =========================================================
+  // CREATE / EDIT
+  // =========================================================
+
+  const openCreate = () =>
+    setEditor({ mode: "create", author: null });
+
+  const closeEditor = () => setEditor(null);
+
+  /**
+   * Errors are left to throw so the modal can show them inline and keep the
+   * form open with the values intact.
    */
-  const handleEditAuthor = (
-    author: Author
-  ) => {
-    setSelectedAuthor(author);
-    setModalMode("edit");
-    setModalOpen(true);
-    setMenuOpen(null);
-  };
-
-  /*
-   * Delete author
-   */
-  const handleDeleteAuthor = async (
-    author: Author
-  ) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${author.name}"?`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await deleteAuthor(author.id);
-
-      setAuthors((current) =>
-        current.filter(
-          (item) =>
-            item.id !== author.id
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Failed to delete author:",
-        error
-      );
-
-      alert(
-        "Failed to delete author."
-      );
-    } finally {
-      setMenuOpen(null);
-    }
-  };
-
-  /*
-   * Create / update author
-   */
-  const handleAuthorSubmit = async (
+  const handleSubmit = async (
     data: FormData,
     mode: "create" | "edit",
     authorId?: string
   ) => {
-    try {
-      if (mode === "create") {
-        const newAuthor =
-          await createAuthor(data);
+    if (mode === "create") {
+      const created = await createAuthor(data);
 
-        setAuthors((current) =>
-          [...current, newAuthor].sort(
-            (a, b) =>
-              a.name.localeCompare(
-                b.name
-              )
-          )
-        );
-      } else {
-        if (!authorId) {
-          throw new Error(
-            "Author ID is missing."
-          );
-        }
+      setAuthors((current) => sortAuthors([...current, created]));
 
-        const updatedAuthor =
-          await updateAuthor(
-            authorId,
-            data
-          );
-
-        setAuthors((current) =>
-          current
-            .map((author) =>
-              author.id ===
-              updatedAuthor.id
-                ? updatedAuthor
-                : author
-            )
-            .sort((a, b) =>
-              a.name.localeCompare(
-                b.name
-              )
-            )
-        );
+      toastSuccess(
+        "Author added",
+        `${created.name} can now be credited on blog posts.`
+      );
+    } else {
+      if (!authorId) {
+        throw new Error("Author ID is missing.");
       }
 
-      setModalOpen(false);
-      setSelectedAuthor(null);
-    } catch (error) {
-      console.error(
-        "Failed to save author:",
-        error
+      const updated = await updateAuthor(authorId, data);
+
+      setAuthors((current) =>
+        sortAuthors(
+          current.map((author) =>
+            author.id === updated.id ? updated : author
+          )
+        )
       );
 
-      throw error;
+      toastSuccess(
+        "Author updated",
+        `${updated.name}'s profile has been saved.`
+      );
+    }
+
+    closeEditor();
+  };
+
+  // =========================================================
+  // DELETE / RESTORE
+  // =========================================================
+
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return;
+
+    try {
+      setDeleting(true);
+
+      await deleteAuthor(deleteTarget.id);
+
+      setAuthors((current) =>
+        current.filter((author) => author.id !== deleteTarget.id)
+      );
+
+      toastSuccess(
+        "Author deleted",
+        `${deleteTarget.name} can be brought back with Restore Author.`
+      );
+
+      setDeleteTarget(null);
+    } catch (deleteError) {
+      console.error("Failed to delete author:", deleteError);
+
+      toastError(
+        "Could not delete author",
+        getApiErrorMessage(deleteError)
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
+  const handleRestored = (restored: Author) => {
+    setAuthors((current) => sortAuthors([...current, restored]));
+
+    toastSuccess(
+      "Author restored",
+      `${restored.name} is back in the authors list.`
+    );
+  };
+
+  // =========================================================
+  // RENDER
+  // =========================================================
+
   return (
-    <div
-      className="min-h-full p-6"
-      onClick={() => setMenuOpen(null)}
-    >
-      {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Authors
-          </h1>
+    <div className="min-h-full pb-16">
+      <AuthorsHeader
+        authors={authors}
+        loading={loading}
+        onAdd={openCreate}
+        onRestore={() => setRestoreOpen(true)}
+      />
 
-          <p className="mt-1 text-sm text-gray-500">
-            Manage authors for your blog posts.
-          </p>
-        </div>
+      <AuthorsToolbar
+        search={search}
+        resultCount={visibleAuthors.length}
+        totalCount={authors.length}
+        loading={loading}
+        onSearchChange={setSearch}
+      />
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setRestoreModalOpen(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-          >
-            <RotateCcw size={17} />
-            Restore Author
-          </button>
-
-          <button
-            type="button"
-            onClick={handleAddAuthor}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#15803d] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#166534]"
-          >
-            <Plus size={17} />
-            Add Author
-          </button>
-        </div>
-      </div>
-
-      
-
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-
-          <input
-            type="text"
-            value={search}
-            onChange={(event) =>
-              setSearch(
-                event.target.value
-              )
-            }
-            placeholder="Search authors..."
-            className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#15803d] focus:ring-2 focus:ring-[#15803d]/10"
-          />
-        </div>
-      </div>
-
-      {/* Loading */}
-      {loading ? (
-        <div className="flex min-h-[300px] items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-[#15803d]" />
-        </div>
-      ) : filteredAuthors.length === 0 ? (
-        /* Empty */
-        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white">
-          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
-            <UserRound
-              size={25}
-              className="text-gray-400"
-            />
-          </div>
-
-          <h3 className="text-sm font-semibold text-gray-900">
-            {search
-              ? "No authors found"
-              : "No authors yet"}
-          </h3>
-
-          <p className="mt-1 text-sm text-gray-500">
-            {search
-              ? "Try another search."
-              : "Add your first blog author."}
-          </p>
-        </div>
-      ) : (
-        /* Author Cards */
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filteredAuthors.map(
-            (author) => (
-              <div
+      {/* Grid */}
+      <section className="px-4 pt-5 sm:px-6 lg:px-8">
+        {loading ? (
+          <AuthorsSkeleton />
+        ) : !error && visibleAuthors.length > 0 ? (
+          <div className={AUTHORS_GRID}>
+            {visibleAuthors.map((author) => (
+              <AuthorCard
                 key={author.id}
-                className="relative rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md"
-              >
-                {/* Menu */}
-                <div className="absolute right-4 top-4">
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
+                author={author}
+                onEdit={() => setEditor({ mode: "edit", author })}
+                onDelete={() => setDeleteTarget(author)}
+              />
+            ))}
+          </div>
+        ) : (
+          <AuthorsEmptyState
+            error={error}
+            hasSearch={search.trim() !== ""}
+            onRetry={retry}
+            onClearSearch={() => setSearch("")}
+            onCreate={openCreate}
+          />
+        )}
+      </section>
 
-                      setMenuOpen(
-                        menuOpen ===
-                          author.id
-                          ? null
-                          : author.id
-                      );
-                    }}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
-                  >
-                    <MoreVertical
-                      size={18}
-                    />
-                  </button>
-
-                  {menuOpen ===
-                    author.id && (
-                    <div
-                      onClick={(event) =>
-                        event.stopPropagation()
-                      }
-                      className="absolute right-0 top-10 z-20 w-36 overflow-hidden rounded-lg border border-gray-100 bg-white py-1 shadow-lg"
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleEditAuthor(
-                            author
-                          )
-                        }
-                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Pencil
-                          size={15}
-                        />
-
-                        Edit
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleDeleteAuthor(
-                            author
-                          )
-                        }
-                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2
-                          size={15}
-                        />
-
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Author */}
-                <div className="flex items-start gap-4">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-                    {author.profile_image ? (
-                      <img
-                        src={
-                          author.profile_image
-                        }
-                        alt={
-                          author.name
-                        }
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <UserRound
-                        size={25}
-                        className="text-gray-400"
-                      />
-                    )}
-                  </div>
-
-                  <div className="min-w-0 pr-8">
-                    <h3 className="truncate text-base font-semibold text-gray-900">
-                      {author.name}
-                    </h3>
-
-                    {author.designation && (
-                      <p className="mt-0.5 truncate text-sm text-[#15803d]">
-                        {
-                          author.designation
-                        }
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Bio */}
-                {author.bio && (
-                  <p className="mt-4 line-clamp-3 text-sm leading-6 text-gray-600">
-                    {author.bio}
-                  </p>
-                )}
-
-                {/* LinkedIn */}
-                {author.linkedin_url && (
-                  <a
-                    href={
-                      author.linkedin_url
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(event) =>
-                      event.stopPropagation()
-                    }
-                    className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-[#15803d] transition hover:text-[#166534]"
-                  >
-                    <ExternalLink
-                      size={15}
-                    />
-
-                    LinkedIn
-                  </a>
-                )}
-              </div>
-            )
-          )}
-        </div>
-      )}
-
-      {/* Modal */}
+      {/* Create / Edit */}
       <AuthorModal
-        open={modalOpen}
-        mode={modalMode}
-        author={selectedAuthor}
-        onClose={() => {
-          setModalOpen(false);
-          setSelectedAuthor(null);
-        }}
-        onSubmit={
-          handleAuthorSubmit
-        }
+        open={editor !== null}
+        mode={editor?.mode ?? "create"}
+        author={editor?.author ?? null}
+        onClose={closeEditor}
+        onSubmit={handleSubmit}
       />
 
+      {/* Restore */}
       <RestoreAuthorModal
-        open={restoreModalOpen}
-        onClose={() => setRestoreModalOpen(false)}
-        onRestored={(restoredAuthor) => {
-          setAuthors((current) =>
-            [...current, restoredAuthor].sort((a, b) =>
-              a.name.localeCompare(b.name)
-            )
-          );
-        }}
+        open={restoreOpen}
+        onClose={() => setRestoreOpen(false)}
+        onRestored={handleRestored}
       />
+
+      {/* Delete */}
+      <AuthorDeleteDialog
+        author={deleteTarget}
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
+
+      <Toaster toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

@@ -147,6 +147,18 @@ export default function CoursesPage() {
     }
   };
 
+
+  useEffect(() => {
+  if (!selectedBrandId) {
+    setCategories([]);
+    setSubcategories([]);
+    setSelectedCategoryId("");
+    setSelectedSubcategoryId("");
+    return;
+  }
+
+  loadCategoriesForBrand(selectedBrandId);
+}, [selectedBrandId]);
   // --------------------------------------------------
   // Load subcategories when category changes
   // --------------------------------------------------
@@ -342,7 +354,7 @@ export default function CoursesPage() {
     course: Course
   ) => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${course.name}"?`
+      `Are you sure you want to delete "${course.title}"?`
     );
 
     if (!confirmed) return;
@@ -616,7 +628,7 @@ export default function CoursesPage() {
                   {course.thumbnail_url ? (
                     <img
                       src={course.thumbnail_url}
-                      alt={course.name}
+                      alt={course.title}
                       className="h-full w-full object-cover"
                     />
                   ) : (
@@ -674,7 +686,7 @@ export default function CoursesPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="truncate font-semibold text-text">
-                        {course.name}
+                        {course.title}
                       </h3>
 
                       <p className="mt-1 text-xs text-muted">

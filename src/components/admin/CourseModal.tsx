@@ -111,7 +111,7 @@ export default function CourseModal({
         course.subcategory_id ?? ""
       );
 
-      setName(course.name);
+      setName(course.title);
       setSlug(course.slug);
       setCourseCode(course.course_code);
 
@@ -322,7 +322,7 @@ export default function CourseModal({
         subcategory_id:
           subcategoryId || null,
 
-        name: name.trim(),
+        title: name.trim(),
         slug: slug.trim(),
         course_code: courseCode.trim(),
 

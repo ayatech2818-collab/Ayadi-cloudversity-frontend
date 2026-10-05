@@ -25,6 +25,8 @@ const BUTTON_TONES = {
 const BUTTON_SIZES = {
   sm: "h-9 px-3 text-xs",
   md: "h-10 px-4 text-sm",
+  /** Lines up with an `h-11` input beside it. */
+  lg: "h-11 px-4 text-sm",
 } as const;
 
 export const buttonClass = (
@@ -32,6 +34,22 @@ export const buttonClass = (
   size: keyof typeof BUTTON_SIZES = "md"
 ): string =>
   `${BUTTON_BASE} ${BUTTON_TONES[tone]} ${BUTTON_SIZES[size]}`;
+
+/**
+ * Square icon-only button. `danger` turns rose on hover, for deletes;
+ * `small` is for tight spots such as a media tile.
+ */
+export const iconButtonClass = (
+  danger = false,
+  small = false
+): string =>
+  `flex shrink-0 cursor-pointer items-center justify-center text-muted ring-1 ring-inset ring-border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
+    small ? "h-7 w-7 rounded-lg" : "h-9 w-9 rounded-xl"
+  } ${
+    danger
+      ? "enabled:hover:bg-rose-50 enabled:hover:text-rose-600 enabled:hover:ring-rose-200 focus-visible:outline-rose-600"
+      : "enabled:hover:bg-page enabled:hover:text-primary enabled:hover:ring-primary/40 focus-visible:outline-primary"
+  }`;
 
 const INPUT_BASE =
   "w-full rounded-xl bg-surface px-3.5 text-sm text-text outline-none ring-1 ring-inset transition-shadow placeholder:text-muted/60 focus:ring-2 focus:shadow-[0_0_0_4px] disabled:cursor-not-allowed disabled:bg-page disabled:text-muted";
@@ -42,4 +60,15 @@ export const inputClass = (invalid = false): string =>
     invalid
       ? "ring-rose-400 focus:ring-rose-500 focus:shadow-rose-500/15"
       : "ring-border focus:ring-primary focus:shadow-primary/15"
+  }`;
+
+/**
+ * The same outline for a wrapper that holds an input plus something else
+ * (a prefix, chips). Not inset — a child's background would paint over it.
+ */
+export const inputGroupClass = (invalid = false): string =>
+  `rounded-xl bg-surface ring-1 transition-shadow focus-within:ring-2 focus-within:shadow-[0_0_0_4px] ${
+    invalid
+      ? "ring-rose-400 focus-within:ring-rose-500 focus-within:shadow-rose-500/15"
+      : "ring-border focus-within:ring-primary focus-within:shadow-primary/15"
   }`;

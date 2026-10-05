@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import {
   Check,
-  CircleAlert,
   Link2,
   LoaderCircle,
   UserRoundPen,
   UserRoundPlus,
 } from "lucide-react";
 
+import Alert from "@/components/admin/ui/Alert";
 import Field from "@/components/admin/ui/Field";
 import Modal, {
   ModalFooter,
@@ -225,18 +225,7 @@ function AuthorForm({
       />
 
       <div className="flex-1 space-y-5 overflow-y-auto p-6">
-        {formError && (
-          <div
-            role="alert"
-            className="flex items-start gap-2.5 rounded-xl bg-rose-50 p-3.5 text-xs font-medium leading-relaxed text-rose-700 ring-1 ring-inset ring-rose-200"
-          >
-            <CircleAlert
-              size={16}
-              className="mt-px shrink-0 text-rose-600"
-            />
-            {formError}
-          </div>
-        )}
+        {formError && <Alert>{formError}</Alert>}
 
         <AuthorPhotoField
           name={values.name}
@@ -261,7 +250,7 @@ function AuthorForm({
             <input
               id="author-name"
               type="text"
-              autoFocus
+              data-autofocus
               value={values.name}
               onChange={handleChange("name")}
               placeholder="e.g. Adil Shinas"

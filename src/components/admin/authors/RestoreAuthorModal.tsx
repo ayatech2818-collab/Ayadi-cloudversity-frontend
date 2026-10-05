@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import {
   ArchiveRestore,
-  CircleAlert,
   LoaderCircle,
   RotateCcw,
 } from "lucide-react";
 
+import Alert from "@/components/admin/ui/Alert";
 import Modal, {
   ModalFooter,
   ModalHeader,
@@ -128,18 +128,7 @@ function DeletedAuthors({
       />
 
       <div className="flex-1 space-y-3 overflow-y-auto p-6">
-        {error && (
-          <div
-            role="alert"
-            className="flex items-start gap-2.5 rounded-xl bg-rose-50 p-3.5 text-xs font-medium leading-relaxed text-rose-700 ring-1 ring-inset ring-rose-200"
-          >
-            <CircleAlert
-              size={16}
-              className="mt-px shrink-0 text-rose-600"
-            />
-            {error}
-          </div>
-        )}
+        {error && <Alert>{error}</Alert>}
 
         {loading ? (
           Array.from({ length: 3 }).map((_, index) => (

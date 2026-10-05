@@ -1,556 +1,392 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Folder } from "lucide-react";
+
+import CategoriesSkeleton from "@/components/admin/categories/CategoriesSkeleton";
+import CategoryCard from "@/components/admin/categories/CategoryCard";
+import CategoryDeleteDialog from "@/components/admin/categories/CategoryDeleteDialog";
 import {
-  FolderTree,
-  Plus,
-  Pencil,
-  MoreVertical,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-} from "lucide-react";
+  CATEGORIES_GRID,
+  filterCategories,
+  sortCategories,
+} from "@/components/admin/categories/category-utils";
+import SubcategoriesEmptyState from "@/components/admin/subcategories/SubcategoriesEmptyState";
+import SubcategoriesHeader from "@/components/admin/subcategories/SubcategoriesHeader";
+import SubcategoryFilters from "@/components/admin/subcategories/SubcategoryFilters";
+import SubcategoryModal from "@/components/admin/subcategories/SubcategoryModal";
+import { Toaster, useToasts } from "@/components/admin/ui/Toast";
 
 import {
-  CourseCategory,
-  getCategories,
-} from "@/lib/api/course-categories";
-
-import {
-  CourseSubcategory,
-  CourseSubcategoryFormData,
-  getSubcategories,
-  createSubcategory,
-  updateSubcategory,
-  deleteSubcategory,
-} from "@/lib/api/course-subcategories";
-
-import {
-  CourseBrand,
   getCourseBrands,
+  type CourseBrand,
 } from "@/lib/api/course-brands";
+import {
+  getCategories,
+  type CourseCategory,
+} from "@/lib/api/course-categories";
+import {
+  createSubcategory,
+  deleteSubcategory,
+  getSubcategories,
+  updateSubcategory,
+  type CourseSubcategory,
+  type CourseSubcategoryFormData,
+} from "@/lib/api/course-subcategories";
+import { getApiErrorMessage } from "@/lib/api/errors";
 
-import CourseSubCategoryModal from "@/components/admin/CourseSubCategoryModal";
+interface SubcategoryEditor {
+  mode: "create" | "edit";
+  subcategory: CourseSubcategory | null;
+}
 
 export default function SubCategoryPage() {
+  const router = useRouter();
+
+  const { toasts, toastSuccess, toastError, dismissToast } =
+    useToasts();
+
+  // =========================================================
+  // DATA
+  //
+  // Everything is loaded once: the brand tabs and the main category picker
+  // only choose which part of it is on screen.
+  // =========================================================
+
   const [brands, setBrands] = useState<CourseBrand[]>([]);
-  const [categories, setCategories] = useState<CourseCategory[]>(
-    []
-  );
+  const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [subcategories, setSubcategories] = useState<
     CourseSubcategory[]
   >([]);
 
-  const [selectedBrandId, setSelectedBrandId] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] =
-    useState("");
-
   const [loading, setLoading] = useState(true);
-  const [categoriesLoading, setCategoriesLoading] =
-    useState(false);
-  const [subcategoriesLoading, setSubcategoriesLoading] =
-    useState(false);
-
   const [error, setError] = useState<string | null>(null);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] =
-    useState<"create" | "edit">("create");
+  // Bumped by "Retry" to run the same requests again.
+  const [reloadToken, setReloadToken] = useState(0);
 
-  const [selectedSubcategory, setSelectedSubcategory] =
-    useState<CourseSubcategory | null>(null);
+  // =========================================================
+  // FILTERS
+  // =========================================================
 
-  const [activeMenu, setActiveMenu] = useState<string | null>(
+  // What the admin last picked. Either can point at something that is not
+  // there (nothing picked yet, or a main category of another brand), so the
+  // page works from `brand` and `category` below, which fall back to the
+  // first one available.
+  const [selectedBrandId, setSelectedBrandId] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+
+  const [search, setSearch] = useState("");
+
+  // =========================================================
+  // UI
+  // =========================================================
+
+  const [editor, setEditor] = useState<SubcategoryEditor | null>(
     null
   );
 
-  // --------------------------------------------------
-  // Load brands
-  // --------------------------------------------------
+  const [deleteTarget, setDeleteTarget] =
+    useState<CourseSubcategory | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // =========================================================
+  // FETCH
+  // =========================================================
 
   useEffect(() => {
-    const loadBrands = async () => {
+    let cancelled = false;
+
+    const run = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        const data = await getCourseBrands();
-
-        const activeBrands = data.filter(
+        const activeBrands = (await getCourseBrands()).filter(
           (brand) => brand.is_active
         );
 
+        // One request per brand, then one per main category — the way the
+        // rest of the app asks for them. Having it all is what lets the
+        // header count across brands and makes switching instant.
+        const allCategories = (
+          await Promise.all(
+            activeBrands.map((brand) => getCategories(brand.id))
+          )
+        ).flat();
+
+        const allSubcategories = (
+          await Promise.all(
+            allCategories.map((category) =>
+              getSubcategories(category.id)
+            )
+          )
+        ).flat();
+
+        if (cancelled) return;
+
         setBrands(activeBrands);
-
-        if (activeBrands.length > 0) {
-          setSelectedBrandId(activeBrands[0].id);
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load course brands.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadBrands();
-  }, []);
-
-  // --------------------------------------------------
-  // Load categories when brand changes
-  // --------------------------------------------------
-
-  useEffect(() => {
-    if (!selectedBrandId) {
-      setCategories([]);
-      setSelectedCategoryId("");
-      return;
-    }
-
-    const loadCategories = async () => {
-      try {
-        setCategoriesLoading(true);
+        setCategories(allCategories);
+        setSubcategories(allSubcategories);
         setError(null);
+      } catch (loadError) {
+        if (cancelled) return;
 
-        const data = await getCategories(selectedBrandId);
+        console.error("Failed to fetch sub categories:", loadError);
 
-        setCategories(data);
-
-        if (data.length > 0) {
-          setSelectedCategoryId(data[0].id);
-        } else {
-          setSelectedCategoryId("");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load categories.");
-      } finally {
-        setCategoriesLoading(false);
-      }
-    };
-
-    loadCategories();
-  }, [selectedBrandId]);
-
-  // --------------------------------------------------
-  // Load subcategories when category changes
-  // --------------------------------------------------
-
-  useEffect(() => {
-    if (!selectedCategoryId) {
-      setSubcategories([]);
-      return;
-    }
-
-    const loadSubcategories = async () => {
-      try {
-        setSubcategoriesLoading(true);
-        setError(null);
-
-        const data = await getSubcategories(
-          selectedCategoryId
+        setError(
+          getApiErrorMessage(
+            loadError,
+            "Something went wrong while fetching the sub categories."
+          )
         );
-
-        setSubcategories(data);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load sub categories.");
       } finally {
-        setSubcategoriesLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    loadSubcategories();
-  }, [selectedCategoryId]);
+    run();
 
-  // --------------------------------------------------
-  // Create
-  // --------------------------------------------------
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadToken]);
 
-  const handleCreate = () => {
-    setSelectedSubcategory(null);
-    setModalMode("create");
-    setModalOpen(true);
+  const retry = () => {
+    setLoading(true);
+    setReloadToken((token) => token + 1);
   };
 
-  // --------------------------------------------------
-  // Edit
-  // --------------------------------------------------
+  // =========================================================
+  // WHAT IS ON SCREEN
+  // =========================================================
 
-  const handleEdit = (
-    subcategory: CourseSubcategory
-  ) => {
-    setSelectedSubcategory(subcategory);
-    setModalMode("edit");
-    setModalOpen(true);
-    setActiveMenu(null);
-  };
+  const brand =
+    brands.find((item) => item.id === selectedBrandId) ?? brands[0];
 
-  // --------------------------------------------------
-  // Submit
-  // --------------------------------------------------
+  const brandCategories = useMemo(
+    () =>
+      sortCategories(
+        categories.filter((item) => item.brand_id === brand?.id)
+      ),
+    [categories, brand?.id]
+  );
 
-  const handleSubmit = async (
-    data: CourseSubcategoryFormData
-  ) => {
-    if (modalMode === "create") {
-      const created = await createSubcategory(data);
+  const category =
+    brandCategories.find((item) => item.id === selectedCategoryId) ??
+    brandCategories[0];
 
-      // If the modal allows another category to be selected,
-      // switch to that category first.
-      if (data.category_id !== selectedCategoryId) {
-        setSelectedCategoryId(data.category_id);
-      } else {
-        setSubcategories((prev) => [...prev, created]);
-      }
-    } else if (selectedSubcategory) {
+  const visibleSubcategories = useMemo(
+    () =>
+      filterCategories(
+        sortCategories(
+          subcategories.filter(
+            (item) => item.category_id === category?.id
+          )
+        ),
+        search
+      ),
+    [subcategories, category?.id, search]
+  );
+
+  /** How many sub categories each main category has. */
+  const countByCategory = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    for (const item of subcategories) {
+      counts.set(
+        item.category_id,
+        (counts.get(item.category_id) ?? 0) + 1
+      );
+    }
+
+    return counts;
+  }, [subcategories]);
+
+  const brandOptions = useMemo(
+    () =>
+      brands.map((item) => ({
+        value: item.id,
+        label: item.name,
+        count: categories
+          .filter((entry) => entry.brand_id === item.id)
+          .reduce(
+            (total, entry) =>
+              total + (countByCategory.get(entry.id) ?? 0),
+            0
+          ),
+      })),
+    [brands, categories, countByCategory]
+  );
+
+  const categoryOptions = brandCategories.map((item) => ({
+    value: item.id,
+    label: item.name,
+    count: countByCategory.get(item.id) ?? 0,
+  }));
+
+  // =========================================================
+  // CREATE / EDIT
+  // =========================================================
+
+  const openCreate = () =>
+    setEditor({ mode: "create", subcategory: null });
+
+  const closeEditor = () => setEditor(null);
+
+  /**
+   * Errors are left to throw so the modal can show them inline and keep the
+   * form open with the values intact.
+   */
+  const handleSubmit = async (data: CourseSubcategoryFormData) => {
+    if (editor?.mode === "edit" && editor.subcategory) {
       const updated = await updateSubcategory(
-        selectedSubcategory.id,
+        editor.subcategory.id,
         data
       );
 
-      // If category changed while editing,
-      // reload the selected category's list.
-      if (
-        data.category_id !== selectedCategoryId
-      ) {
-        setSelectedCategoryId(data.category_id);
-      } else {
-        setSubcategories((prev) =>
-          prev.map((item) =>
-            item.id === updated.id
-              ? updated
-              : item
-          )
-        );
-      }
-    }
-
-    setModalOpen(false);
-    setSelectedSubcategory(null);
-  };
-
-  // --------------------------------------------------
-  // Delete
-  // --------------------------------------------------
-
-  const handleDelete = async (
-    subcategory: CourseSubcategory
-  ) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${subcategory.name}"?`
-    );
-
-    if (!confirmed) return;
-
-    try {
-      await deleteSubcategory(subcategory.id);
-
-      setSubcategories((prev) =>
-        prev.filter(
-          (item) => item.id !== subcategory.id
+      setSubcategories((current) =>
+        current.map((item) =>
+          item.id === updated.id ? updated : item
         )
       );
 
-      setActiveMenu(null);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to delete sub category.");
+      toastSuccess(
+        "Sub category updated",
+        `"${updated.name}" has been saved.`
+      );
+    } else {
+      const created = await createSubcategory(data);
+
+      setSubcategories((current) => [...current, created]);
+
+      toastSuccess(
+        "Sub category created",
+        `"${created.name}" was added.`
+      );
+    }
+
+    // Follows it to the main category it was saved under.
+    setSelectedCategoryId(data.category_id);
+    closeEditor();
+  };
+
+  // =========================================================
+  // DELETE
+  // =========================================================
+
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return;
+
+    try {
+      setDeleting(true);
+
+      await deleteSubcategory(deleteTarget.id);
+
+      setSubcategories((current) =>
+        current.filter((item) => item.id !== deleteTarget.id)
+      );
+
+      toastSuccess(
+        "Sub category deleted",
+        `"${deleteTarget.name}" was removed.`
+      );
+
+      setDeleteTarget(null);
+    } catch (deleteError) {
+      console.error("Failed to delete sub category:", deleteError);
+
+      toastError(
+        "Could not delete sub category",
+        getApiErrorMessage(deleteError)
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
-  // --------------------------------------------------
-  // Initial loading
-  // --------------------------------------------------
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-7 w-7 animate-spin text-primary" />
-      </div>
-    );
-  }
+  // =========================================================
+  // RENDER
+  // =========================================================
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
-            <FolderTree className="h-5 w-5 text-primary" />
-          </div>
+    <div className="min-h-full pb-16">
+      <SubcategoriesHeader
+        categories={categories}
+        subcategories={subcategories}
+        loading={loading}
+        canCreate={Boolean(category)}
+        onCreate={openCreate}
+      />
 
-          <div>
-            <p className="text-sm text-muted">
-              Operations
-            </p>
+      <SubcategoryFilters
+        brandOptions={brandOptions}
+        selectedBrandId={brand?.id ?? ""}
+        categoryOptions={categoryOptions}
+        selectedCategoryId={category?.id ?? ""}
+        search={search}
+        resultCount={visibleSubcategories.length}
+        loading={loading}
+        onBrandChange={setSelectedBrandId}
+        onCategoryChange={setSelectedCategoryId}
+        onSearchChange={setSearch}
+      />
 
-            <h1 className="text-2xl font-semibold text-text">
-              Sub Category
-            </h1>
-
-            <p className="mt-1 text-sm text-muted">
-              Manage sub categories under each main category.
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleCreate}
-          disabled={!selectedCategoryId}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Plus className="h-4 w-4" />
-          Add Sub Category
-        </button>
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-500">
-          {error}
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="rounded-2xl border border-border bg-surface p-5">
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Brand */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-text">
-              Brand
-            </label>
-
-            <select
-              value={selectedBrandId}
-              onChange={(e) =>
-                setSelectedBrandId(e.target.value)
-              }
-              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-text outline-none transition focus:border-primary"
-            >
-              {brands.map((brand) => (
-                <option
-                  key={brand.id}
-                  value={brand.id}
-                >
-                  {brand.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-text">
-              Main Category
-            </label>
-
-            <select
-              value={selectedCategoryId}
-              onChange={(e) =>
-                setSelectedCategoryId(e.target.value)
-              }
-              disabled={
-                categoriesLoading ||
-                categories.length === 0
-              }
-              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-text outline-none transition focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {categories.length === 0 ? (
-                <option value="">
-                  No categories available
-                </option>
-              ) : (
-                categories.map((category) => (
-                  <option
-                    key={category.id}
-                    value={category.id}
-                  >
-                    {category.name}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Subcategories */}
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-text">
-              Sub Categories
-            </h2>
-
-            <p className="text-sm text-muted">
-              {subcategories.length}{" "}
-              {subcategories.length === 1
-                ? "sub category"
-                : "sub categories"}
-            </p>
-          </div>
-        </div>
-
-        {subcategoriesLoading ? (
-          <div className="flex min-h-[250px] items-center justify-center rounded-2xl border border-border bg-surface">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : !selectedCategoryId ? (
-          <div className="flex min-h-[250px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface px-6 text-center">
-            <FolderTree className="mb-4 h-10 w-10 text-muted" />
-
-            <h3 className="font-medium text-text">
-              No main category selected
-            </h3>
-
-            <p className="mt-1 text-sm text-muted">
-              Select a brand with categories to manage
-              sub categories.
-            </p>
-          </div>
-        ) : subcategories.length === 0 ? (
-          <div className="flex min-h-[250px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface px-6 text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <FolderTree className="h-5 w-5 text-primary" />
-            </div>
-
-            <h3 className="font-medium text-text">
-              No sub categories found
-            </h3>
-
-            <p className="mt-1 max-w-md text-sm text-muted">
-              This category does not have any sub
-              categories yet.
-            </p>
-
-            <button
-              type="button"
-              onClick={handleCreate}
-              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-hover"
-            >
-              <Plus className="h-4 w-4" />
-              Add Sub Category
-            </button>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {subcategories.map((subcategory) => (
-              <div
+      {/* Grid */}
+      <section className="px-4 pt-5 sm:px-6 lg:px-8">
+        {loading ? (
+          <CategoriesSkeleton />
+        ) : !error && visibleSubcategories.length > 0 ? (
+          <div className={CATEGORIES_GRID}>
+            {visibleSubcategories.map((subcategory) => (
+              <CategoryCard
                 key={subcategory.id}
-                className="relative rounded-2xl border border-border bg-surface p-5 transition hover:border-primary/40 hover:shadow-sm"
-              >
-                {/* Top */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                      <FolderTree className="h-5 w-5 text-primary" />
-                    </div>
-
-                    <div className="min-w-0">
-                      <h3 className="truncate font-semibold text-text">
-                        {subcategory.name}
-                      </h3>
-
-                      <p className="truncate text-xs text-muted">
-                        {subcategory.slug}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Menu */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveMenu(
-                          activeMenu === subcategory.id
-                            ? null
-                            : subcategory.id
-                        )
-                      }
-                      className="rounded-lg p-2 text-muted transition hover:bg-background hover:text-text"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
-
-                    {activeMenu ===
-                      subcategory.id && (
-                      <div className="absolute right-0 top-10 z-20 w-36 rounded-xl border border-border bg-surface p-1 shadow-lg">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleEdit(subcategory)
-                          }
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text hover:bg-background"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Edit
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDelete(subcategory)
-                          }
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-500 hover:bg-red-500/10"
-                        >
-                          <XCircle className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Description */}
-                <p className="mt-4 min-h-[40px] text-sm leading-5 text-muted">
-                  {subcategory.description ||
-                    "No description provided."}
-                </p>
-
-                {/* Footer */}
-                <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-                  <div className="flex items-center gap-2 text-xs text-muted">
-                    <span>Order</span>
-
-                    <span className="font-medium text-text">
-                      {subcategory.display_order}
-                    </span>
-                  </div>
-
-                  {subcategory.is_active ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      Active
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-500">
-                      <XCircle className="h-3.5 w-3.5" />
-                      Inactive
-                    </span>
-                  )}
-                </div>
-              </div>
+                category={subcategory}
+                icon={Folder}
+                onEdit={() =>
+                  setEditor({ mode: "edit", subcategory })
+                }
+                onDelete={() => setDeleteTarget(subcategory)}
+              />
             ))}
           </div>
+        ) : (
+          <SubcategoriesEmptyState
+            error={error}
+            brandName={brand?.name}
+            categoryName={category?.name}
+            hasSearch={search.trim() !== ""}
+            onRetry={retry}
+            onClearSearch={() => setSearch("")}
+            onCreate={openCreate}
+            onGoToCategories={() =>
+              router.push("/admin/main-category")
+            }
+          />
         )}
-      </div>
+      </section>
 
-      {/* Modal */}
-      <CourseSubCategoryModal
-        open={modalOpen}
-        mode={modalMode}
-        subcategory={selectedSubcategory}
-        categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onClose={() => {
-          setModalOpen(false);
-          setSelectedSubcategory(null);
-        }}
+      {/* Create / Edit */}
+      <SubcategoryModal
+        open={editor !== null}
+        mode={editor?.mode ?? "create"}
+        subcategory={editor?.subcategory ?? null}
+        categories={brandCategories}
+        defaultCategoryId={category?.id ?? ""}
+        onClose={closeEditor}
         onSubmit={handleSubmit}
       />
+
+      {/* Delete */}
+      <CategoryDeleteDialog
+        category={deleteTarget}
+        noun="sub category"
+        parent="main category"
+        icon={Folder}
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
+
+      <Toaster toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

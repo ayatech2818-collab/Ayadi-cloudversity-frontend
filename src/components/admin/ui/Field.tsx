@@ -7,6 +7,8 @@ interface FieldProps {
   /** Id of the control this labels. */
   htmlFor: string;
   required?: boolean;
+  /** Small note on the right of the label, e.g. a character count. */
+  aside?: ReactNode;
   hint?: string;
   error?: string;
   children: ReactNode;
@@ -17,19 +19,26 @@ export default function Field({
   label,
   htmlFor,
   required = false,
+  aside,
   hint,
   error,
   children,
 }: FieldProps) {
   return (
     <div>
-      <label
-        htmlFor={htmlFor}
-        className="mb-1.5 block text-xs font-semibold text-text"
-      >
-        {label}
-        {required && <span className="text-rose-500"> *</span>}
-      </label>
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <label
+          htmlFor={htmlFor}
+          className="text-xs font-semibold text-text"
+        >
+          {label}
+          {required && <span className="text-rose-500"> *</span>}
+        </label>
+
+        {aside && (
+          <span className="text-[11px] text-muted">{aside}</span>
+        )}
+      </div>
 
       {children}
 

@@ -1,6 +1,42 @@
 import type { Gallery, GalleryItem } from "@/lib/api/galleries";
 
 // =========================================================
+// LAYOUT
+// =========================================================
+
+/** Shared by the grid and its skeleton so nothing jumps when data lands. */
+export const GALLERIES_GRID =
+  "grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4";
+
+/** The media grid inside the manager, and its skeleton. */
+export const MEDIA_GRID =
+  "grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4";
+
+// =========================================================
+// FILTERS
+// =========================================================
+
+export type GalleryStatusFilter = "All" | "published" | "draft";
+
+export const GALLERY_STATUS_FILTERS: {
+  value: GalleryStatusFilter;
+  label: string;
+}[] = [
+  { value: "All", label: "All" },
+  { value: "published", label: "Published" },
+  { value: "draft", label: "Drafts" },
+];
+
+// =========================================================
+// MEDIA FILES
+// =========================================================
+
+export const GALLERY_MEDIA_ACCEPT = "image/*,video/*";
+
+export const isGalleryMedia = (file: File): boolean =>
+  /^(image|video)\//.test(file.type);
+
+// =========================================================
 // COVER IMAGE
 // =========================================================
 
@@ -169,11 +205,3 @@ export const formatFileSize = (
 
   return `${value.toFixed(value >= 10 || exponent === 0 ? 0 : 1)} ${units[exponent]}`;
 };
-
-export const generateSlug = (text: string): string =>
-  text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");

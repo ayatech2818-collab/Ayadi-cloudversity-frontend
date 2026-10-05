@@ -2,7 +2,10 @@
 
 import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 
-import { buttonClass } from "@/components/admin/ui/styles";
+import {
+  buttonClass,
+  iconButtonClass,
+} from "@/components/admin/ui/styles";
 import type { Author } from "@/lib/api/authors";
 
 import AuthorAvatar from "./AuthorAvatar";
@@ -97,7 +100,7 @@ export default function AuthorCard({
             onClick={onDelete}
             aria-label={`Delete ${author.name}`}
             title="Delete"
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-muted ring-1 ring-inset ring-border transition-colors hover:bg-rose-50 hover:text-rose-600 hover:ring-rose-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+            className={iconButtonClass(true)}
           >
             <Trash2 size={15} />
           </button>

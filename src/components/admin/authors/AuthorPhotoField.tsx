@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { Camera, Undo2, Upload } from "lucide-react";
 
 import { buttonClass } from "@/components/admin/ui/styles";
+import { useFilePicker } from "@/components/admin/ui/useFilePicker";
 
 import AuthorAvatar from "./AuthorAvatar";
 import {
@@ -36,36 +36,17 @@ export default function AuthorPhotoField({
   onSelect,
   onClear,
 }: AuthorPhotoFieldProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-
-  const openPicker = () => inputRef.current?.click();
+  const {
+    inputRef,
+    dragging,
+    dropZoneProps,
+    onInputChange,
+    openPicker,
+  } = useFilePicker(onSelect, disabled);
 
   return (
     <div
-      onDragOver={(event) => {
-        event.preventDefault();
-
-        if (!disabled) setDragging(true);
-      }}
-      onDragLeave={(event) => {
-        // Moving across a child fires this too; only react to a real exit.
-        if (
-          !event.currentTarget.contains(
-            event.relatedTarget as Node | null
-          )
-        ) {
-          setDragging(false);
-        }
-      }}
-      onDrop={(event) => {
-        event.preventDefault();
-        setDragging(false);
-
-        const file = event.dataTransfer.files?.[0];
-
-        if (file && !disabled) onSelect(file);
-      }}
+      {...dropZoneProps}
       className={`flex flex-col items-center gap-4 rounded-2xl p-4 ring-1 ring-inset transition-colors sm:flex-row ${
         dragging
           ? "bg-primary/5 ring-2 ring-primary"
@@ -140,14 +121,7 @@ export default function AuthorPhotoField({
         accept={AUTHOR_PHOTO_ACCEPT}
         className="hidden"
         disabled={disabled}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-
-          if (file) onSelect(file);
-
-          // Lets the same file be picked again after it was dropped.
-          event.target.value = "";
-        }}
+        onChange={onInputChange}
       />
     </div>
   );

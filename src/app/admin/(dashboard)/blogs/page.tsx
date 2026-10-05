@@ -1,16 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { FileText, Plus } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
-import BlogModal from "@/components/admin/BlogModal";
 import BlogCard from "@/components/admin/blogs/BlogCard";
-import BlogFilters, {
-  type SortOption,
-} from "@/components/admin/blogs/BlogFilters";
-import BlogPreviewModal from "@/components/admin/blogs/BlogPreviewModal";
-import DeleteBlogModal from "@/components/admin/blogs/DeleteBlogModal";
+import BlogDeleteDialog from "@/components/admin/blogs/BlogDeleteDialog";
 import BlogEmptyState from "@/components/admin/blogs/BlogEmptyState";
+import BlogFilters from "@/components/admin/blogs/BlogFilters";
+import BlogModal from "@/components/admin/blogs/BlogModal";
+import BlogPreviewModal from "@/components/admin/blogs/BlogPreviewModal";
+import BlogsHeader from "@/components/admin/blogs/BlogsHeader";
+import BlogsSkeleton from "@/components/admin/blogs/BlogsSkeleton";
+import {
+  BLOGS_GRID,
+  type BlogSortOption,
+  type BlogStatusFilter,
+} from "@/components/admin/blogs/blog-utils";
+import { Toaster, useToasts } from "@/components/admin/ui/Toast";
 
 import {
   createBlog,
@@ -20,99 +25,148 @@ import {
   type Blog,
   type BlogFormData,
 } from "@/lib/api/blogs";
+import { getApiErrorMessage } from "@/lib/api/errors";
+
+const SEARCH_DEBOUNCE_MS = 400;
+
+interface BlogEditor {
+  mode: "create" | "edit";
+  blog: Blog | null;
+}
 
 export default function BlogsPage() {
+  const { toasts, toastSuccess, toastError, dismissToast } =
+    useToasts();
+
+  // =========================================================
+  // DATA
+  // =========================================================
+
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Every blog, ignoring the filters — what the header counts.
+  const [allBlogs, setAllBlogs] = useState<Blog[] | null>(null);
+
+  // Bumped after a create / edit / delete to re-run the same queries.
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  // =========================================================
+  // FILTERS
+  // =========================================================
+
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "All" | "published" | "draft"
-  >("All");
-  const [categoryFilter, setCategoryFilter] =
-    useState("All");
-  const [sortBy, setSortBy] =
-    useState<SortOption>("newest");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [activeMenu, setActiveMenu] =
-    useState<string | null>(null);
+  const [statusFilter, setStatusFilter] =
+    useState<BlogStatusFilter>("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [sortBy, setSortBy] = useState<BlogSortOption>("newest");
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] =
-    useState<"create" | "edit">("create");
-  const [selectedBlog, setSelectedBlog] =
-    useState<Blog | null>(null);
+  // =========================================================
+  // UI
+  // =========================================================
 
-  const [previewBlog, setPreviewBlog] =
-    useState<Blog | null>(null);
+  const [editor, setEditor] = useState<BlogEditor | null>(null);
+  const [previewBlog, setPreviewBlog] = useState<Blog | null>(null);
 
-  const [deleteBlogTarget, setDeleteBlogTarget] =
-    useState<Blog | null>(null);
-
+  const [deleteTarget, setDeleteTarget] = useState<Blog | null>(
+    null
+  );
   const [deleting, setDeleting] = useState(false);
 
-  const categories = [
-  "All",
-  "Technology",
-  "Education",
-  "AI",
-  "Career",
-  "Learning",
-  "Cloud & DevOps",
-  "Industry Insights",
-  "Student Stories",
-];
-
-  // GET
- const fetchBlogs = async () => {
-  try {
-    setLoading(true);
-    setError(null);
-
-    const data = await getBlogs({
-      search: search.trim() || undefined,
-
-      status:
-        statusFilter !== "All"
-          ? statusFilter
-          : undefined,
-
-      category:
-        categoryFilter !== "All"
-          ? categoryFilter
-          : undefined,
-
-      sort_by: sortBy,
-    });
-
-    setBlogs(data);
-  } catch (error) {
-    console.error("Failed to fetch blogs:", error);
-    setError("Failed to load blogs.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+  // =========================================================
+  // FETCH
+  // =========================================================
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchBlogs();
-    }, 400);
+    const timer = setTimeout(
+      () => setDebouncedSearch(search),
+      SEARCH_DEBOUNCE_MS
+    );
 
     return () => clearTimeout(timer);
+  }, [search]);
+
+  /**
+   * Every filter is a query parameter — the backend does the filtering, this
+   * page never narrows an already-loaded list.
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await getBlogs({
+          search: debouncedSearch.trim() || undefined,
+          status: statusFilter === "All" ? undefined : statusFilter,
+          category:
+            categoryFilter === "All" ? undefined : categoryFilter,
+          sort_by: sortBy,
+        });
+
+        // A slower earlier request must not overwrite a newer result.
+        if (cancelled) return;
+
+        setBlogs(data);
+      } catch (fetchError) {
+        if (cancelled) return;
+
+        console.error("Failed to fetch blogs:", fetchError);
+
+        setError(
+          getApiErrorMessage(
+            fetchError,
+            "Something went wrong while fetching the blogs."
+          )
+        );
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
-    search,
+    debouncedSearch,
     statusFilter,
     categoryFilter,
     sortBy,
+    refreshToken,
   ]);
 
- 
+  // The header counts need the unfiltered list, so it is fetched on its own.
+  useEffect(() => {
+    let cancelled = false;
 
+    getBlogs()
+      .then((data) => {
+        if (!cancelled) setAllBlogs(data);
+      })
+      .catch((statsError) =>
+        console.error("Failed to fetch blog counts:", statsError)
+      );
 
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshToken]);
+
+  const refresh = useCallback(
+    () => setRefreshToken((token) => token + 1),
+    []
+  );
+
+  // =========================================================
+  // FILTER HELPERS
+  // =========================================================
 
   const hasFilters =
     search.trim() !== "" ||
@@ -121,142 +175,98 @@ export default function BlogsPage() {
 
   const resetFilters = () => {
     setSearch("");
+    setDebouncedSearch("");
     setStatusFilter("All");
     setCategoryFilter("All");
     setSortBy("newest");
   };
 
-  // Create
-  const handleCreate = () => {
-    setSelectedBlog(null);
-    setModalMode("create");
-    setModalOpen(true);
-  };
+  // =========================================================
+  // CREATE / EDIT
+  // =========================================================
 
-  // Edit
-  const handleEdit = (blog: Blog) => {
-    setSelectedBlog(blog);
-    setModalMode("edit");
-    setModalOpen(true);
-    setActiveMenu(null);
-  };
+  const openCreate = () => setEditor({ mode: "create", blog: null });
+  const openEdit = (blog: Blog) => setEditor({ mode: "edit", blog });
+  const closeEditor = () => setEditor(null);
 
-  // Create / Update
-  const handleSubmit = async (
-    data: BlogFormData,
-    action: "draft" | "publish"
-  ) => {
-    const payload: BlogFormData = {
-      ...data,
-      status:
-        action === "publish"
-          ? "published"
-          : "draft",
-    };
+  /**
+   * Errors are left to throw so the modal can show them inline and keep the
+   * form open with the values intact.
+   */
+  const handleSubmit = async (data: BlogFormData) => {
+    const isPublished = data.status === "published";
 
-    if (modalMode === "create") {
-      const created = await createBlog(payload);
+    if (editor?.mode === "edit" && editor.blog) {
+      await updateBlog(editor.blog.id, data);
 
-      setBlogs((current) => [
-        created,
-        ...current,
-      ]);
-    } else if (selectedBlog) {
-      const updated = await updateBlog(
-        selectedBlog.id,
-        payload
+      toastSuccess(
+        "Blog updated",
+        `"${data.title}" is saved as ${isPublished ? "published" : "a draft"}.`
       );
+    } else {
+      await createBlog(data);
 
-      setBlogs((current) =>
-        current.map((blog) =>
-          blog.id === selectedBlog.id
-            ? updated
-            : blog
-        )
+      toastSuccess(
+        isPublished ? "Blog published" : "Draft saved",
+        `"${data.title}" is saved as ${isPublished ? "published" : "a draft"}.`
       );
     }
 
-    setModalOpen(false);
-    setSelectedBlog(null);
+    closeEditor();
+    refresh();
   };
 
-  // Delete
+  // =========================================================
+  // DELETE
+  // =========================================================
+
   const handleDelete = async () => {
-    if (!deleteBlogTarget) return;
+    if (!deleteTarget || deleting) return;
 
     try {
       setDeleting(true);
 
-      await deleteBlog(deleteBlogTarget.id);
+      await deleteBlog(deleteTarget.id);
 
-      setBlogs((current) =>
-        current.filter(
-          (blog) =>
-            blog.id !== deleteBlogTarget.id
-        )
+      toastSuccess(
+        "Blog deleted",
+        `"${deleteTarget.title}" was removed.`
       );
 
-      setDeleteBlogTarget(null);
-    } catch (error) {
-      console.error(
-        "Failed to delete blog:",
-        error
-      );
+      setDeleteTarget(null);
+      refresh();
+    } catch (deleteError) {
+      console.error("Failed to delete blog:", deleteError);
 
-      alert("Failed to delete blog.");
+      toastError(
+        "Could not delete blog",
+        getApiErrorMessage(deleteError)
+      );
     } finally {
       setDeleting(false);
     }
   };
 
+  // =========================================================
+  // RENDER
+  // =========================================================
+
+  // The skeleton is for the first load only; after that the cards stay on
+  // screen, dimmed, while a new result is on its way.
+  const showSkeleton = loading && blogs.length === 0;
+
   return (
     <div className="min-h-full pb-16">
-      {/* Header */}
-      <section className="border-b border-border bg-surface">
-        <div className="px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="mb-1.5 flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <FileText size={12} />
-                </span>
+      <BlogsHeader blogs={allBlogs} onCreate={openCreate} />
 
-                <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
-                  Content
-                </span>
-              </div>
-
-              <h1 className="text-2xl font-bold text-text sm:text-3xl">
-                Blogs
-              </h1>
-
-              <p className="mt-1 text-sm text-muted">
-                Create, manage and publish your latest
-                content.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleCreate}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white hover:bg-primary-hover"
-            >
-              <Plus size={16} />
-              Create Blog
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Filters */}
       <BlogFilters
         search={search}
         statusFilter={statusFilter}
         categoryFilter={categoryFilter}
         sortBy={sortBy}
-        categories={categories}
         resultCount={blogs.length}
         hasActiveFilters={hasFilters}
+        loading={showSkeleton}
         onSearchChange={setSearch}
         onStatusChange={setStatusFilter}
         onCategoryChange={setCategoryFilter}
@@ -265,60 +275,43 @@ export default function BlogsPage() {
       />
 
       {/* Grid */}
-      <section className="px-4 pt-6 sm:px-6 lg:px-8">
-        {!loading &&
-        !error &&
-        blogs.length > 0 ? (
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-4">
+      <section className="px-4 pt-5 sm:px-6 lg:px-8">
+        {showSkeleton ? (
+          <BlogsSkeleton />
+        ) : !error && blogs.length > 0 ? (
+          <div
+            aria-busy={loading}
+            className={`${BLOGS_GRID} transition-opacity duration-200 ${
+              loading ? "pointer-events-none opacity-60" : ""
+            }`}
+          >
             {blogs.map((blog) => (
               <BlogCard
                 key={blog.id}
                 blog={blog}
-                isMenuOpen={
-                  activeMenu === blog.id
-                }
-                onMenuToggle={() =>
-                  setActiveMenu(
-                    activeMenu === blog.id
-                      ? null
-                      : blog.id
-                  )
-                }
-                onPreview={() => {
-                  setPreviewBlog(blog);
-                  setActiveMenu(null);
-                }}
-                onEdit={() =>
-                  handleEdit(blog)
-                }
-                onDelete={() => {
-                  setDeleteBlogTarget(blog);
-                  setActiveMenu(null);
-                }}
+                onPreview={() => setPreviewBlog(blog)}
+                onEdit={() => openEdit(blog)}
+                onDelete={() => setDeleteTarget(blog)}
               />
             ))}
           </div>
         ) : (
           <BlogEmptyState
-            loading={loading}
             error={error}
             hasFilters={hasFilters}
-            onRetry={fetchBlogs}
+            onRetry={refresh}
             onResetFilters={resetFilters}
-            onCreate={handleCreate}
+            onCreate={openCreate}
           />
         )}
       </section>
 
       {/* Create / Edit */}
       <BlogModal
-        open={modalOpen}
-        mode={modalMode}
-        blog={selectedBlog}
-        onClose={() => {
-          setModalOpen(false);
-          setSelectedBlog(null);
-        }}
+        open={editor !== null}
+        mode={editor?.mode ?? "create"}
+        blog={editor?.blog ?? null}
+        onClose={closeEditor}
         onSubmit={handleSubmit}
       />
 
@@ -326,18 +319,18 @@ export default function BlogsPage() {
       <BlogPreviewModal
         blog={previewBlog}
         onClose={() => setPreviewBlog(null)}
-        onEdit={handleEdit}
+        onEdit={openEdit}
       />
 
       {/* Delete */}
-      <DeleteBlogModal
-        blog={deleteBlogTarget}
+      <BlogDeleteDialog
+        blog={deleteTarget}
         loading={deleting}
-        onCancel={() =>
-          setDeleteBlogTarget(null)
-        }
+        onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
       />
+
+      <Toaster toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

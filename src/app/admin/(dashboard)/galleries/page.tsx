@@ -6,21 +6,20 @@ import {
   useRef,
   useState,
 } from "react";
-import { Images, Plus } from "lucide-react";
 
+import GalleriesHeader from "@/components/admin/galleries/GalleriesHeader";
 import GalleryCard from "@/components/admin/galleries/GalleryCard";
 import GalleryDeleteDialog from "@/components/admin/galleries/GalleryDeleteDialog";
 import GalleryEmptyState from "@/components/admin/galleries/GalleryEmptyState";
-import GalleryFilters, {
-  type GalleryStatusFilter,
-} from "@/components/admin/galleries/GalleryFilters";
+import GalleryFilters from "@/components/admin/galleries/GalleryFilters";
 import GalleryMediaManager from "@/components/admin/galleries/GalleryMediaManager";
 import GalleryModal from "@/components/admin/galleries/GalleryModal";
 import GallerySkeleton from "@/components/admin/galleries/GallerySkeleton";
 import {
-  Toaster,
-  useToasts,
-} from "@/components/admin/ui/Toast";
+  GALLERIES_GRID,
+  type GalleryStatusFilter,
+} from "@/components/admin/galleries/gallery-utils";
+import { Toaster, useToasts } from "@/components/admin/ui/Toast";
 
 import {
   createGallery,
@@ -47,13 +46,17 @@ export default function GalleriesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Every gallery, ignoring the filters — what the header counts.
+  const [allGalleries, setAllGalleries] = useState<
+    Gallery[] | null
+  >(null);
+
   // =========================================================
   // FILTERS
   // =========================================================
 
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] =
-    useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [statusFilter, setStatusFilter] =
     useState<GalleryStatusFilter>("All");
@@ -61,29 +64,27 @@ export default function GalleriesPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  // Bumped after a create / edit / delete to re-run the same query.
+  // Bumped after a create / edit / delete to re-run the same queries.
   const [refreshToken, setRefreshToken] = useState(0);
 
   // =========================================================
   // UI
   // =========================================================
 
-  const [activeMenu, setActiveMenu] = useState<
-    string | null
-  >(null);
-
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<
-    "create" | "edit"
-  >("create");
+  const [modalMode, setModalMode] = useState<"create" | "edit">(
+    "create"
+  );
   const [selectedGallery, setSelectedGallery] =
     useState<Gallery | null>(null);
 
-  const [mediaGallery, setMediaGallery] =
-    useState<Gallery | null>(null);
+  const [mediaGallery, setMediaGallery] = useState<Gallery | null>(
+    null
+  );
 
-  const [deleteTarget, setDeleteTarget] =
-    useState<Gallery | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Gallery | null>(
+    null
+  );
   const [deleting, setDeleting] = useState(false);
 
   // =========================================================
@@ -139,10 +140,7 @@ export default function GalleriesPage() {
       } catch (fetchError) {
         if (requestRef.current !== requestId) return;
 
-        console.error(
-          "Failed to fetch galleries:",
-          fetchError
-        );
+        console.error("Failed to fetch galleries:", fetchError);
 
         setError(
           getApiErrorMessage(
@@ -158,32 +156,29 @@ export default function GalleriesPage() {
     };
 
     run();
-  }, [
-    debouncedSearch,
-    statusFilter,
-    dateFrom,
-    dateTo,
-    refreshToken,
-  ]);
+  }, [debouncedSearch, statusFilter, dateFrom, dateTo, refreshToken]);
+
+  // The header counts need the unfiltered list, so it is fetched on its own.
+  useEffect(() => {
+    let cancelled = false;
+
+    getGalleries()
+      .then((data) => {
+        if (!cancelled) setAllGalleries(data);
+      })
+      .catch((statsError) =>
+        console.error("Failed to fetch gallery counts:", statsError)
+      );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshToken]);
 
   const refresh = useCallback(
     () => setRefreshToken((token) => token + 1),
     []
   );
-
-  // =========================================================
-  // MENU
-  // =========================================================
-
-  useEffect(() => {
-    if (!activeMenu) return;
-
-    const close = () => setActiveMenu(null);
-
-    document.addEventListener("click", close);
-
-    return () => document.removeEventListener("click", close);
-  }, [activeMenu]);
 
   // =========================================================
   // FILTER HELPERS
@@ -217,7 +212,6 @@ export default function GalleriesPage() {
     setSelectedGallery(gallery);
     setModalMode("edit");
     setModalOpen(true);
-    setActiveMenu(null);
   };
 
   const closeModal = () => {
@@ -258,8 +252,7 @@ export default function GalleriesPage() {
     }
 
     if (
-      data.description !==
-      (selectedGallery.description ?? null)
+      data.description !== (selectedGallery.description ?? null)
     ) {
       changes.description = data.description;
     }
@@ -273,9 +266,7 @@ export default function GalleriesPage() {
       changes.event_date = data.event_date;
     }
 
-    if (
-      data.is_published !== selectedGallery.is_published
-    ) {
+    if (data.is_published !== selectedGallery.is_published) {
       changes.is_published = data.is_published;
     }
 
@@ -317,10 +308,7 @@ export default function GalleriesPage() {
         `"${title}" and its media were removed.`
       );
     } catch (deleteError) {
-      console.error(
-        "Failed to delete gallery:",
-        deleteError
-      );
+      console.error("Failed to delete gallery:", deleteError);
 
       toastError(
         "Could not delete gallery",
@@ -335,46 +323,17 @@ export default function GalleriesPage() {
   // RENDER
   // =========================================================
 
+  // The skeleton is for the first load only; after that the cards stay on
+  // screen, dimmed, while a new result is on its way.
+  const showSkeleton = loading && galleries.length === 0;
+
   return (
     <div className="min-h-full pb-16">
-      {/* Header */}
-      <section className="border-b border-border bg-surface">
-        <div className="px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="mb-1.5 flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <Images size={12} />
-                </span>
+      <GalleriesHeader
+        galleries={allGalleries}
+        onCreate={handleCreate}
+      />
 
-                <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
-                  Content
-                </span>
-              </div>
-
-              <h1 className="text-2xl font-bold text-text sm:text-3xl">
-                Media Gallery
-              </h1>
-
-              <p className="mt-1 text-sm text-muted">
-                Manage event galleries and their photos and
-                videos.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleCreate}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white hover:bg-primary-hover"
-            >
-              <Plus size={16} />
-              Add Gallery
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Filters */}
       <GalleryFilters
         search={search}
         statusFilter={statusFilter}
@@ -382,7 +341,7 @@ export default function GalleriesPage() {
         dateTo={dateTo}
         resultCount={galleries.length}
         hasActiveFilters={hasFilters}
-        loading={loading}
+        loading={showSkeleton}
         onSearchChange={setSearch}
         onStatusChange={setStatusFilter}
         onDateFromChange={setDateFrom}
@@ -391,32 +350,23 @@ export default function GalleriesPage() {
       />
 
       {/* Grid */}
-      <section className="px-4 pt-6 sm:px-6 lg:px-8">
-        {loading ? (
+      <section className="px-4 pt-5 sm:px-6 lg:px-8">
+        {showSkeleton ? (
           <GallerySkeleton />
         ) : !error && galleries.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+          <div
+            aria-busy={loading}
+            className={`${GALLERIES_GRID} transition-opacity duration-200 ${
+              loading ? "pointer-events-none opacity-60" : ""
+            }`}
+          >
             {galleries.map((gallery) => (
               <GalleryCard
                 key={gallery.id}
                 gallery={gallery}
-                isMenuOpen={activeMenu === gallery.id}
-                onMenuToggle={() =>
-                  setActiveMenu(
-                    activeMenu === gallery.id
-                      ? null
-                      : gallery.id
-                  )
-                }
                 onEdit={() => handleEdit(gallery)}
-                onManageMedia={() => {
-                  setMediaGallery(gallery);
-                  setActiveMenu(null);
-                }}
-                onDelete={() => {
-                  setDeleteTarget(gallery);
-                  setActiveMenu(null);
-                }}
+                onManageMedia={() => setMediaGallery(gallery)}
+                onDelete={() => setDeleteTarget(gallery)}
               />
             ))}
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import {
   AnimatePresence,
   MotionConfig,
@@ -11,6 +12,8 @@ import { X, type LucideIcon } from "lucide-react";
 const WIDTHS = {
   sm: "max-w-md",
   md: "max-w-xl",
+  lg: "max-w-2xl",
+  xl: "max-w-5xl",
 } as const;
 
 interface ModalProps {
@@ -20,6 +23,8 @@ interface ModalProps {
   labelledBy: string;
   /** True while a request is in flight — Esc is ignored so nothing is lost. */
   busy?: boolean;
+  /** Turn off for long forms, where a stray Esc would throw the work away. */
+  closeOnEscape?: boolean;
   size?: keyof typeof WIDTHS;
   children: ReactNode;
 }
@@ -28,17 +33,26 @@ interface ModalProps {
  * Dialog shell for the admin dashboard: backdrop, entrance, Esc to close and a
  * locked page behind it. Children mount when it opens and unmount when it
  * closes, so a form inside always starts from fresh state.
+ *
+ * Focus starts on the element marked `data-autofocus` (not React's
+ * `autoFocus`, which would run before the opener can be remembered).
+ *
+ * Rendered into `document.body`, so a dialog opened from inside another one
+ * stacks above it instead of being clipped by it.
  */
 export default function Modal({
   open,
   onClose,
   labelledBy,
   busy = false,
+  closeOnEscape = true,
   size = "md",
   children,
 }: ModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (!open || busy) return;
+    if (!open || busy || !closeOnEscape) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -48,12 +62,13 @@ export default function Modal({
 
     return () =>
       document.removeEventListener("keydown", onKeyDown);
-  }, [open, busy, onClose]);
+  }, [open, busy, closeOnEscape, onClose]);
 
-  // Holds the page still, and hands focus back to whatever opened the dialog.
+  // Holds the page still, and moves focus into the dialog and back out again.
   useEffect(() => {
     if (!open) return;
 
+    const panel = panelRef.current;
     const opener = document.activeElement as HTMLElement | null;
     const { overflow, paddingRight } = document.body.style;
 
@@ -67,14 +82,30 @@ export default function Modal({
       document.body.style.paddingRight = `${scrollbar}px`;
     }
 
+    (
+      panel?.querySelector<HTMLElement>("[data-autofocus]") ?? panel
+    )?.focus();
+
     return () => {
       document.body.style.overflow = overflow;
       document.body.style.paddingRight = paddingRight;
-      opener?.focus?.();
+
+      // Hand focus back, unless another dialog has already taken it.
+      const active = document.activeElement;
+
+      if (
+        !active ||
+        active === document.body ||
+        panel?.contains(active)
+      ) {
+        opener?.focus?.();
+      }
     };
   }, [open]);
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <MotionConfig reducedMotion="user">
       <AnimatePresence>
         {open && (
@@ -90,6 +121,8 @@ export default function Modal({
             className="fixed inset-0 z-50 flex items-center justify-center bg-accent-strong/60 p-3 backdrop-blur-sm sm:p-6"
           >
             <motion.div
+              ref={panelRef}
+              tabIndex={-1}
               initial={{ opacity: 0, y: 18, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -97,14 +130,15 @@ export default function Modal({
                 duration: 0.28,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-3xl bg-surface text-text shadow-[0_40px_100px_-30px_rgba(20,29,63,0.65)] ${WIDTHS[size]}`}
+              className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-3xl bg-surface text-text shadow-[0_40px_100px_-30px_rgba(20,29,63,0.65)] outline-none ${WIDTHS[size]}`}
             >
               {children}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </MotionConfig>
+    </MotionConfig>,
+    document.body
   );
 }
 
@@ -147,7 +181,7 @@ export function ModalHeader({
           <div className="min-w-0">
             <h2
               id={id}
-              className="text-lg font-bold tracking-[-0.02em]"
+              className="truncate text-lg font-bold tracking-[-0.02em]"
             >
               {title}
             </h2>
@@ -174,7 +208,7 @@ export function ModalHeader({
 
 export function ModalFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="flex shrink-0 items-center justify-end gap-3 border-t border-border bg-page/70 px-6 py-4">
+    <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-border bg-page/70 px-6 py-4">
       {children}
     </div>
   );

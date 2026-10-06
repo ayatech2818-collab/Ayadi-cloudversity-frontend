@@ -5,20 +5,33 @@ import gsap from 'gsap';
 import { useEffect, useRef, type RefObject } from 'react';
 import * as THREE from 'three';
 
-import type { Quality, Rig } from '../rig';
+import { storyStarted, WHY_KEYS, type Quality, type Rig } from '../rig';
 import { Backdrop, FarSide, Motes } from './Environment';
 import { createFrame, type Frame } from './frame';
-import { fullscreenTriangle, PORTAL_HALF } from './geometry';
+import { fullscreenTriangle } from './geometry';
 import { GlobePortal } from './GlobePortal';
 import { Mark } from './Mark';
 import { LIQUID_FRAGMENT, SCREEN_VERTEX } from './shaders';
+import {
+  cardMatrix,
+  createWhyPhase,
+  isDrawable,
+  layoutWhy,
+  nearFade,
+  toMatrix3d,
+  whyPhase,
+  type WhySizes,
+} from './why';
+import { WhyRipples } from './WhyRipples';
 
 export type HeroSceneProps = {
   rig: RefObject<Rig>;
   quality: Quality;
-  /** Called once, after the first frame is on screen. */
+  /** Called once, when the scene is on screen — still asleep, drawing the
+      logo exactly as the fallback artwork — and about to wake. */
   onReady: () => void;
-  /** The Why Choose Ayadi panel, kept on the portal's glass by the Director. */
+  /** The Why Choose Ayadi layer: the Director keeps its heading on the
+      portal's glass and stands its cards in the portal's space. */
   overlay: RefObject<HTMLDivElement | null>;
 };
 
@@ -40,11 +53,12 @@ export default function HeroScene({ rig, quality, onReady, overlay }: HeroSceneP
     >
       {/* The Director must stay first: its useFrame sets the camera and the
           shared frame values that every other part reads. */}
-      <Director rig={rig} frame={frame} onReady={onReady} overlay={overlay} />
+      <Director rig={rig} frame={frame} onReady={onReady} overlay={overlay} warp={quality.tier !== 'low'} />
       <Backdrop rig={rig} frame={frame} />
       <Motes rig={rig} frame={frame} count={quality.particles} />
       <Mark rig={rig} frame={frame} />
       <GlobePortal rig={rig} frame={frame} quality={quality} />
+      <WhyRipples rig={rig} frame={frame} />
       <FarSide rig={rig} frame={frame} />
       <LiquidPass rig={rig} frame={frame} scale={quality.liquidScale} />
     </Canvas>
@@ -62,20 +76,42 @@ const IDLE_GAP = 1 / 32;
 /** How long after the last scroll or pointer move the scene still counts as busy. */
 const BUSY_FOR_MS = 700;
 
+/* ---------- the handoff ----------
+   The page shows the official logo as an image until the scene can draw it
+   (.fallbackMark in hero.module.css). The scene starts asleep (rig.wake = 0),
+   drawing the lockup exactly as that image — the same outlines in the same
+   place, flat, square-on, still, on the bare page — so the image clears off
+   a picture identical to itself. Then the scene wakes: the light, the turn,
+   the idle drift, the wash and the motes all arrive together, and the logo
+   reads as coming alive rather than as being swapped. */
+
+/** Frames drawn before the page is told. The first compiles the shaders; by
+    the second, the first is on the glass. */
+const READY_AFTER = 2;
+/** The wake, in seconds. It eases in slowly enough that the scene is still
+    the image's twin for the moment the image takes to clear. The page's own
+    glow fades over the same stretch (.slotGlow) — change the two together. */
+const WAKE_FOR = 1.6;
+
 function Director({
   rig,
   frame,
   onReady,
   overlay,
+  warp,
 }: {
   rig: RefObject<Rig>;
   frame: RefObject<Frame>;
   onReady: () => void;
   overlay: RefObject<HTMLDivElement | null>;
+  /** Whether a Why card is also bent as it comes through (an SVG filter on
+      the card — not for the lowest tier). */
+  warp: boolean;
 }) {
   const advance = useThree((state) => state.advance);
   const get = useThree((state) => state.get);
   const setDpr = useThree((state) => state.setDpr);
+  const why = useRef<WhyNodes | null>(null);
 
   /*
    * The clock. The canvas never renders on its own (frameloop="never").
@@ -84,22 +120,36 @@ function Director({
    * always show the same moment. Off screen it renders nothing; at rest it
    * drops to half rate for the idle motion; and if frames stay slow while
    * the visitor is scrolling, it steps the pixel ratio down.
+   *
+   * It also runs the handoff (see above): two frames asleep, then the wake.
    */
   useEffect(() => {
     let last = -1;
     let wasBusy = false;
     let slowFrames = 0;
-    let announced = false;
+    let frames = 0;
+    let waking: gsap.core.Tween | null = null;
 
     const tick = (time: number) => {
       const r = rig.current;
+
+      /* The scroll has the logo now. Whatever is left of the handoff is over
+         before this frame is drawn, so the two never show at once. */
+      if (r.wake < 1 && storyStarted(r)) {
+        waking?.kill();
+        r.wake = 1;
+      }
+
       if (!r.live) {
         last = -1;
         return;
       }
 
       const busy = performance.now() - r.activeAt < BUSY_FOR_MS;
-      if (last >= 0 && time - last < (busy ? BUSY_GAP : IDLE_GAP)) return;
+      /* Waking is motion too, so it gets the full rate — but nobody is
+         scrolling, so it stays out of the slow-frame count below. */
+      const moving = busy || (r.wake > 0 && r.wake < 1);
+      if (last >= 0 && time - last < (moving ? BUSY_GAP : IDLE_GAP)) return;
 
       if (busy && wasBusy && last >= 0) {
         slowFrames = time - last > 1 / 40 ? slowFrames + 1 : Math.max(0, slowFrames - 2);
@@ -114,20 +164,48 @@ function Director({
       last = time;
       advance(time);
 
-      if (!announced) {
-        announced = true;
-        onReady();
-      }
+      if (frames === READY_AFTER) return;
+      frames += 1;
+      if (frames < READY_AFTER) return;
+
+      onReady();
+      /* Unless the story is already under way — a reload part-way down. */
+      if (r.wake < 1) waking = gsap.to(r, { wake: 1, duration: WAKE_FOR, ease: 'power2.inOut' });
     };
 
     gsap.ticker.add(tick);
-    return () => gsap.ticker.remove(tick);
+    return () => {
+      gsap.ticker.remove(tick);
+      waking?.kill();
+    };
   }, [advance, get, onReady, rig, setDpr]);
 
   useFrame((state, delta) => {
-    direct(state, delta, rig.current, frame.current);
-    placeInfo(state, rig.current, overlay.current);
+    const r = rig.current;
+    const f = frame.current;
+    direct(state, delta, r, f);
+
+    /* Where the Why stage stands, for the ripples as much as for the page. */
+    sizes.cardWidth = r.cardWidth;
+    sizes.cardHeight = r.cardHeight;
+    sizes.wordsWidth = r.infoWidth;
+    sizes.wordsHeight = r.infoHeight;
+    layoutWhy(f.why, state.size.width, state.size.height, f.fit, sizes);
+
+    const layer = overlay.current;
+    if (!layer) return;
+    if (why.current?.layer !== layer) why.current = findWhy(layer, warp);
+    placeWhy(state, r, f, why.current);
   });
+
+  /* The page keeps these elements when the scene goes (the still layout
+     shows them as an ordinary panel): hand them back as they were found. */
+  useEffect(() => {
+    const layer = overlay.current;
+    return () => {
+      if (layer) releaseWhy(layer);
+    };
+  }, [overlay]);
 
   return null;
 }
@@ -163,9 +241,9 @@ function direct(state: RootState, delta: number, r: Rig, f: Frame) {
   offset.set(r.camX, r.camY, camZ).sub(target);
 
   /* The pointer orbits a few degrees round the target. It never moves the
-     story, eases off while the mark sits in its slot, and lets go entirely
-     during the liquid pass. */
-  const hold = (1 - r.distortion) * (1 - 0.75 * r.dock);
+     story, eases off while the mark sits in its slot, lets go entirely
+     during the liquid pass, and waits for the scene to wake. */
+  const hold = (1 - r.distortion) * (1 - 0.75 * r.dock) * r.wake;
   offset.applyAxisAngle(Y_AXIS, f.px * 0.07 * hold);
   offset.applyAxisAngle(X_AXIS, f.py * 0.045 * hold);
   camera.position.copy(target).add(offset);
@@ -199,50 +277,155 @@ function direct(state: RootState, delta: number, r: Rig, f: Frame) {
   f.idleSpin = (f.idleSpin + dt * 0.08 * (1 - r.morph)) % (Math.PI * 2);
 }
 
-const glassCentre = new THREE.Vector3();
-const glassTop = new THREE.Vector3();
-const glassBottom = new THREE.Vector3();
+/* ---------- the Why Choose Ayadi stage ----------
+   Its heading and cards are elements of the page (WhyStage.tsx), drawn over
+   the canvas; what makes them part of the portal is that the Director gives
+   each a place in the portal's space and draws it there, through this
+   camera, every frame. Compositor-only writes — a transform, a few custom
+   properties — and only for what has changed. */
 
-/*
- * Keeps the Why Choose Ayadi panel on the portal's glass: centred on where
- * the glass is on screen this frame, and scaled to it — so it grows as the
- * camera approaches and sways with the pointer's orbit, exactly as the glass
- * does. The panel fits inside the glass (never below 85%, so the text stays
- * readable); only where the glass is far too small to read from — a phone —
- * is it sized to the screen instead, growing a little through the stage. A
- * compositor-only transform, written only while the stage runs.
- */
-function placeInfo(state: RootState, r: Rig, panel: HTMLDivElement | null) {
-  if (!panel || r.info <= 0 || r.info >= 1 || r.infoWidth <= 0 || r.infoHeight <= 0) return;
+/** How hard the liquid bends a card as it starts through (the SVG filter's
+    displacement, in the card's own pixels). */
+const WARP = 22;
+
+/** The page's measurements of the stage, as the layout wants them. */
+const sizes: WhySizes = { cardWidth: 0, cardHeight: 0, wordsWidth: 0, wordsHeight: 0 };
+
+type WhyNodes = {
+  layer: HTMLDivElement;
+  head: HTMLElement | null;
+  cards: HTMLElement[];
+  /** Each card's liquid: the filter primitive whose `scale` bends it. */
+  warps: Element[];
+  /** Whether any of it was on the stage last frame. */
+  active: boolean;
+  headShown: boolean;
+  /** What each card was last drawn as, so nothing is written twice. */
+  drawn: { shown: boolean; e: number; fade: number; liquid: boolean }[];
+};
+
+function findWhy(layer: HTMLDivElement, warp: boolean): WhyNodes {
+  layer.toggleAttribute('data-warp', warp);
+  const cards = [...layer.querySelectorAll<HTMLElement>('[data-why="card"]')];
+  return {
+    layer,
+    head: layer.querySelector<HTMLElement>('[data-why="head"]'),
+    cards,
+    warps: warp ? [...layer.querySelectorAll('[data-why="warp"]')] : [],
+    active: false,
+    headShown: false,
+    drawn: cards.map(() => ({ shown: false, e: -1, fade: -1, liquid: false })),
+  };
+}
+
+/** Everything placeWhy writes, taken off again. */
+function releaseWhy(layer: HTMLDivElement) {
+  layer.removeAttribute('data-warp');
+  for (const node of layer.querySelectorAll<HTMLElement>('[data-why="head"], [data-why="card"]')) {
+    node.removeAttribute('data-liquid');
+    for (const property of ['transform', 'visibility', '--within', '--shown', '--glow']) {
+      node.style.removeProperty(property);
+    }
+  }
+  for (const node of layer.querySelectorAll('[data-why="warp"]')) node.setAttribute('scale', '0');
+}
+
+const headPoint = new THREE.Vector3();
+const headAbove = new THREE.Vector3();
+const headBelow = new THREE.Vector3();
+const pane = new THREE.Matrix4();
+const phase = createWhyPhase();
+
+function placeWhy(state: RootState, r: Rig, f: Frame, nodes: WhyNodes) {
+  /* Nothing of it exists before the stage, and nothing of it is left in
+     front of the camera once that is through the glass. One last pass as it
+     goes, to put everything away; after that this costs a comparison. */
+  const staged = r.info > 0 && r.info < 1 && r.infoWidth > 0;
+  const active = r.camZ - r.push > 0 && (staged || r.why1 > 0 || r.why2 > 0 || r.why3 > 0);
+  if (!active && !nodes.active) return;
+  nodes.active = active;
 
   const { camera, size } = state;
   const { width, height } = size;
+  const layout = f.why;
 
   /* direct() has just moved the camera; its world matrix only updates at
-     render time, so bring it up to date or the panel trails by a frame. */
+     render time, so bring it up to date or the stage trails by a frame. */
   camera.updateMatrixWorld();
-  glassCentre.set(0, 0, 0).project(camera);
-  glassTop.set(0, 0.5, 0).project(camera);
-  glassBottom.set(0, -0.5, 0).project(camera);
 
-  const x = ((glassCentre.x + 1) / 2) * width;
-  const y = ((1 - glassCentre.y) / 2) * height;
-  const pixelsPerUnit = ((glassTop.y - glassBottom.y) / 2) * height;
+  /* The words lie on the glass: centred on their point there, as wide as
+     suits the glass — so they grow as the camera approaches and sway with
+     the pointer's orbit, exactly as the glass does — but never too small to
+     read, nor wider than the screen. That point is the middle of the glass
+     wherever the frame has room for the cards beside them; where it has
+     not, they start above the cards and settle there as the cards leave
+     (rig.settle; scene/why.ts). For as long as they are there (rig.info). */
+  const head = nodes.head;
+  if (head) {
+    if (staged) {
+      const onGlassY = THREE.MathUtils.lerp(layout.headY, layout.restY, r.settle);
+      headPoint.set(0, onGlassY, 0).project(camera);
+      headAbove.set(0, onGlassY + 0.5, 0).project(camera);
+      headBelow.set(0, onGlassY - 0.5, 0).project(camera);
 
-  /* Room on screen: the width, and the height clear of the navbar. */
-  const screenFit = Math.min((0.94 * width) / r.infoWidth, (height - 140) / r.infoHeight);
+      const x = ((headPoint.x + 1) / 2) * width;
+      const y = ((1 - headPoint.y) / 2) * height;
+      const pixelsPerUnit = ((headAbove.y - headBelow.y) / 2) * height;
+      const onGlass = (layout.wordsAcross * pixelsPerUnit) / r.infoWidth;
+      const scale = Math.min(Math.max(onGlass, 0.85), (0.92 * width) / r.infoWidth);
 
-  const glassWidth = PORTAL_HALF[0] * 2 * pixelsPerUnit;
-  const glassHeight = PORTAL_HALF[1] * 2 * pixelsPerUnit;
-  const glassFit = 0.84 * Math.min(glassWidth / r.infoWidth, glassHeight / r.infoHeight);
+      /* Centred on itself first, then scaled about that centre: the element
+         is laid out from its corner (.whyAnchor). */
+      head.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) scale(${scale.toFixed(4)}) translate(-50%, -50%)`;
+    }
+    if (staged !== nodes.headShown) {
+      nodes.headShown = staged;
+      head.style.visibility = staged ? 'visible' : '';
+    }
+  }
 
-  const scale =
-    glassFit >= 0.6
-      ? Math.min(Math.max(glassFit, 0.85), screenFit)
-      : /* A phone: the glass is too small to read from. */
-        screenFit * (0.95 + 0.07 * r.info);
+  /* The cards stand in front of the glass, each a pane with its own place
+     (scene/why.ts). Nothing but the camera moves them: its approach spreads
+     them, carries the nearest out of the frame, and passes each in turn —
+     at which point there is no pane to draw. */
+  nodes.cards.forEach((card, index) => {
+    const drawn = nodes.drawn[index];
+    const e = r[WHY_KEYS[Math.min(index, WHY_KEYS.length - 1)]];
 
-  panel.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -50%) scale(${scale.toFixed(4)})`;
+    let shown = active && e > 0 && layout.unit > 0;
+    let fade = 1;
+    if (shown) {
+      const place = layout.cards[Math.min(index, layout.cards.length - 1)];
+      const nearest = cardMatrix(pane, camera, width, height, place, layout.unit, r.cardWidth, r.cardHeight);
+      shown = isDrawable(nearest);
+      if (shown) {
+        card.style.transform = toMatrix3d(pane);
+        fade = nearFade(pane.elements[15], f.fit);
+      }
+    }
+
+    if (shown !== drawn.shown) {
+      drawn.shown = shown;
+      card.style.visibility = shown ? 'visible' : '';
+    }
+    if (!shown || (e === drawn.e && fade === drawn.fade)) return;
+    drawn.e = e;
+    drawn.fade = fade;
+
+    /* Its emergence: one number in, and everything the page draws it with
+       out (.whyBody in hero.module.css). */
+    whyPhase(e, phase);
+    card.style.setProperty('--within', phase.within.toFixed(4));
+    card.style.setProperty('--shown', (phase.shown * fade).toFixed(4));
+    card.style.setProperty('--glow', phase.glow.toFixed(4));
+    nodes.warps[index]?.setAttribute('scale', (phase.within * WARP).toFixed(2));
+
+    const liquid = e < 1;
+    if (liquid !== drawn.liquid) {
+      drawn.liquid = liquid;
+      card.toggleAttribute('data-liquid', liquid);
+    }
+  });
 }
 
 /*

@@ -2,11 +2,12 @@
 
 import { motion } from 'framer-motion';
 import { BookOpen, GraduationCap, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
-import type { RefObject } from 'react';
+import type { CSSProperties, RefObject } from 'react';
 
 import { useCardTilt } from '@/components/website/ui/card-chrome';
 
 import styles from './hero.module.css';
+import { WHY_ENTRANCES } from './whyCards';
 
 type Reason = {
   title: string;
@@ -38,15 +39,36 @@ const REASONS: Reason[] = [
   },
 ];
 
+/* How one card comes through the portal's side, for the stylesheet: which
+   way it travels, how far it is hinged and rolled on the way, and the filter
+   that bends it while it is still in the liquid (whyCards.ts has the numbers;
+   .whyBody in hero.module.css spends them). */
+function entrance(index: number) {
+  const { side, hinge, roll, lift } = WHY_ENTRANCES[Math.min(index, WHY_ENTRANCES.length - 1)];
+  return {
+    '--side': side,
+    '--hinge': `${hinge}deg`,
+    '--roll': `${roll}deg`,
+    '--lift': `${lift * 100}%`,
+    '--warp': `url(#why-warp-${index})`,
+  } as CSSProperties;
+}
+
 /*
- * "Why choose Ayadi?" — shown on the portal's glass while the camera travels
- * toward it: the heading as the glass appears, then one card per stretch of
- * scroll, then everything sinks into the glass and the portal takes over.
+ * "Why choose Ayadi?" — part of the portal, while the camera travels toward
+ * it. The heading lies on the portal's glass, with its answer under it: a
+ * short quote. The three cards stand in front of the glass, to either side
+ * and one behind another, each coming through the portal's side by way of a
+ * ripple of its own and then staying exactly where it is: the camera's
+ * approach is what moves them, and what finally leaves them behind. The
+ * words keep the glass after that, until the liquid takes it.
  *
- * The panel is laid out once, flat; the scene's Director moves and scales it
- * every frame onto the glass's projection (placeInfo in scene/HeroScene.tsx),
- * so it rides the camera's approach and the pointer's orbit with the glass.
- * AyadiHero's scroll timeline brings each part in and out (data-h hooks).
+ * Everything is laid out once, flat. The scene's Director gives the heading
+ * and each card its place every frame (placeWhy in scene/HeroScene.tsx) — a
+ * real pane in the portal's space, drawn through the scene's own camera — and
+ * drives each card's emergence from its one rig value. AyadiHero's scroll
+ * timeline runs those values, and brings the heading in and out (data-h
+ * hooks).
  *
  * The card is the WhyChooseAyadi feature card as a compact row: the same
  * glass, ring, top sheen, cursor spotlight, hover lift and glow, icon tile
@@ -59,29 +81,71 @@ const REASONS: Reason[] = [
 export function WhyStage({ stageRef }: { stageRef: RefObject<HTMLDivElement | null> }) {
   return (
     <div ref={stageRef} aria-hidden="true" className={styles.why}>
-      <span data-h="why-scrim" className={styles.whyScrim} />
+      <div data-why="head" className={`${styles.whyAnchor} ${styles.whyWords}`}>
+        <span data-h="why-scrim" className={styles.whyScrim} />
 
-      <div data-h="why-head" className={styles.whyHead}>
-        <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wide text-emerald-50 ring-1 ring-inset ring-white/20">
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full rounded-full bg-lime-300 opacity-75 motion-safe:animate-ping" />
-            <span className="relative inline-flex size-2 rounded-full bg-lime-300" />
+        <div data-h="why-head" className={styles.whyHead}>
+          <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wide text-emerald-50 ring-1 ring-inset ring-white/20">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full rounded-full bg-lime-300 opacity-75 motion-safe:animate-ping" />
+              <span className="relative inline-flex size-2 rounded-full bg-lime-300" />
+            </span>
+            Our Edge
           </span>
-          Our Edge
-        </span>
 
-        <p className="mt-2.5 text-[1.75rem] font-bold leading-[1.1] tracking-[-0.04em] text-white sm:text-[2rem]">
-          Why Choose <span className={styles.whyShimmer}>Ayadi</span>?
-        </p>
+          <p className="mt-2.5 text-[1.75rem] font-bold leading-[1.1] tracking-[-0.04em] text-white sm:text-[2rem]">
+            Why Choose <span className={styles.whyShimmer}>Ayadi</span>?
+          </p>
+
+          {/* The question's answer, said with it: one block of words that
+              arrives together, stays together and leaves together. */}
+          <p className={styles.whyQuote}>
+            &ldquo;Every next step
+            <span className="block">
+              begins with the <span className={styles.whyQuoteMark}>right learning</span>.&rdquo;
+            </span>
+          </p>
+        </div>
       </div>
 
       <ul className={styles.whyCards}>
         {REASONS.map((reason, index) => (
-          <li key={reason.title} data-h="why-card" className={styles.whySlot}>
-            <ReasonCard reason={reason} index={index} />
+          <li key={reason.title} data-why="card" className={`${styles.whySlot} ${styles.whyAnchor}`} style={entrance(index)}>
+            <div data-h="why-card" className={styles.whyBody}>
+              <ReasonCard reason={reason} index={index} />
+            </div>
           </li>
         ))}
       </ul>
+
+      {/* The liquid a card is bent by on its way through: one small noise
+          field each, and how hard it pushes — which the Director sets, and
+          sets back to nothing once the card is clear. */}
+      <svg className={styles.whyDefs} focusable="false">
+        <defs>
+          {REASONS.map((reason, index) => (
+            <filter
+              key={reason.title}
+              id={`why-warp-${index}`}
+              x="-25%"
+              y="-40%"
+              width="150%"
+              height="180%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feTurbulence type="fractalNoise" baseFrequency="0.011 0.028" numOctaves={2} seed={3 + index * 7} result="noise" />
+              <feDisplacementMap
+                data-why="warp"
+                in="SourceGraphic"
+                in2="noise"
+                scale={0}
+                xChannelSelector="R"
+                yChannelSelector="G"
+              />
+            </filter>
+          ))}
+        </defs>
+      </svg>
     </div>
   );
 }

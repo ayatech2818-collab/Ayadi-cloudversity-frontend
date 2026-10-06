@@ -120,17 +120,25 @@
   transition: opacity 0.7s ease;
 }
 
+/* The page's stand-in for the scene's mint wash. It hands over at the pace
+   the wash arrives — the scene's wake: WAKE_FOR in scene/HeroScene.tsx, and
+   the same cubic in-out — so the light round the logo never dips between
+   the two. */
 .slotGlow {
   position: absolute;
   inset: -45%;
   border-radius: 9999px;
   background: var(--background-image-hero-ambient);
-  transition: opacity 0.7s ease;
+  transition: opacity 1.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* The official logo as an image, until the scene can draw it. It clears
+   quickly: by then the scene is drawing the very same picture underneath
+   (rig.wake = 0), and only starts to move once this has gone — see the
+   handoff in scene/HeroScene.tsx. */
 .fallbackMark {
   object-fit: contain;
-  transition: opacity 0.7s ease;
+  transition: opacity 0.2s ease;
 }
 
 /* Contact shadow under the mark. */
@@ -146,8 +154,8 @@
   pointer-events: none;
 }
 
-/* The scene has drawn its first frame: the real mark — and the watermark
-   behind it — are the scene's now. */
+/* The scene is on screen: the real mark — and the watermark behind it — are
+   the scene's now. Each hands over at its own pace (see above). */
 .root[data-mode='cinematic'][data-ready] .fallbackMark,
 .root[data-mode='cinematic'][data-ready] .slotGlow,
 .root[data-mode='cinematic'][data-ready] .watermark {
@@ -1435,13 +1443,16 @@
   box-shadow: 0 14px 28px -14px rgb(4 76 59 / 0.7);
 }
 
-/* ================= Why Choose Ayadi — on the portal's glass =================
-   One panel (WhyStage.tsx): the heading, then three compact cards stacked
-   beneath it. On the stage the scene's Director moves and scales it onto the
-   glass every frame; the scroll timeline owns every entrance and exit; CSS
-   here only lays it out and answers the pointer. The card is the
-   WhyChooseAyadi feature card as a row. No backdrop blur — re-blurring the
-   live WebGL canvas behind it every frame is exactly the cost to avoid. */
+/* ================= Why Choose Ayadi — in the portal =================
+   The heading and three compact cards (WhyStage.tsx). On the stage they are
+   things in the portal's space: the heading on its glass, the cards standing
+   in front of it to either side. The scene's Director places each one every
+   frame, through the scene's own camera, and runs each card's emergence
+   through the portal's side; the scroll timeline brings the heading in and
+   out; CSS here lays them out, spends the Director's numbers, and answers
+   the pointer. The card is the WhyChooseAyadi feature card as a row. No
+   backdrop blur — re-blurring the live WebGL canvas behind it every frame is
+   exactly the cost to avoid. */
 
 /* Still layout: a small dark panel between the opening and the choice. */
 .why {
@@ -1463,6 +1474,21 @@
   text-align: center;
 }
 
+/* The heading's answer, under it: quieter, and smaller — no wider than the
+   heading itself, so the block is the heading's width with or without it. */
+.whyQuote {
+  margin-top: 0.7rem;
+  color: rgb(236 253 245 / 0.92);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.whyQuoteMark {
+  color: #6ee7b7;
+}
+
 .whyCards {
   position: relative;
   display: grid;
@@ -1474,30 +1500,78 @@
   display: flex;
 }
 
-/* ---------- on the stage: a layer on the glass ---------- */
+.whyBody {
+  display: flex;
+  width: 100%;
+}
 
+/* The filters a card is bent by on its way through. Never `display: none`:
+   a filter in a hidden SVG is no filter at all in some browsers. */
+.whyDefs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ---------- on the stage: things in the portal's space ---------- */
+
+/* The layer they are placed on: the stage itself, corner to corner. */
 .root[data-mode='cinematic'] .why {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: min(34rem, 92vw);
+  inset: 0;
+  width: auto;
   margin: 0;
   padding: 0;
   border-radius: 0;
   background: none;
   box-shadow: none;
-  /* Until the Director takes over: the middle of the screen. */
-  transform: translate3d(50vw, 50svh, 0) translate(-50%, -50%);
-  transform-origin: 50% 50%;
-  perspective: 1000px;
   pointer-events: none;
+  /* What stands over what in here is settled in here (.whyWords). */
+  isolation: isolate;
+}
+
+/* The heading and each card: laid out at the stage's corner and put in
+   place from there by the Director (placeWhy), which centres each on the
+   point it gives it. Out of sight until it has. */
+.root[data-mode='cinematic'] .whyAnchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  visibility: hidden;
   will-change: transform;
+}
+
+.root[data-mode='cinematic'] .whyCards {
+  position: static;
+  display: block;
+  margin: 0;
+}
+
+/* The words on the glass: the heading and the quote under it. They come up
+   out of the glass and go back into it together (AyadiHero moves them in
+   depth). And they are read over a card, never under one: on a tall screen
+   the cards pass straight across them on their way to the lens. */
+.root[data-mode='cinematic'] .whyWords {
+  z-index: 1;
+  width: max-content;
+  max-width: 92vw;
+  perspective: 1000px;
+}
+
+/* On the glass the quote is lit a little by the portal's green. */
+.root[data-mode='cinematic'] .whyQuote {
+  text-shadow:
+    0 0 18px rgb(110 231 183 / 0.3),
+    0 2px 20px rgb(2 24 20 / 0.7);
 }
 
 /* The glass darkens softly behind the words — part of the glass, no edges. */
 .root[data-mode='cinematic'] .whyScrim {
   position: absolute;
-  inset: -16% -12%;
+  inset: -70% -32%;
   display: block;
   border-radius: 50%;
   background: radial-gradient(
@@ -1515,8 +1589,94 @@
 }
 
 .root[data-mode='cinematic'] .whySlot {
-  visibility: hidden;
+  width: min(22rem, 82vw);
   pointer-events: auto;
+}
+
+/* ---------- a card coming through the portal's side ----------
+   The Director writes three numbers on each card's slot (scene/why.ts):
+     --within  1 → 0   how much of it is still in the liquid
+     --shown   0 → 1   how much of it can be seen
+     --glow    0 → 1   the light on its edge
+   and WhyStage gives it its own way of coming through (--side, --hinge,
+   --roll, --lift). All of it is in the card's own plane, so it reads as the
+   card moving in the portal's space, not across the screen: out from its
+   outer edge, swinging flat as it clears. */
+.root[data-mode='cinematic'] .whyBody {
+  position: relative;
+  opacity: var(--shown, 0);
+  transform: perspective(900px)
+    translate3d(calc(var(--side) * var(--within, 0) * 46%), calc(var(--within, 0) * var(--lift) * -1), 0)
+    rotateY(calc(var(--side) * var(--within, 0) * var(--hinge) * -1)) rotateZ(calc(var(--within, 0) * var(--roll)))
+    scale(calc(1 - 0.12 * var(--within, 0)));
+  transform-origin: calc(50% + var(--side) * 50%) 50%;
+}
+
+/* Only while it is coming through (the Director marks the slot) is the card
+   anything but itself: soft, split a little into the portal's teal and
+   green at its edges, and hidden where it has not yet left the surface.
+   Every part of it is nothing at --within 0, so the mark coming off again
+   changes nothing that can be seen. */
+.root[data-mode='cinematic'] .whySlot[data-liquid] .whyBody {
+  filter: blur(calc(var(--within) * 7px))
+    drop-shadow(calc(var(--within) * var(--side) * -5px) 0 0 rgb(45 212 191 / calc(var(--within) * 0.55)))
+    drop-shadow(calc(var(--within) * var(--side) * 4px) 0 0 rgb(163 230 53 / calc(var(--within) * 0.3)));
+  mask-image: linear-gradient(
+    calc(var(--side) * -90deg),
+    transparent calc(var(--within) * 92% - 34%),
+    #000 calc(var(--within) * 92%)
+  );
+}
+
+/* And bent, as glass is seen through moving water — where the stage can
+   afford it (the Director marks the layer). */
+.root[data-mode='cinematic'] .why[data-warp] .whySlot[data-liquid] .whyBody {
+  filter: var(--warp) blur(calc(var(--within) * 7px))
+    drop-shadow(calc(var(--within) * var(--side) * -5px) 0 0 rgb(45 212 191 / calc(var(--within) * 0.55)))
+    drop-shadow(calc(var(--within) * var(--side) * 4px) 0 0 rgb(163 230 53 / calc(var(--within) * 0.3)));
+}
+
+/* The light on its edge as it breaks the surface. A trace of it stays. */
+.root[data-mode='cinematic'] .whyBody::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 1.25rem;
+  box-shadow:
+    0 0 0 1px rgb(94 234 212 / 0.55),
+    0 0 26px rgb(45 212 191 / 0.5),
+    inset 0 0 24px rgb(110 231 183 / 0.22);
+  content: '';
+  opacity: var(--glow, 0);
+  pointer-events: none;
+}
+
+/* And a sheen that crosses it once, as the liquid runs off. */
+.root[data-mode='cinematic'] .whySlot[data-liquid] .whyBody::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 1.25rem;
+  background: linear-gradient(
+      105deg,
+      transparent 38%,
+      rgb(153 246 228 / 0.26) 47%,
+      rgb(255 255 255 / 0.4) 50%,
+      rgb(153 246 228 / 0.26) 53%,
+      transparent 62%
+    )
+    no-repeat;
+  background-position: calc(var(--within) * 100%) 0;
+  background-size: 260% 100%;
+  content: '';
+  opacity: var(--glow, 0);
+  pointer-events: none;
+}
+
+/* In front of the portal's frames rather than on its darkened glass, the
+   card's own glass has to carry the text: a little more of it. */
+.root[data-mode='cinematic'] .whyCard {
+  background-color: rgb(4 38 32 / 0.74);
 }
 
 /* ---------- the card: a compact row ---------- */

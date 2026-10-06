@@ -28,6 +28,25 @@
   --color-brand-teal: #0f766e;
   --background-image-accent-gradient: linear-gradient(135deg, #141d3f, #1e2b57, #2f4480);
 
+  /* Premium admin sidebar — deep navy base with emerald/teal ambient glows.
+     Layered so Tailwind `bg-sidebar-premium` renders mesh depth on dark. */
+  --background-image-sidebar-premium:
+    radial-gradient(520px circle at 15% -5%, rgba(5, 150, 105, 0.28), transparent 60%),
+    radial-gradient(480px circle at 95% 100%, rgba(13, 148, 136, 0.22), transparent 60%),
+    radial-gradient(300px circle at 85% 15%, rgba(47, 68, 128, 0.35), transparent 65%),
+    linear-gradient(180deg, #0b1330 0%, #141d3f 38%, #1e2b57 72%, #152238 100%);
+
+  /* Active nav pill — brand green gradient with premium sheen. */
+  --background-image-sidebar-active: linear-gradient(
+    135deg,
+    var(--color-brand-start),
+    var(--color-brand-middle),
+    var(--color-brand-end)
+  );
+  --shadow-sidebar-active:
+    0 8px 20px -6px rgba(5, 150, 105, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
   /* Base Colors */
   --color-page: #f8faf9;
   --color-surface: #ffffff;
@@ -73,7 +92,12 @@
   /* Gradient */
   --background-image-brand-gradient: var(--background-image-brand-gradient);
   --background-image-accent-gradient: var(--background-image-accent-gradient);
+  --background-image-sidebar-premium: var(--background-image-sidebar-premium);
+  --background-image-sidebar-active: var(--background-image-sidebar-active);
   --background-image-hero-ambient: var(--background-image-hero-ambient);
+
+  /* Shadow */
+  --shadow-sidebar-active: var(--shadow-sidebar-active);
 
   /* Font */
   --font-sans: var(--font-plus-jakarta);
@@ -133,4 +157,23 @@ body {
   75% {
     transform: translate3d(0, 3px, 0) rotateX(-0.5deg) rotateY(0.3deg);
   }
+}
+
+/* Premium admin sidebar scrollbar — slim, frosted, unobtrusive */
+.admin-sidebar-nav {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.admin-sidebar-nav::-webkit-scrollbar {
+  width: 5px;
+}
+.admin-sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+.admin-sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
 }

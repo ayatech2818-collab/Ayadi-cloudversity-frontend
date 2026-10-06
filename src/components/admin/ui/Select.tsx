@@ -9,11 +9,14 @@ interface SelectProps
   extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "className"> {
   /** Optional icon inside the left edge. */
   icon?: LucideIcon;
+  /** Rose outline, for a choice that failed validation. */
+  invalid?: boolean;
 }
 
 /** Native select, dressed like the text inputs. */
 export default function Select({
   icon: Icon,
+  invalid = false,
   children,
   ...props
 }: SelectProps) {
@@ -28,7 +31,8 @@ export default function Select({
 
       <select
         {...props}
-        className={`${inputClass()} h-11 cursor-pointer appearance-none pr-9 ${
+        aria-invalid={invalid}
+        className={`${inputClass(invalid)} h-11 cursor-pointer appearance-none pr-9 ${
           Icon ? "pl-9" : ""
         }`}
       >

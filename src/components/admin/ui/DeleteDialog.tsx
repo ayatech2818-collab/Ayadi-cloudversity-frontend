@@ -16,6 +16,7 @@ interface DeleteDialogProps {
   onCancel: () => void;
   onConfirm: () => void;
   /** A summary of the thing about to be deleted. */
+  confirmLabel?: string;
   children?: ReactNode;
 }
 
@@ -27,6 +28,7 @@ export default function DeleteDialog({
   loading = false,
   onCancel,
   onConfirm,
+  confirmLabel = "Delete",
   children,
 }: DeleteDialogProps) {
   return (
@@ -79,7 +81,7 @@ export default function DeleteDialog({
             ) : (
               <Trash2 size={16} />
             )}
-            {loading ? "Deleting..." : "Delete"}
+            {loading ? "Deleting..." : confirmLabel}
           </button>
         </div>
       </div>

@@ -1,769 +1,514 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import CourseCard from "@/components/admin/courses/CourseCard";
+import CourseDeleteDialog from "@/components/admin/courses/CourseDeleteDialog";
+import CourseFilters from "@/components/admin/courses/CourseFilters";
+import CourseModal from "@/components/admin/courses/CourseModal";
+import CoursesEmptyState from "@/components/admin/courses/CoursesEmptyState";
+import CoursesHeader from "@/components/admin/courses/CoursesHeader";
+import CoursesSkeleton from "@/components/admin/courses/CoursesSkeleton";
 import {
-  BookOpen,
-  Plus,
-  Pencil,
-  MoreVertical,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Search,
-} from "lucide-react";
+  COURSES_GRID,
+  countCourses,
+  coursePlacement,
+  type CourseStatusFilter,
+} from "@/components/admin/courses/course-utils";
+import { Toaster, useToasts } from "@/components/admin/ui/Toast";
 
 import {
-  Course,
-  CourseFormData,
-  getCourses,
-  createCourse,
-  updateCourse,
-  deleteCourse,
-} from "@/lib/api/courses";
-
-import {
-  CourseBrand,
   getCourseBrands,
+  type CourseBrand,
 } from "@/lib/api/course-brands";
-
 import {
-  CourseCategory,
   getCategories,
+  type CourseCategory,
 } from "@/lib/api/course-categories";
-
 import {
-  CourseSubcategory,
   getSubcategories,
+  type CourseSubcategory,
 } from "@/lib/api/course-subcategories";
+import {
+  createCourse,
+  deleteCourse,
+  getCourses,
+  updateCourse,
+  type Course,
+  type CourseFilters as CourseQuery,
+  type CourseFormData,
+} from "@/lib/api/courses";
+import { getApiErrorMessage } from "@/lib/api/errors";
 
-import CourseModal from "@/components/admin/CourseModal";
+const SEARCH_DEBOUNCE_MS = 400;
+
+interface CourseEditor {
+  mode: "create" | "edit";
+  course: Course | null;
+}
+
+/** One answer from the backend, tagged with the request it answers. */
+interface CourseResult {
+  key: string;
+  courses: Course[];
+  error: string | null;
+}
 
 export default function CoursesPage() {
+  const { toasts, toastSuccess, toastError, dismissToast } =
+    useToasts();
+
+  // =========================================================
+  // LOOKUPS
+  //
+  // What the tabs, the dropdowns, the card labels and the form are built
+  // from: the brands and every main and sub category. `allCourses` is the
+  // unfiltered list and is only ever counted — the grid never shows it.
+  // =========================================================
+
   const [brands, setBrands] = useState<CourseBrand[]>([]);
-  const [categories, setCategories] = useState<CourseCategory[]>(
-    []
-  );
+  const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [subcategories, setSubcategories] = useState<
     CourseSubcategory[]
   >([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
 
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [selectedBrandId, setSelectedBrandId] =
-    useState("");
+  // Bumped by "Retry" and after a create / edit / delete to ask again.
+  const [refreshToken, setRefreshToken] = useState(0);
 
-  const [selectedCategoryId, setSelectedCategoryId] =
-    useState("");
+  // =========================================================
+  // FILTERS
+  // =========================================================
 
+  // The brand last picked; empty until one is, so the page works from
+  // `brand` below, which falls back to the first one.
+  const [selectedBrandId, setSelectedBrandId] = useState("");
+
+  // Empty means "all of them".
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedSubcategoryId, setSelectedSubcategoryId] =
     useState("");
 
+  const [status, setStatus] = useState<CourseStatusFilter>("all");
+
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [loading, setLoading] = useState(true);
-  const [coursesLoading, setCoursesLoading] =
-    useState(false);
-  const [categoriesLoading, setCategoriesLoading] =
-    useState(false);
-  const [subcategoriesLoading, setSubcategoriesLoading] =
-    useState(false);
+  // =========================================================
+  // COURSES
+  // =========================================================
 
-  const [error, setError] = useState<string | null>(null);
+  // The backend's answer to the current filters — what the grid shows.
+  const [result, setResult] = useState<CourseResult | null>(null);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] =
-    useState<"create" | "edit">("create");
+  // =========================================================
+  // UI
+  // =========================================================
 
-  const [selectedCourse, setSelectedCourse] =
-    useState<Course | null>(null);
+  const [editor, setEditor] = useState<CourseEditor | null>(null);
 
-  const [activeMenu, setActiveMenu] =
-    useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Course | null>(
+    null
+  );
+  const [deleting, setDeleting] = useState(false);
 
-  // --------------------------------------------------
-  // Load brands
-  // --------------------------------------------------
+  // =========================================================
+  // FETCH — LOOKUPS
+  // =========================================================
 
   useEffect(() => {
-    const loadBrands = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    let cancelled = false;
 
-        const data = await getCourseBrands();
+    Promise.all([
+      getCourseBrands(),
+      getCategories(),
+      getSubcategories(),
+      getCourses(),
+    ])
+      .then(
+        ([allBrands, allCategories, allSubcategories, everyCourse]) => {
+          if (cancelled) return;
 
-        const activeBrands = data.filter(
-          (brand) => brand.is_active
-        );
-
-        setBrands(activeBrands);
-
-        if (activeBrands.length > 0) {
-          setSelectedBrandId(activeBrands[0].id);
+          setBrands(allBrands.filter((item) => item.is_active));
+          setCategories(allCategories);
+          setSubcategories(allSubcategories);
+          setAllCourses(everyCourse);
+          setError(null);
         }
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load course brands.");
-      } finally {
-        setLoading(false);
-      }
-    };
+      )
+      .catch((loadError) => {
+        if (cancelled) return;
 
-    loadBrands();
-  }, []);
+        console.error("Failed to load the course lookups:", loadError);
 
-  // --------------------------------------------------
-  // Load categories when brand changes
-  // --------------------------------------------------
-
-  const loadCategoriesForBrand = async (
-    brandId: string
-  ) => {
-    if (!brandId) {
-      setCategories([]);
-      setSubcategories([]);
-      setSelectedCategoryId("");
-      setSelectedSubcategoryId("");
-      return;
-    }
-
-    try {
-      setCategoriesLoading(true);
-
-      const data = await getCategories(brandId);
-
-      setCategories(data);
-
-      setSelectedCategoryId("");
-      setSelectedSubcategoryId("");
-      setSubcategories(data.length ? [] : []);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load categories.");
-      setCategories([]);
-      setSubcategories([]);
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
-
-
-  useEffect(() => {
-  if (!selectedBrandId) {
-    setCategories([]);
-    setSubcategories([]);
-    setSelectedCategoryId("");
-    setSelectedSubcategoryId("");
-    return;
-  }
-
-  loadCategoriesForBrand(selectedBrandId);
-}, [selectedBrandId]);
-  // --------------------------------------------------
-  // Load subcategories when category changes
-  // --------------------------------------------------
-
-  const loadSubcategoriesForCategory = async (
-    categoryId: string
-  ) => {
-    if (!categoryId) {
-      setSubcategories([]);
-      setSelectedSubcategoryId("");
-      return;
-    }
-
-    try {
-      setSubcategoriesLoading(true);
-
-      const data =
-        await getSubcategories(categoryId);
-
-      setSubcategories(data);
-      setSelectedSubcategoryId("");
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load sub categories.");
-      setSubcategories([]);
-    } finally {
-      setSubcategoriesLoading(false);
-    }
-  };
-
-  // --------------------------------------------------
-  // Load courses
-  // --------------------------------------------------
-
-  const loadCourses = async () => {
-    try {
-      setCoursesLoading(true);
-      setError(null);
-
-      const data = await getCourses({
-        brand_id: selectedBrandId || undefined,
-        category_id:
-          selectedCategoryId || undefined,
-        subcategory_id:
-          selectedSubcategoryId || undefined,
-        search: search.trim() || undefined,
-      });
-
-      setCourses(data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load courses.");
-    } finally {
-      setCoursesLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!selectedBrandId) {
-      setCourses([]);
-      return;
-    }
-
-    loadCourses();
-  }, [
-    selectedBrandId,
-    selectedCategoryId,
-    selectedSubcategoryId,
-  ]);
-
-  // --------------------------------------------------
-  // Brand changed
-  // --------------------------------------------------
-
-  const handleBrandChange = async (
-    brandId: string
-  ) => {
-    setSelectedBrandId(brandId);
-
-    await loadCategoriesForBrand(brandId);
-  };
-
-  // --------------------------------------------------
-  // Category changed
-  // --------------------------------------------------
-
-  const handleCategoryChange = async (
-    categoryId: string
-  ) => {
-    setSelectedCategoryId(categoryId);
-
-    await loadSubcategoriesForCategory(
-      categoryId
-    );
-  };
-
-  // --------------------------------------------------
-  // Create
-  // --------------------------------------------------
-
-  const handleCreate = async () => {
-    setSelectedCourse(null);
-    setModalMode("create");
-
-    // Make modal use current filter context.
-    if (selectedBrandId) {
-      await loadCategoriesForBrand(
-        selectedBrandId
-      );
-    }
-
-    if (selectedCategoryId) {
-      await loadSubcategoriesForCategory(
-        selectedCategoryId
-      );
-    }
-
-    setModalOpen(true);
-  };
-
-  // --------------------------------------------------
-  // Edit
-  // --------------------------------------------------
-
-  const handleEdit = async (course: Course) => {
-    setSelectedCourse(course);
-    setModalMode("edit");
-
-    try {
-      await loadCategoriesForBrand(
-        course.brand_id
-      );
-
-      if (course.category_id) {
-        await loadSubcategoriesForCategory(
-          course.category_id
-        );
-      }
-    } catch (err) {
-      console.error(err);
-    }
-
-    setModalOpen(true);
-    setActiveMenu(null);
-  };
-
-  // --------------------------------------------------
-  // Submit
-  // --------------------------------------------------
-
-  const handleSubmit = async (
-    data: CourseFormData
-  ) => {
-    if (modalMode === "create") {
-      const created = await createCourse(data);
-
-      if (data.brand_id === selectedBrandId) {
-        setCourses((prev) => [
-          created,
-          ...prev,
-        ]);
-      } else {
-        setSelectedBrandId(data.brand_id);
-      }
-    } else if (selectedCourse) {
-      const updated = await updateCourse(
-        selectedCourse.id,
-        data
-      );
-
-      if (data.brand_id === selectedBrandId) {
-        setCourses((prev) =>
-          prev.map((course) =>
-            course.id === updated.id
-              ? updated
-              : course
+        setError(
+          getApiErrorMessage(
+            loadError,
+            "Something went wrong while fetching the courses."
           )
         );
-      } else {
-        setSelectedBrandId(data.brand_id);
-      }
-    }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-    setModalOpen(false);
-    setSelectedCourse(null);
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshToken]);
 
-  // --------------------------------------------------
-  // Delete
-  // --------------------------------------------------
+  // =========================================================
+  // SELECTION
+  // =========================================================
 
-  const handleDelete = async (
-    course: Course
-  ) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${course.title}"?`
+  const brand =
+    brands.find((item) => item.id === selectedBrandId) ?? brands[0];
+
+  const brandCategories = useMemo(
+    () => categories.filter((item) => item.brand_id === brand?.id),
+    [categories, brand?.id]
+  );
+
+  // `undefined` while the filter is on "all".
+  const category = brandCategories.find(
+    (item) => item.id === selectedCategoryId
+  );
+
+  const categorySubcategories = useMemo(
+    () =>
+      subcategories.filter(
+        (item) => category && item.category_id === category.id
+      ),
+    [subcategories, category]
+  );
+
+  const subcategory = categorySubcategories.find(
+    (item) => item.id === selectedSubcategoryId
+  );
+
+  const brandId = brand?.id;
+  const categoryId = category?.id;
+  const subcategoryId = subcategory?.id;
+
+  // =========================================================
+  // FETCH — COURSES
+  // =========================================================
+
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setDebouncedSearch(search),
+      SEARCH_DEBOUNCE_MS
     );
 
-    if (!confirmed) return;
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  /**
+   * Every filter is a query parameter — the backend does the filtering and
+   * the searching, and this page never narrows a list of courses itself.
+   * `null` until there is a brand to ask about.
+   */
+  const query = useMemo<CourseQuery | null>(
+    () =>
+      brandId
+        ? {
+            brand_id: brandId,
+            category_id: categoryId,
+            subcategory_id: subcategoryId,
+            search: debouncedSearch.trim() || undefined,
+            is_published:
+              status === "all" ? undefined : status === "published",
+          }
+        : null,
+    [brandId, categoryId, subcategoryId, debouncedSearch, status]
+  );
+
+  // Names one request, so an answer is only shown for the filters it is for.
+  const requestKey = `${JSON.stringify(query)}:${refreshToken}`;
+
+  useEffect(() => {
+    if (!query) return;
+
+    let cancelled = false;
+
+    getCourses(query)
+      .then((courses) => {
+        // A slower earlier request must not overwrite a newer result.
+        if (cancelled) return;
+
+        setResult({ key: requestKey, courses, error: null });
+      })
+      .catch((fetchError) => {
+        if (cancelled) return;
+
+        console.error("Failed to fetch courses:", fetchError);
+
+        setResult({
+          key: requestKey,
+          courses: [],
+          error: getApiErrorMessage(
+            fetchError,
+            "Something went wrong while fetching the courses."
+          ),
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [query, requestKey]);
+
+  const courses = result?.courses ?? [];
+
+  // True while the answer on screen belongs to earlier filters.
+  const stale = query !== null && result?.key !== requestKey;
+
+  // The skeleton is for when there is nothing to show yet; otherwise the
+  // cards stay on screen, dimmed, while a new result is on its way.
+  const showSkeleton = loading || (stale && courses.length === 0);
+
+  const shownError = error ?? (stale ? null : result?.error) ?? null;
+
+  const refresh = () => setRefreshToken((token) => token + 1);
+
+  const retry = () => {
+    setLoading(true);
+    refresh();
+  };
+
+  // =========================================================
+  // FILTER HELPERS
+  // =========================================================
+
+  const hasActiveFilters = Boolean(
+    category || subcategory || status !== "all" || search.trim()
+  );
+
+  const selectBrand = (id: string) => {
+    setSelectedBrandId(id);
+    setSelectedCategoryId("");
+    setSelectedSubcategoryId("");
+  };
+
+  const selectCategory = (id: string) => {
+    setSelectedCategoryId(id);
+    setSelectedSubcategoryId("");
+  };
+
+  const changeSearch = (value: string) => {
+    setSearch(value);
+
+    // Clearing the box takes effect at once instead of after the pause.
+    if (!value) setDebouncedSearch("");
+  };
+
+  const resetFilters = () => {
+    selectCategory("");
+    setStatus("all");
+    changeSearch("");
+  };
+
+  // =========================================================
+  // COUNTS AND LABELS
+  // =========================================================
+
+  const counts = useMemo(
+    () =>
+      countCourses(
+        allCourses,
+        new Set(brands.map((item) => item.id))
+      ),
+    [allCourses, brands]
+  );
+
+  /** A tab or a dropdown entry, with how many courses it holds. */
+  const toOption = (item: { id: string; name: string }) => ({
+    value: item.id,
+    label: item.name,
+    count: counts.byParent.get(item.id) ?? 0,
+  });
+
+  /** The name of every main and sub category, for the cards. */
+  const names = useMemo(
+    () =>
+      new Map(
+        [...categories, ...subcategories].map((item) => [
+          item.id,
+          item.name,
+        ])
+      ),
+    [categories, subcategories]
+  );
+
+  // =========================================================
+  // CREATE / EDIT
+  // =========================================================
+
+  const openCreate = () => setEditor({ mode: "create", course: null });
+
+  const closeEditor = () => setEditor(null);
+
+  /**
+   * Errors are left to throw so the modal can show them inline and keep the
+   * form open with the values intact.
+   */
+  const handleSubmit = async (data: CourseFormData) => {
+    const editing = editor?.mode === "edit" ? editor.course : null;
+
+    const saved = editing
+      ? await updateCourse(editing.id, data)
+      : await createCourse(data);
+
+    toastSuccess(
+      editing ? "Course updated" : "Course created",
+      editing
+        ? `"${saved.title}" has been saved.`
+        : `"${saved.title}" was added.`
+    );
+
+    // Keeps the saved course on screen: follows it to its brand, and drops
+    // a category filter it does not fall under.
+    if (saved.brand_id !== brandId) {
+      selectBrand(saved.brand_id);
+    } else if (category && saved.category_id !== category.id) {
+      selectCategory("");
+    } else if (
+      subcategory &&
+      saved.subcategory_id !== subcategory.id
+    ) {
+      setSelectedSubcategoryId("");
+    }
+
+    closeEditor();
+    refresh();
+  };
+
+  // =========================================================
+  // DELETE
+  // =========================================================
+
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return;
 
     try {
-      await deleteCourse(course.id);
+      setDeleting(true);
 
-      setCourses((prev) =>
-        prev.filter(
-          (item) => item.id !== course.id
-        )
+      await deleteCourse(deleteTarget.id);
+
+      toastSuccess(
+        "Course deleted",
+        `"${deleteTarget.title}" was removed.`
       );
 
-      setActiveMenu(null);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to delete course.");
+      setDeleteTarget(null);
+      refresh();
+    } catch (deleteError) {
+      console.error("Failed to delete course:", deleteError);
+
+      toastError(
+        "Could not delete course",
+        getApiErrorMessage(deleteError)
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
-  // --------------------------------------------------
-  // Loading
-  // --------------------------------------------------
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-7 w-7 animate-spin text-primary" />
-      </div>
-    );
-  }
+  // =========================================================
+  // RENDER
+  // =========================================================
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
-            <BookOpen className="h-5 w-5 text-primary" />
-          </div>
+    <div className="min-h-full pb-16">
+      <CoursesHeader
+        brandCount={brands.length}
+        counts={counts}
+        loading={loading}
+        onCreate={openCreate}
+      />
 
-          <div>
-            <p className="text-sm text-muted">
-              Operations
-            </p>
+      <CourseFilters
+        brandOptions={brands.map(toOption)}
+        selectedBrandId={brandId ?? ""}
+        categoryOptions={brandCategories.map(toOption)}
+        selectedCategoryId={categoryId ?? ""}
+        subcategoryOptions={categorySubcategories.map(toOption)}
+        selectedSubcategoryId={subcategoryId ?? ""}
+        status={status}
+        search={search}
+        resultCount={courses.length}
+        hasActiveFilters={hasActiveFilters}
+        loading={showSkeleton}
+        onBrandChange={selectBrand}
+        onCategoryChange={selectCategory}
+        onSubcategoryChange={setSelectedSubcategoryId}
+        onStatusChange={setStatus}
+        onSearchChange={changeSearch}
+        onReset={resetFilters}
+      />
 
-            <h1 className="text-2xl font-semibold text-text">
-              Courses
-            </h1>
-
-            <p className="mt-1 text-sm text-muted">
-              Manage courses across all learning brands.
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleCreate}
-          disabled={brands.length === 0}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Plus className="h-4 w-4" />
-          Add Course
-        </button>
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-500">
-          {error}
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="rounded-2xl border border-border bg-surface p-5">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {/* Brand */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-text">
-              Brand
-            </label>
-
-            <select
-              value={selectedBrandId}
-              onChange={(e) =>
-                handleBrandChange(
-                  e.target.value
-                )
-              }
-              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-text outline-none focus:border-primary"
-            >
-              {brands.map((brand) => (
-                <option
-                  key={brand.id}
-                  value={brand.id}
-                >
-                  {brand.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-text">
-              Main Category
-            </label>
-
-            <select
-              value={selectedCategoryId}
-              onChange={(e) =>
-                handleCategoryChange(
-                  e.target.value
-                )
-              }
-              disabled={
-                categoriesLoading ||
-                categories.length === 0
-              }
-              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-text outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">
-                {categories.length
-                  ? "All categories"
-                  : "No categories"}
-              </option>
-
-              {categories.map((category) => (
-                <option
-                  key={category.id}
-                  value={category.id}
-                >
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Subcategory */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-text">
-              Sub Category
-            </label>
-
-            <select
-              value={selectedSubcategoryId}
-              onChange={(e) =>
-                setSelectedSubcategoryId(
-                  e.target.value
-                )
-              }
-              disabled={
-                !selectedCategoryId ||
-                subcategoriesLoading ||
-                subcategories.length === 0
-              }
-              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-text outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">
-                {subcategories.length
-                  ? "All sub categories"
-                  : "No sub categories"}
-              </option>
-
-              {subcategories.map(
-                (subcategory) => (
-                  <option
-                    key={subcategory.id}
-                    value={subcategory.id}
-                  >
-                    {subcategory.name}
-                  </option>
-                )
-              )}
-            </select>
-          </div>
-
-          {/* Search */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-text">
-              Search
-            </label>
-
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-
-              <input
-                type="text"
-                value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    loadCourses();
-                  }
-                }}
-                placeholder="Search courses..."
-                className="w-full rounded-xl border border-border bg-background py-2.5 pl-9 pr-4 text-sm text-text outline-none placeholder:text-muted focus:border-primary"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            onClick={loadCourses}
-            className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-text transition hover:bg-background"
+      {/* Grid */}
+      <section className="px-4 pt-5 sm:px-6 lg:px-8">
+        {showSkeleton ? (
+          <CoursesSkeleton />
+        ) : !shownError && courses.length > 0 ? (
+          <div
+            aria-busy={stale}
+            className={`${COURSES_GRID} transition-opacity duration-200 ${
+              stale ? "pointer-events-none opacity-60" : ""
+            }`}
           >
-            Apply Filters
-          </button>
-        </div>
-      </div>
-
-      {/* Courses */}
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-text">
-              Course List
-            </h2>
-
-            <p className="text-sm text-muted">
-              {courses.length}{" "}
-              {courses.length === 1
-                ? "course"
-                : "courses"}
-            </p>
-          </div>
-        </div>
-
-        {coursesLoading ? (
-          <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-border bg-surface">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : courses.length === 0 ? (
-          <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface px-6 text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <BookOpen className="h-5 w-5 text-primary" />
-            </div>
-
-            <h3 className="font-medium text-text">
-              No courses found
-            </h3>
-
-            <p className="mt-1 max-w-md text-sm text-muted">
-              There are no courses matching the current
-              filters.
-            </p>
-
-            <button
-              type="button"
-              onClick={handleCreate}
-              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-hover"
-            >
-              <Plus className="h-4 w-4" />
-              Add Course
-            </button>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {courses.map((course) => (
-              <div
+              <CourseCard
                 key={course.id}
-                className="relative overflow-hidden rounded-2xl border border-border bg-surface transition hover:border-primary/40 hover:shadow-sm"
-              >
-                {/* Thumbnail */}
-                <div className="relative h-44 bg-background">
-                  {course.thumbnail_url ? (
-                    <img
-                      src={course.thumbnail_url}
-                      alt={course.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <BookOpen className="h-10 w-10 text-muted" />
-                    </div>
-                  )}
-
-                  {/* Menu */}
-                  <div className="absolute right-3 top-3">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveMenu(
-                          activeMenu === course.id
-                            ? null
-                            : course.id
-                        )
-                      }
-                      className="rounded-lg bg-black/50 p-2 text-white backdrop-blur-sm transition hover:bg-black/70"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
-
-                    {activeMenu === course.id && (
-                      <div className="absolute right-0 top-10 z-20 w-36 rounded-xl border border-border bg-surface p-1 shadow-lg">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleEdit(course)
-                          }
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text hover:bg-background"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Edit
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDelete(course)
-                          }
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-500 hover:bg-red-500/10"
-                        >
-                          <XCircle className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate font-semibold text-text">
-                        {course.title}
-                      </h3>
-
-                      <p className="mt-1 text-xs text-muted">
-                        {course.course_code}
-                      </p>
-                    </div>
-
-                    {course.is_active ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />
-                    ) : (
-                      <XCircle className="h-4 w-4 shrink-0 text-red-500" />
-                    )}
-                  </div>
-
-                  <p className="mt-3 line-clamp-2 min-h-[40px] text-sm text-muted">
-                    {course.short_description ||
-                      "No description provided."}
-                  </p>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {course.duration && (
-                      <span className="rounded-full bg-background px-2.5 py-1 text-xs text-muted">
-                        {course.duration}
-                      </span>
-                    )}
-
-                    {course.level && (
-                      <span className="rounded-full bg-background px-2.5 py-1 text-xs text-muted">
-                        {course.level}
-                      </span>
-                    )}
-
-                    {course.price !== null &&
-                      course.price !== undefined && (
-                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                          ₹{course.price}
-                        </span>
-                      )}
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-xs text-muted">
-                    <span>
-                      Order:{" "}
-                      <span className="font-medium text-text">
-                        {course.display_order}
-                      </span>
-                    </span>
-
-                    <span className="truncate max-w-[150px]">
-                      {course.slug}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                course={course}
+                placement={coursePlacement(course, names)}
+                onEdit={() => setEditor({ mode: "edit", course })}
+                onDelete={() => setDeleteTarget(course)}
+              />
             ))}
           </div>
+        ) : (
+          <CoursesEmptyState
+            error={shownError}
+            brandName={brand?.name}
+            hasActiveFilters={hasActiveFilters}
+            onRetry={retry}
+            onResetFilters={resetFilters}
+            onCreate={openCreate}
+          />
         )}
-      </div>
+      </section>
 
-      {/* Modal */}
+      {/* Create / Edit */}
       <CourseModal
-        open={modalOpen}
-        mode={modalMode}
-        course={selectedCourse}
+        open={editor !== null}
+        mode={editor?.mode ?? "create"}
+        course={editor?.course ?? null}
         brands={brands}
         categories={categories}
         subcategories={subcategories}
-        onBrandChange={loadCategoriesForBrand}
-        onCategoryChange={
-          loadSubcategoriesForCategory
-        }
-        onClose={() => {
-          setModalOpen(false);
-          setSelectedCourse(null);
+        defaults={{
+          brandId: brandId ?? "",
+          categoryId: categoryId ?? "",
+          subcategoryId: subcategoryId ?? "",
         }}
+        onClose={closeEditor}
         onSubmit={handleSubmit}
       />
+
+      {/* Delete */}
+      <CourseDeleteDialog
+        course={deleteTarget}
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
+
+      <Toaster toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

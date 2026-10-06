@@ -48,6 +48,7 @@ export function Backdrop({ rig, frame }: Props) {
       uWatermark: { value: null },
       uWatermarkRect: { value: new THREE.Vector4(0, 0, 1, 1) },
       uWatermarkAlpha: { value: 0 },
+      uWake: { value: 0 },
     }),
     [],
   );
@@ -66,6 +67,7 @@ export function Backdrop({ rig, frame }: Props) {
     /* The opening's wash sits wherever the mark is on screen. */
     u.uGlow.value.set(f.shiftX, f.shiftY);
     u.uPointer.value.set(f.px, -f.py);
+    u.uWake.value = r.wake;
 
     const layer = watermark.current;
     if (layer) updateWatermark(layer, r, f.time, u, state.size, state.viewport.dpr);
@@ -181,7 +183,13 @@ export function Motes({ rig, frame, count }: Props & { count: number }) {
   useEffect(() => () => geometry.dispose(), [geometry]);
 
   const uniforms = useMemo(
-    () => ({ uTime: { value: 0 }, uSize: { value: 3 }, uPixelRatio: { value: 1 }, uNight: { value: 0 } }),
+    () => ({
+      uTime: { value: 0 },
+      uSize: { value: 3 },
+      uPixelRatio: { value: 1 },
+      uNight: { value: 0 },
+      uWake: { value: 0 },
+    }),
     [],
   );
   const material = useRef<THREE.ShaderMaterial>(null);
@@ -194,6 +202,7 @@ export function Motes({ rig, frame, count }: Props & { count: number }) {
     u.uTime.value = frame.current.time;
     u.uPixelRatio.value = state.viewport.dpr;
     u.uNight.value = r.dark * (1 - r.world);
+    u.uWake.value = r.wake;
   });
 
   return (

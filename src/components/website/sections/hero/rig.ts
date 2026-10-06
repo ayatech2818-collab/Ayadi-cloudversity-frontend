@@ -9,6 +9,9 @@
  * Scroll position is the only source of truth for the story values. They are
  * never advanced by time, so stopping, reversing or flinging the page always
  * lands on a frame the timeline can describe.
+ *
+ * The one value that does run on time is `wake`: the scene's own handoff from
+ * the fallback image, over before the story starts and never part of it.
  */
 export type Rig = {
   /* ---------- the story, written by the timeline ---------- */
@@ -25,6 +28,10 @@ export type Rig = {
   /** The mark's own light once it has become the globe's core. */
   logoGlow: number;
   logoFade: number;
+  /** 0 = the bare mark, the globe's core; 1 = the whole lockup again, built
+      back out from that mark inside the globe. The scene shares it out: the
+      mark to its place, then AYADI, then CLOUDVERSITY (scene/Mark.tsx). */
+  rebuild: number;
 
   camX: number;
   camY: number;
@@ -60,9 +67,24 @@ export type Rig = {
   crossing: number;
   /** The far-side environment settling in. */
   arrive: number;
-  /** Progress through the Why Choose Ayadi stage, 0 → 1. The Director keeps
-      its panel on the portal's glass while this is between the two. */
+  /** The life of the Why Choose Ayadi words on the portal's glass, 0 → 1:
+      from the heading and its quote appearing to their sinking away, just
+      short of the crossing. The Director keeps them on the glass while this
+      is between the two. */
   info: number;
+  /** Those words settling down the glass, 0 → 1, once the cards are on
+      their way out — on a frame too narrow for them to have stood in the
+      middle of it from the start: from over the cards to the middle of the
+      portal, in the room the cards leave. Where they were in the middle all
+      along it moves nothing (scene/why.ts). */
+  settle: number;
+  /** Each Why card coming through the portal's side, 0 → 1 over its own
+      stretch of the stage: the ripple, the card pushing through it, the card
+      still and sharp (scene/why.ts shares the number out). They stay at 1 —
+      the cards are left where they stand, and the camera goes past them. */
+  why1: number;
+  why2: number;
+  why3: number;
   /** Extra travel toward the portal during the Why stage, world units. The
       story's own approach eases to a near stop there; this keeps the camera
       moving, and is handed back inside the fast approach that follows. */
@@ -91,10 +113,21 @@ export type Rig = {
       shader draws it from this, behind the 3D mark. */
   watermark: WatermarkSpec;
 
-  /** The Why panel's laid-out size in CSS pixels, before it is scaled onto
-      the glass. */
+  /** The Why heading's laid-out size in CSS pixels, before it is scaled onto
+      the glass — and a Why card's, before it is stood in the portal's space. */
   infoWidth: number;
   infoHeight: number;
+  cardWidth: number;
+  cardHeight: number;
+
+  /* ---------- the handoff, written by the scene ---------- */
+
+  /** 0 = the scene draws the logo exactly as the artwork it takes over from
+      (the opening's fallback image): flat, square-on and still, on the bare
+      page. 1 = the scene as the story knows it. The Director runs it up by
+      time, once, when the scene is on screen — or sets it straight to 1 the
+      moment the scroll moves the story — and it never comes back down. */
+  wake: number;
 };
 
 export type WatermarkSpec = {
@@ -117,6 +150,7 @@ export const RIG_START = {
   logoZ: 0,
   logoGlow: 0,
   logoFade: 1,
+  rebuild: 0,
   camX: 0,
   camY: 0,
   camZ: 7,
@@ -136,10 +170,27 @@ export const RIG_START = {
   crossing: 0,
   arrive: 0,
   info: 0,
+  settle: 0,
+  why1: 0,
+  why2: 0,
+  why3: 0,
   push: 0,
 } satisfies Partial<Rig>;
 
 export type StoryKey = keyof typeof RIG_START;
+
+/** The Why cards' values, in the order the cards come. */
+export const WHY_KEYS = ['why1', 'why2', 'why3'] as const satisfies readonly StoryKey[];
+
+const STORY_KEYS = Object.keys(RIG_START) as StoryKey[];
+
+/** Whether the scroll has moved the story off its first frame. */
+export function storyStarted(rig: Rig) {
+  for (const key of STORY_KEYS) {
+    if (rig[key] !== RIG_START[key]) return true;
+  }
+  return false;
+}
 
 export function createRig(): Rig {
   return {
@@ -161,6 +212,9 @@ export function createRig(): Rig {
     },
     infoWidth: 0,
     infoHeight: 0,
+    cardWidth: 0,
+    cardHeight: 0,
+    wake: 0,
   };
 }
 

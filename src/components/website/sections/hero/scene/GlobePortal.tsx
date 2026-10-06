@@ -141,7 +141,11 @@ export function GlobePortal({
 
     const core = coreMesh.current;
     if (core) {
-      const strength = r.logoGlow * r.logoFade * 0.85;
+      /* The core's light goes out into the name as the mark rebuilds it
+         (rig.rebuild; Mark.tsx), leaving a faint halo: at full strength it
+         would sit right behind the middle of AYADI and wash it out. */
+      const spent = 0.8 * THREE.MathUtils.smoothstep(r.rebuild, 0, 0.6);
+      const strength = r.logoGlow * r.logoFade * 0.85 * (1 - spent);
       core.visible = strength > 0.002;
       core.position.set(0, 0, r.logoZ);
       core.quaternion.copy(state.camera.quaternion);

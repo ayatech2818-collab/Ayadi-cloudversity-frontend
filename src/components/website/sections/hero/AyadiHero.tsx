@@ -13,7 +13,8 @@ import type { BrandId } from '@/components/website/courses/types';
 import { AyatechWorld } from './AyatechWorld';
 import { ChooseWorld, type WorldId } from './ChooseWorld';
 import styles from './hero.module.css';
-import { createRig, pickQuality, RIG_START, type Quality, type Rig, type StoryKey } from './rig';
+import { createRig, pickQuality, RIG_START, WHY_KEYS, type Quality, type Rig, type StoryKey } from './rig';
+import { SceneBoundary } from './SceneBoundary';
 import { playWorldEntrance, playWorldTransitionOut } from './worldEntrance';
 import { WhyStage } from './WhyStage';
 import { AYADI_BOX, AYADI_PATH } from './wordmark';
@@ -97,6 +98,11 @@ const SCORE: Line[] = [
   ['logoGlow', 1, 1.9, 0.9, 'power1.out'],
   ['camZ', 7.6, 2.1, 1.6, 'power2.inOut'],
   ['nodes', 1, 2.3, 0.8, 'power1.out'],
+  /* And from that core the whole name builds back out, inside the globe:
+     the mark to its place in the lockup, then AYADI, then CLOUDVERSITY. One
+     even run, shared out between them by the scene (scene/Mark.tsx); it
+     starts once the mark has settled and is done before the globe tips. */
+  ['rebuild', 1, 2.85, 0.75],
 
   /* The globe tips to face the camera and squares off into the portal; the
      core drifts through ahead of us. */
@@ -150,10 +156,23 @@ const CUES = {
    the story where that happens — the glass fading in, the frames squaring
    off, the camera on its way (STAGE_FROM → STAGE_TO) — is stretched across
    STAGE_LENGTH units of scroll. The camera never stops; it only moves more
-   slowly while the heading and then the three cards appear on the glass one
-   by one, hold, and sink into it. Before the stretch everything plays as it
-   did; after it (the approach, the crossing, Choose your world) the same,
-   just later.
+   slowly while the heading and its answer — a short quote, under it —
+   appear on the glass and the three cards come through the portal's sides,
+   one by one, each through a ripple of its own (rig.why1…3; scene/why.ts).
+   The cards do not go anywhere: they have a place in the portal's space, in
+   front of the glass, and it is the approach that follows which takes the
+   camera past them. Before the stretch everything plays as it did; after it
+   (the approach, the crossing, Choose your world) the same, just later.
+
+   The words on the glass outlast the stretch. They stand in the middle of
+   it, between the cards, and hold there while the camera goes past the
+   cards (on a frame too narrow for that they start above the cards, and
+   settle to the middle as the cards leave), and sink into the glass only as
+   the liquid takes over — so there is no stretch of the journey with
+   nothing in the portal. Their cues run on past
+   STAGE_LENGTH for that, into the approach, where master time and story time
+   move together again: between the stretch's end (story 5.55) and the liquid
+   (story 6.15 on).
 
    Stage cues are [start, length] in master units after STAGE_FROM. */
 const STAGE_FROM = 4.9;
@@ -168,10 +187,19 @@ const STAGE = {
     [0.85, 0.45],
     [1.4, 0.45],
   ],
-  cardsOut: [2.15, 0.4],
-  headOut: [2.25, 0.35],
-  scrimOut: [2.3, 0.4],
+  /* Where the frame had no room for the words in the middle of the glass
+     from the start, they settle there now, as the cards leave it
+     (rig.settle; scene/why.ts decides which frames those are). */
+  settle: [2.86, 0.37],
+  /* And the last of it, the heading and its quote together: by here the
+     cards are out of the frame and the liquid is starting (story 6.28; it
+     is all but still until 6.3). */
+  headOut: [3.43, 0.14],
+  scrimOut: [3.45, 0.15],
 } as const;
+
+/** How long the words are on the glass at all, in master units. */
+const WORDS_FOR = STAGE.scrimOut[0] + STAGE.scrimOut[1];
 
 /* The story's approach eases to a near stop in the middle of the stretch
    (one camera line ends and the next begins there). So the stage adds its
@@ -196,8 +224,8 @@ function toMaster(story: number) {
 }
 
 /* The portal's caption used to arrive at story 4.95 — inside the stretch —
-   so it now follows the stage: once the cards have gone, just before the
-   crossing (the liquid starts at story 6.15). Master units. */
+   so it now follows the stage: as the camera sets off past the cards, just
+   before the crossing (the liquid starts at story 6.15). Master units. */
 const PORTAL_CAPTION = {
   in: [toMaster(STAGE_TO) - 0.15, 0.3],
   out: [toMaster(5.9), 0.25],
@@ -319,6 +347,14 @@ export function AyadiHero() {
 
   const handleReady = useCallback(() => setReady(true), []);
 
+  /* The scene could not run after all — its chunk never arrived, or the
+     canvas threw. The hero has a layout for exactly that: the still one,
+     with the logo's artwork where it has been all along. */
+  const handleSceneError = useCallback(() => {
+    setReady(false);
+    setMode('still');
+  }, []);
+
   /* The journey's own calls to action — its programmes, its categories. On
      this page they belong to the courses further down it, not to another
      route: the reader stays in the world they chose. */
@@ -401,6 +437,8 @@ export function AyadiHero() {
 
     media.add(MOTION_QUERY, () => {
       if (!supportsWebGL2()) return;
+      /* A new scene starts asleep, under the logo's artwork (rig.wake). */
+      rig.current.wake = 0;
       setQuality(pickQuality());
       setMode('cinematic');
       return () => {
@@ -431,11 +469,16 @@ export function AyadiHero() {
      * watermark behind it.
      */
     const measure = () => {
-      /* The Why panel's own size, before the Director scales it onto the glass. */
+      /* The Why heading's own size, and a card's, as laid out — before the
+         Director puts the one on the glass and the others in front of it. */
       const why = whyRef.current;
-      if (why) {
-        state.infoWidth = why.offsetWidth;
-        state.infoHeight = why.offsetHeight;
+      const whyHead = why?.querySelector<HTMLElement>('[data-why="head"]');
+      const whyCard = why?.querySelector<HTMLElement>('[data-why="card"]');
+      if (whyHead && whyCard) {
+        state.infoWidth = whyHead.offsetWidth;
+        state.infoHeight = whyHead.offsetHeight;
+        state.cardWidth = whyCard.offsetWidth;
+        state.cardHeight = whyCard.offsetHeight;
       }
 
       const opening = openingRef.current;
@@ -485,7 +528,6 @@ export function AyadiHero() {
       gsap.set(layer('skip'), { opacity: 0 });
       gsap.set(layer('why-scrim'), { autoAlpha: 0 });
       gsap.set(layer('why-head'), { autoAlpha: 0, y: 14 });
-      gsap.set(layer('why-card'), { autoAlpha: 0 });
       gsap.set(layer('why-tag'), { autoAlpha: 0, y: 6, scale: 0.8 });
       gsap.set(layer('why-accent'), { scaleX: 0, transformOrigin: '0% 50%' });
 
@@ -556,9 +598,9 @@ export function AyadiHero() {
 
       const at = (start: number) => STAGE_FROM + start;
 
-      /* How far through the stage we are; the Director places the panel on
-         the glass only while it is between 0 and 1. */
-      master.fromTo(state, { info: 0 }, { info: 1, duration: STAGE_LENGTH }, STAGE_FROM);
+      /* How long the stage's words have been on the glass; the Director
+         places them there only while it is between 0 and 1. */
+      master.fromTo(state, { info: 0 }, { info: 1, duration: WORDS_FOR }, STAGE_FROM);
 
       /* Steady extra travel through the stage, handed back in the approach. */
       master.fromTo(state, { push: 0 }, { push: PUSH, duration: STAGE_LENGTH }, STAGE_FROM);
@@ -584,16 +626,16 @@ export function AyadiHero() {
         at(STAGE.headIn[0]),
       );
 
-      /* One card per stretch of scroll, each rising out of the glass; its
-         tag springs on and its accent line draws. */
+      /* One card per stretch of scroll, each coming through the portal's
+         side. The timeline only runs the card's one number, evenly; the
+         scene turns it into the ripple, the card pushing through it and the
+         card standing still (scene/why.ts), and draws both — so the liquid
+         and the card it lets through can never be out of step. Once the
+         card is clear its tag springs on and its accent line draws. */
       layer('why-card').forEach((card, index) => {
         const [start, length] = STAGE.cards[Math.min(index, STAGE.cards.length - 1)];
-        master.fromTo(
-          card,
-          { autoAlpha: 0, y: 18, z: -70, rotationX: 12, scale: 0.96 },
-          { autoAlpha: 1, y: 0, z: 0, rotationX: 0, scale: 1, duration: length, ease: 'power2.out' },
-          at(start),
-        );
+        const key = WHY_KEYS[Math.min(index, WHY_KEYS.length - 1)];
+        master.fromTo(state, { [key]: 0 }, { [key]: 1, duration: length }, at(start));
 
         const tag = card.querySelector('[data-h="why-tag"]');
         if (tag) {
@@ -609,15 +651,19 @@ export function AyadiHero() {
         if (accent) master.fromTo(accent, { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: 'power2.out' }, at(start) + 0.25);
       });
 
-      /* Absorbed: the cards sink back into the glass, shrink and fade, the
-         heading and the glass's shade after them — and the portal takes over
-         as the camera carries on. */
+      /* Nothing takes the cards away: the camera carries on, and leaves them
+         behind. Where the words had to start above them, the scene brings
+         them down the glass now, into the room the cards leave. */
       master.fromTo(
-        layer('why-card'),
-        { autoAlpha: 1, z: 0, scale: 1 },
-        { autoAlpha: 0, z: -110, scale: 0.92, duration: STAGE.cardsOut[1], ease: 'power1.in', stagger: 0.05 },
-        at(STAGE.cardsOut[0]),
+        state,
+        { settle: 0 },
+        { settle: 1, duration: STAGE.settle[1], ease: 'sine.inOut' },
+        at(STAGE.settle[0]),
       );
+
+      /* The heading and its quote hold through the rest of the approach;
+         then the whole block sinks back into the glass, and the glass's
+         shade after it, as the liquid takes the portal over. */
       master.fromTo(
         layer('why-head'),
         { autoAlpha: 1, z: 0 },
@@ -910,7 +956,9 @@ export function AyadiHero() {
 
           {mode === 'cinematic' && quality && (
             <div data-h="canvas" aria-hidden="true" className={styles.canvas}>
-              <HeroScene rig={rig} quality={quality} onReady={handleReady} overlay={whyRef} />
+              <SceneBoundary onError={handleSceneError}>
+                <HeroScene rig={rig} quality={quality} onReady={handleReady} overlay={whyRef} />
+              </SceneBoundary>
             </div>
           )}
 
@@ -942,9 +990,11 @@ export function AyadiHero() {
                     <path d={AYADI_PATH} fill="url(#hero-watermark-ink)" fillRule="evenodd" />
                   </svg>
 
-                  {/* The official logo, in 3D, docks here. Until the scene has
-                      drawn its first frame — and always, without motion or
-                      WebGL — the artwork itself stands in. */}
+                  {/* The official logo, in 3D, docks here. Until the scene is on
+                      screen — and always, without motion or WebGL — the
+                      artwork itself stands in, and the scene takes over from
+                      a picture identical to it (rig.wake). It is the hero's
+                      identity and above the fold, so it loads at once. */}
                   <div ref={slotRef} aria-hidden="true" className={styles.slot}>
                     <span className={styles.slotGlow} />
                     <Image
@@ -952,6 +1002,8 @@ export function AyadiHero() {
                       alt=""
                       fill
                       sizes="(min-width: 768px) 440px, 64vw"
+                      loading="eager"
+                      fetchPriority="high"
                       className={styles.fallbackMark}
                     />
                   </div>

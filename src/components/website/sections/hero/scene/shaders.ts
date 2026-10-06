@@ -55,6 +55,7 @@ export const BACKDROP_FRAGMENT = /* glsl */ `
   uniform sampler2D uWatermark;
   uniform vec4 uWatermarkRect;
   uniform float uWatermarkAlpha;
+  uniform float uWake;
 
   varying vec2 vUv;
 
@@ -65,10 +66,11 @@ export const BACKDROP_FRAGMENT = /* glsl */ `
     vec2 p = ndc * vec2(uAspect, 1.0);
 
     // The opening: the page colour, with a soft mint wash round the mark.
+    // The wash comes in as the scene wakes; asleep it is the bare page.
     vec3 page = vec3(0.973, 0.980, 0.976);
     vec3 mint = vec3(0.874, 0.950, 0.905);
     float wash = 1.0 - smoothstep(0.0, 1.1, length((ndc - uGlow) * vec2(uAspect, 1.0)));
-    vec3 light = mix(page, mint, wash * 0.8);
+    vec3 light = mix(page, mint, wash * 0.8 * uWake);
 
     // The watermark: uWatermarkRect is its centre and half-size in NDC.
     vec2 wm = (ndc - uWatermarkRect.xy) / uWatermarkRect.zw * 0.5 + 0.5;
@@ -163,12 +165,16 @@ export const LOGO_VERTEX = /* glsl */ `
   }
 `;
 
-/* Lit lime faces, deep green sides, a teal rim that strengthens in space. */
+/* Lit lime faces, deep green sides, a teal rim that strengthens in space.
+   Asleep (uWake 0) it is the artwork instead — the brand's lime, flat and
+   unlit, as in the fallback image — and the light arrives with the wake. At
+   1 the mix is skipped, so the lit mark is exactly what it always was. */
 export const LOGO_FRAGMENT = /* glsl */ `
   uniform vec3 uKey;
   uniform float uGlow;
   uniform float uFade;
   uniform float uDark;
+  uniform float uWake;
 
   varying vec3 vNormal;
   varying vec3 vObjectNormal;
@@ -195,6 +201,8 @@ export const LOGO_FRAGMENT = /* glsl */ `
     col += vec3(0.35, 0.95, 0.75) * rim * (0.2 + 0.45 * uDark);
     col += lime * uGlow * 0.5;
 
+    if (uWake < 1.0) col = mix(lime, col, uWake);
+
     gl_FragColor = vec4(col, uFade);
   }
 `;
@@ -207,7 +215,19 @@ export const LOGO_FRAGMENT = /* glsl */ `
 
    It dissolves into the mark: letters farthest from it go first, the edge
    travelling in toward it and catching a little of its green as it passes,
-   so the lockup gathers into its symbol rather than simply fading. */
+   so the lockup gathers into its symbol rather than simply fading.
+
+   Asleep (uWake 0) it is the artwork's ink and nothing else, sides and
+   all, as the mark is its lime.
+
+   Inside the globe the mark gives the words back, and the same front runs
+   the other way (uWord, 0 → 1, from uCentre). A second front runs ahead of
+   it (uTrace): past that one a letter exists only as green structure — for
+   AYADI drawn as slanted bars, the mark's own (uHatch) — and it is the
+   first front, arriving behind, that fills it in and cools it to its ink.
+   That ink is pale there (uLight, uPaper): the dark needs it. With uTrace
+   and uLight at 0, as they are for the docked lockup and its dissolve, none
+   of this runs. */
 
 export const WORDMARK_VERTEX = /* glsl */ `
   varying vec3 vNormal;
@@ -231,6 +251,11 @@ export const WORDMARK_FRAGMENT = /* glsl */ `
   uniform float uWord;
   uniform vec2 uCentre;
   uniform float uReach;
+  uniform float uWake;
+  uniform float uTrace;
+  uniform float uHatch;
+  uniform float uLight;
+  uniform vec3 uPaper;
 
   varying vec3 vNormal;
   varying vec3 vObjectNormal;
@@ -238,6 +263,10 @@ export const WORDMARK_FRAGMENT = /* glsl */ `
   varying vec2 vXY;
 
   const float SOFT = 0.9;
+  // The mark's bars: the direction across them, and two to each of their
+  // steps, in the lockup's own units.
+  const vec2 BAR_ACROSS = vec2(0.808, -0.589);
+  const float BARS = 4.83;
 
   void main() {
     vec3 N = normalize(vNormal);
@@ -246,6 +275,10 @@ export const WORDMARK_FRAGMENT = /* glsl */ `
 
     vec3 ink = vec3(0.090, 0.133, 0.102);
     vec3 side = vec3(0.19, 0.25, 0.21);
+    if (uLight > 0.0) {
+      ink = mix(ink, uPaper, uLight);
+      side = mix(side, uPaper * vec3(0.42, 0.56, 0.5), uLight);
+    }
     float face = smoothstep(0.55, 0.92, abs(vObjectNormal.z));
     vec3 base = mix(side, ink, face);
 
@@ -258,10 +291,31 @@ export const WORDMARK_FRAGMENT = /* glsl */ `
     col += vec3(0.86, 1.0, 0.92) * spec * 0.22 * (1.0 - 0.75 * face);
     col += vec3(0.55, 0.85, 0.62) * rim * 0.14;
 
+    if (uWake < 1.0) col = mix(ink, col, uWake);
+
     float d = distance(vXY, uCentre);
     float alpha = clamp((uWord * (uReach + SOFT) - d) / SOFT, 0.0, 1.0);
     float edge = alpha * (1.0 - alpha) * 4.0;
     col += vec3(0.553, 0.776, 0.247) * edge * 0.35 * (1.0 - uWord);
+
+    if (uTrace > 0.0) {
+      // The core's own light, as the globe has it.
+      vec3 energy = vec3(0.62, 0.92, 0.5);
+      float lead = clamp((uTrace * (uReach + SOFT) - d) / SOFT, 0.0, 1.0);
+
+      float s = dot(vXY, BAR_ACROSS) * BARS;
+      float w = fwidth(s);
+      float bar = 1.0 - smoothstep(0.3 - w, 0.3 + w, abs(fract(s) - 0.5) * 2.0);
+      float structure = lead * mix(1.0, bar, uHatch) * 0.85;
+
+      // The fill arrives burning that green, and cools as it settles.
+      col = mix(energy, col, alpha) + energy * edge * 0.5;
+      alpha += (1.0 - alpha) * structure;
+    }
+
+    // Nothing of a letter that is not there yet, in colour or in depth: the
+    // globe behind it must not be cut to its shape.
+    if (alpha <= 0.0) discard;
 
     gl_FragColor = vec4(col, alpha * uFade);
   }
@@ -616,6 +670,47 @@ export const SURFACE_FRAGMENT = /* glsl */ `
   }
 `;
 
+/* ---------- the ripple a Why card comes through ----------
+   A small patch of the same membrane, opened for one card: a faint sheet of
+   glass with an uneven edge, thin rings running out across it from where
+   the card pushes through, and the surface's own caustic glint. The same
+   teal and green, the same rings — only local, soft at the edge, and gone
+   once the card is clear. uPhase is the card's own progress, not time: the
+   rings run out as it comes through and back in if it goes back. */
+export const RIPPLE_FRAGMENT = /* glsl */ `
+  uniform float uStrength;
+  uniform float uPhase;
+  uniform float uRings;
+
+  varying vec2 vUv;
+
+  ${NOISE}
+
+  void main() {
+    vec2 q = vUv * 2.0 - 1.0;
+
+    // The membrane gives where it is pushed: its edge is never a clean oval.
+    float give = (vnoise(q * 2.4 + vec2(uPhase * 1.7, -uPhase)) - 0.5) * 0.22;
+    float r = length(q) + give;
+    float inside = 1.0 - smoothstep(0.5, 1.0, r);
+    if (inside <= 0.001) discard;
+
+    float wave = sin(r * uRings - uPhase * 11.0);
+    float ring = pow(max(wave, 0.0), 5.0);
+    float caustic = pow(1.0 - abs(sin((q.x * 1.3 + q.y) * 7.0 + wave * 1.6 + uPhase * 3.0)), 10.0);
+
+    vec3 teal = vec3(0.176, 0.831, 0.749);
+    vec3 green = vec3(0.35, 0.95, 0.78);
+    vec3 col = mix(teal, green, ring) + vec3(0.8, 1.0, 0.94) * caustic * 0.3;
+
+    // Light gathers where the card is coming through.
+    float core = pow(1.0 - min(r, 1.0), 2.0);
+    float alpha = (0.07 + 0.5 * ring + 0.12 * caustic + 0.22 * core) * inside * uStrength;
+
+    gl_FragColor = vec4(col, alpha);
+  }
+`;
+
 /* ---------- motes ---------- */
 
 export const PARTICLES_VERTEX = /* glsl */ `
@@ -642,9 +737,11 @@ export const PARTICLES_VERTEX = /* glsl */ `
   }
 `;
 
-/* Pale glints in space, small green specks in daylight. */
+/* Pale glints in space, small green specks in daylight — none until the
+   scene has woken. */
 export const PARTICLES_FRAGMENT = /* glsl */ `
   uniform float uNight;
+  uniform float uWake;
 
   varying float vAlpha;
 
@@ -653,7 +750,7 @@ export const PARTICLES_FRAGMENT = /* glsl */ `
     float a = 1.0 - smoothstep(0.0, 0.5, d);
     a *= a;
     vec3 col = mix(vec3(0.09, 0.55, 0.36), vec3(0.62, 1.0, 0.86), uNight);
-    gl_FragColor = vec4(col, a * vAlpha * mix(0.3, 0.85, uNight));
+    gl_FragColor = vec4(col, a * vAlpha * mix(0.3, 0.85, uNight) * uWake);
   }
 `;
 

@@ -1,3 +1,5 @@
+import { createWhyLayout, type WhyLayout } from './why';
+
 /*
  * Per-frame values the scene shares between its parts. The Director writes
  * them first thing every frame; everything else only reads.
@@ -19,8 +21,23 @@ export type Frame = {
   slotFrac: number;
   /** The globe's idle turn; slows to a stop as it becomes the portal. */
   idleSpin: number;
+  /** Where the Why heading and cards stand in the portal's space, for a
+      canvas of this shape. Laid out again only when the shape changes. */
+  why: WhyLayout;
 };
 
 export function createFrame(): Frame {
-  return { time: 0, dt: 0, px: 0, py: 0, aspect: 1, fit: 1, shiftX: 0, shiftY: 0, slotFrac: 0.4, idleSpin: 0 };
+  return {
+    time: 0,
+    dt: 0,
+    px: 0,
+    py: 0,
+    aspect: 1,
+    fit: 1,
+    shiftX: 0,
+    shiftY: 0,
+    slotFrac: 0.4,
+    idleSpin: 0,
+    why: createWhyLayout(),
+  };
 }

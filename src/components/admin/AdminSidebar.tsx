@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   BookOpen,
@@ -14,10 +15,14 @@ import {
   Pin,
   PinOff,
   User,
+  MessageSquare,
+  GitBranch,
+  ListTree
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { logout } from "@/lib/api/auth";
+
+import LogoutDialog from "./LogoutDialog";
 
 interface AdminSidebarProps {
   open: boolean;
@@ -33,11 +38,6 @@ const navigation = [
     label: "Dashboard",
     href: "/admin",
     icon: LayoutDashboard,
-  },
-  {
-    label: "Courses",
-    href: "/admin/courses",
-    icon: BookOpen,
   },
   {
     label: "Authors",
@@ -57,12 +57,22 @@ const navigation = [
   {
     label: "Category",
     href: "/admin/main-category",
-    icon: Images,
+    icon: ListTree,
   },
   {
     label: "Sub-Category",
     href: "/admin/sub-category",
-    icon: Images,
+    icon: GitBranch,
+  },
+  {
+    label: "Courses",
+    href: "/admin/courses",
+    icon: BookOpen,
+  },
+  {
+    label: "enquiries",
+    href: "/admin/enquiries",
+    icon: MessageSquare,
   },
 ];
 
@@ -75,16 +85,11 @@ export default function AdminSidebar({
   onHoverChange,
 }: AdminSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.replace("/admin/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
+
+  const [logoutOpen, setLogoutOpen] = useState(false);
+
+
 
   return (
     <>
@@ -97,7 +102,7 @@ export default function AdminSidebar({
           onClick={onClose}
           className="
             fixed inset-0 z-40
-            bg-black/30
+            bg-[#0B1330]/60
             backdrop-blur-sm
             lg:hidden
           "
@@ -127,9 +132,10 @@ export default function AdminSidebar({
           fixed inset-y-0 left-0 z-50
           flex flex-col
           overflow-hidden
-          bg-accent-gradient
+          bg-sidebar-premium
           text-white
-          shadow-[10px_0_40px_rgba(0,0,0,0.06)]
+          border-r border-white/10
+          shadow-[20px_0_60px_-15px_rgba(11,19,48,0.55)]
           lg:translate-x-0
           ${
             open
@@ -138,11 +144,26 @@ export default function AdminSidebar({
           }
         `}
       >
+        {/* Ambient premium glows */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+        >
+          <div className="absolute -top-20 left-1/2 h-56 w-[130%] -translate-x-1/2 rounded-full bg-emerald-500/20 blur-[80px]" />
+          <div className="absolute -bottom-24 -right-16 h-64 w-64 rounded-full bg-teal-500/20 blur-[90px]" />
+          <div className="absolute top-1/2 -left-20 h-72 w-56 rounded-full bg-[#2f4480]/40 blur-[90px]" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+        </div>
         {/* ================================================= */}
         {/* TOP / LOGO */}
         {/* ================================================= */}
 
-        <div className="relative flex h-[82px] shrink-0 items-center  border-b border-white/10">
+        <div className="relative flex h-[88px] shrink-0 items-center border-b border-white/10 bg-white/[0.02]">
+          {/* Logo ambient glow */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/25 blur-2xl"
+          />
           {/* Logo */}
           <div
             className={`
@@ -160,7 +181,7 @@ export default function AdminSidebar({
               onClick={onClose}
               className="relative flex shrink-0 items-center"
             >
-              {/* Full logo */}
+              {/* Full logo — kept at w-36, elevated with premium glow/sharpness */}
               <motion.img
                 initial={false}
                 animate={{
@@ -172,6 +193,8 @@ export default function AdminSidebar({
                 alt="Ayadi Cloudversity"
                 className={`
                   w-36 object-contain
+                  drop-shadow-[0_2px_14px_rgba(0,0,0,0.45)]
+                  brightness-110 contrast-105
                   ${
                     expanded
                       ? "pointer-events-auto"
@@ -180,7 +203,7 @@ export default function AdminSidebar({
                 `}
               />
 
-              {/* Collapsed logo */}
+              {/* Collapsed logo — glass tile */}
               <motion.div
                 initial={false}
                 animate={{
@@ -189,8 +212,13 @@ export default function AdminSidebar({
                 }}
                 transition={{ duration: 0.2 }}
                 className={`
-                  flex h-9 w-9
+                  flex h-11 w-11
                   items-center justify-center
+                  rounded-xl
+                  bg-white/10
+                  ring-1 ring-white/15
+                  backdrop-blur
+                  shadow-[0_8px_20px_-8px_rgba(0,0,0,0.6)]
                   ${
                     expanded
                       ? "pointer-events-none absolute"
@@ -201,7 +229,7 @@ export default function AdminSidebar({
                 <img
                   src="/images/ayadi-mark.png"
                   alt="Ayadi"
-                  className="h-8 w-auto object-contain"
+                  className="h-8 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] brightness-110"
                 />
               </motion.div>
             </Link>
@@ -265,7 +293,7 @@ export default function AdminSidebar({
         {/* NAVIGATION */}
         {/* ================================================= */}
 
-        <nav className="flex-1 overflow-y-auto px-3 py-7">
+        <nav className="admin-sidebar-nav relative flex-1 overflow-y-auto px-3 py-7">
           {/* Workspace */}
           <motion.div
             initial={false}
@@ -277,7 +305,7 @@ export default function AdminSidebar({
             transition={{ duration: 0.2 }}
             className="overflow-hidden px-3"
           >
-            <p className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35">
+            <p className="flex items-center gap-3 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45 after:h-px after:flex-1 after:bg-white/10">
               Workspace
             </p>
           </motion.div>
@@ -299,9 +327,9 @@ export default function AdminSidebar({
                   onClick={onClose}
                   title={!expanded ? item.label : undefined}
                   className={`
-                    group flex h-11 items-center
+                    group relative flex h-11 items-center
                     rounded-xl text-sm
-                    transition-colors duration-200
+                    transition-all duration-200
                     ${
                       expanded
                         ? "justify-between px-3.5"
@@ -309,11 +337,23 @@ export default function AdminSidebar({
                     }
                     ${
                       active
-                        ? "bg-white/10 font-medium text-white"
-                        : "text-white/60 hover:bg-white/[0.07] hover:text-white"
+                        ? "bg-sidebar-active font-semibold text-white shadow-sidebar-active ring-1 ring-white/25"
+                        : "text-white/60 hover:translate-x-[1px] hover:bg-white/[0.07] hover:text-white"
                     }
                   `}
                 >
+                  {active &&
+                    (expanded ? (
+                      <span
+                        aria-hidden
+                        className="absolute left-[-12px] top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden
+                        className="absolute -top-[7px] left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+                      />
+                    ))}
                   <span
                     className={`
                       flex items-center
@@ -324,11 +364,22 @@ export default function AdminSidebar({
                       }
                     `}
                   >
-                    <Icon
-                      size={19}
-                      strokeWidth={1.8}
-                      className="shrink-0"
-                    />
+                    <span
+                      className={`
+                        flex h-8 w-8 items-center justify-center rounded-lg transition-all
+                        ${
+                          active
+                            ? "bg-white/20 ring-1 ring-white/25"
+                            : "bg-transparent ring-1 ring-transparent group-hover:bg-white/10 group-hover:ring-white/10"
+                        }
+                      `}
+                    >
+                      <Icon
+                        size={18}
+                        strokeWidth={active ? 2 : 1.8}
+                        className={`shrink-0 ${active ? "drop-shadow-[0_1px_6px_rgba(0,0,0,0.4)]" : ""}`}
+                      />
+                    </span>
 
                     <motion.span
                       initial={false}
@@ -369,7 +420,7 @@ export default function AdminSidebar({
         {/* BOTTOM */}
         {/* ================================================= */}
 
-        <div className="shrink-0 border-t border-white/10 p-3">
+        <div className="relative shrink-0 border-t border-white/10 bg-black/20 p-3 backdrop-blur">
           {/* Settings */}
           <Link
             href="/admin/settings"
@@ -414,7 +465,7 @@ export default function AdminSidebar({
           {/* Logout */}
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={() => setLogoutOpen(true)}
             title={!expanded ? "Logout" : undefined}
             className={`
               mt-1 flex h-11 w-full
@@ -422,8 +473,8 @@ export default function AdminSidebar({
               rounded-xl
               text-sm text-white/60
               transition-all duration-200
-              hover:bg-white/[0.07]
-              hover:text-white
+              hover:bg-rose-500/15
+              hover:text-rose-200
               ${
                 expanded
                   ? "gap-3 px-3.5"
@@ -452,8 +503,20 @@ export default function AdminSidebar({
               Logout
             </motion.span>
           </button>
+
+          {expanded && (
+            <p className="mt-3 flex items-center justify-center gap-1.5 px-3 text-[10px] font-medium uppercase tracking-[0.18em] text-white/30">
+              <span className="h-1 w-1 rounded-full bg-emerald-400/70 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+              Premium Admin • v1.0
+            </p>
+          )}
         </div>
       </motion.aside>
+
+      <LogoutDialog
+        open={logoutOpen}
+        onCancel={() => setLogoutOpen(false)}
+      />
     </>
   );
 }

@@ -25,22 +25,8 @@ export default function AdminHeader({
           <Menu size={21} />
         </button>
 
-        {/* Search */}
-        <div className="relative hidden w-[300px] md:block">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-
-          <input
-            type="search"
-            placeholder="Search..."
-            className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
-          />
-        </div>
-
         {/* Mobile title */}
-        <div className="md:hidden">
+        <div >
           <p className="text-sm font-semibold text-[#10251d]">
             Ayadi Cloudversity
           </p>
@@ -53,11 +39,6 @@ export default function AdminHeader({
 
       {/* Right */}
       <div className="flex items-center gap-2 sm:gap-4">
-        <button className="relative rounded-xl p-2.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-[#0b4635]">
-          <Bell size={19} strokeWidth={1.8} />
-
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#368364]" />
-        </button>
 
         <div className="h-7 w-px bg-gray-200" />
 

@@ -19,9 +19,7 @@ export interface Course {
     duration: string | null;
     level: string | null;
 
-    price: number | null;
-
-    is_active: boolean;
+    is_published: boolean;
     display_order: number;
 
     created_at: string;
@@ -43,9 +41,7 @@ export interface CourseFormData {
     duration?: string | null;
     level?: string | null;
 
-    price?: number | null;
-
-    is_active: boolean;
+    is_published: boolean;
     display_order: number;
 
     thumbnail?: File | null;
@@ -55,8 +51,9 @@ export interface CourseFilters {
     brand_id?: string;
     category_id?: string;
     subcategory_id?: string;
-    is_active?: boolean;
+    /** Matched against the course title by the backend. */
     search?: string;
+    is_published?: boolean;
 }
 
 const buildCourseFormData = (
@@ -103,13 +100,9 @@ const buildCourseFormData = (
         formData.append("level", data.level);
     }
 
-    if (data.price !== null && data.price !== undefined) {
-        formData.append("price", String(data.price));
-    }
-
     formData.append(
-        "is_active",
-        String(data.is_active)
+        "is_published",
+        String(data.is_published)
     );
 
     formData.append(
@@ -166,7 +159,7 @@ export const updateCourse = async (
 ): Promise<Course> => {
     const formData = buildCourseFormData(data);
 
-    const response = await api.patch<Course>(
+    const response = await api.put<Course>(
         `/courses/${id}`,
         formData
     );

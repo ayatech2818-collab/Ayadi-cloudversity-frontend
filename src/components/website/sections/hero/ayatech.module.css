@@ -1,1131 +1,1069 @@
 /* =========================================================================
-   AyaTech Cinematic Experience
-   Visual Language: Soft off-white canvas (#f8faf9), volumetric physical
-   blurred spotlights (emerald, teal, cyan), translucent white glass,
-   luminous circuit constellation, futuristic yet minimal and bright.
+   AyaTech's world
+   Near-black with a blue cast, and light drawn on it: emerald for learning,
+   blue for building, cyan for delivering. No photographs, no cards, no
+   frosted panels — that is Cloudversity's language, and this is the other
+   world.
+
+   The rules below come in two layers. First the page as it ships: every
+   beat's words down a dark page, complete without a line of script (and
+   what reduced motion gets). Then, under [data-mode='cinematic'], the same
+   elements stacked on one pinned stage for the journey — AyatechWorld.tsx
+   sets that attribute only once it has a canvas and motion is welcome.
    ========================================================================= */
 
 .section {
+  --ink: #050a12;
+  --paper: #ecfdf5;
+  --quiet: rgb(203 213 225 / 0.78);
+  --emerald: #34d399;
+  --blue: #60a5fa;
+  --cyan: #67e8f9;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  /* The fixed navbar's clearance (NAV_CLEARANCE in AyatechWorld.tsx). */
+  --nav: 84px;
+
   position: relative;
   width: 100%;
-  background-color: #f8faf9;
-  background-image: 
-    radial-gradient(130% 90% at 50% 10%, rgba(255, 255, 255, 0.95) 0%, transparent 60%),
-    linear-gradient(180deg, #f8faf9 0%, #f1f7f4 50%, #edf5f0 100%);
-  color: #17221a;
-  overflow: clip;
+  padding: clamp(4rem, 9vw, 7rem) 1.25rem;
+  color: var(--paper);
+  background:
+    radial-gradient(80% 50% at 85% 0%, rgb(37 99 235 / 0.14), transparent 70%),
+    radial-gradient(70% 45% at 10% 100%, rgb(16 185 129 / 0.1), transparent 70%),
+    var(--ink);
 }
 
-/* Stage: the pinned viewing port on desktop */
+.frame,
 .stage {
   position: relative;
-  width: 100%;
-  height: 100svh;
-  max-height: 100svh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  perspective: 1200px;
 }
 
-/* Atmospheric ambient background layers with blurred physical spotlights */
-.atmosphere {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-/* Primary Volumetric Blurred Spotlight (Soft Emerald behind Digital Core & Identity) */
-.spotlightPrimary {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(85vw, 760px);
-  height: min(85vw, 760px);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(16, 185, 129, 0.35) 0%,
-    rgba(13, 148, 136, 0.18) 45%,
-    transparent 70%
-  );
-  filter: blur(65px);
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-
-/* Secondary Volumetric Blurred Spotlight (Teal & Cyan Atmosphere Field) */
-.spotlightSecondary {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(90vw, 700px);
-  height: min(90vw, 700px);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(20, 184, 166, 0.28) 0%,
-    rgba(6, 182, 212, 0.14) 40%,
-    transparent 68%
-  );
-  filter: blur(80px);
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-
-/* Accent Volumetric Blurred Spotlight (Gentle Mint highlight) */
-.spotlightAccent {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 520px;
-  height: 520px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(52, 211, 153, 0.25) 0%,
-    rgba(110, 231 183, 0.12) 45%,
-    transparent 70%
-  );
-  filter: blur(60px);
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-
-/* Digital Grid floor over the light background */
-.digitalGrid {
-  position: absolute;
-  inset: -20%;
-  background-image: 
-    linear-gradient(rgba(16, 185, 129, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(16, 185, 129, 0.07) 1px, transparent 1px);
-  background-size: 64px 64px;
-  background-position: center center;
-  transform: perspective(600px) rotateX(45deg) translateY(10%);
-  opacity: 0.55;
-  mask-image: radial-gradient(circle at 50% 50%, black 20%, transparent 75%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 20%, transparent 75%);
-  pointer-events: none;
-}
-
-/* Subtle data particles */
-.particlesOverlay {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(13, 148, 136, 0.25) 1px, transparent 1px);
-  background-size: 110px 110px;
-  opacity: 0.35;
-  pointer-events: none;
-}
-
-/* =========================================================================
-   SCENE CONTAINER & ACTS
-   All cinematic acts share the 3D stage
-   ========================================================================= */
-
-.actsContainer {
-  position: relative;
-  width: 100%;
-  max-width: 1400px;
-  height: 100%;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 4;
-  padding: 0 1.5rem;
-}
-
-/* Common Act layer */
-.actLayer {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  width: 100%;
-  height: 100%;
-}
-
-/* =========================================================================
-   SCENE 1: THE INTRO — AyaTech's identity
-   The official logo, centred on the stage (and so on the digital core that
-   rests behind it), in a pool of light; the ecosystem it stands for as
-   faint signals round it; what it is, beneath it. This is the rest state
-   the scroll journey starts from — ayatechIntro.ts assembles it when the
-   world is entered.
-   ========================================================================= */
-
-.introAct {
-  /* The field round the logo: twice its width, never taller than the
-     stage. The logo, the traces and the signals are all laid out from it. */
-  --field: min(76rem, 94vw, calc((100svh - 84px) * 1.6));
-  display: grid;
-  grid-template-rows: 1fr auto 1fr;
-  justify-items: center;
-}
-
-/* The logo's box — in the middle row, so exactly centred. */
-.introStage {
-  grid-row: 2;
-  position: relative;
-  width: calc(var(--field) / 2);
-  aspect-ratio: 1000 / 450;
-}
-
-/* The light the logo sits in: mint-white at its heart — it veils the core
-   resting behind, until the journey wakes that — and a breath of green at
-   its rim. */
-.introHalo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 150%;
-  height: 240%;
-  translate: -50% -50%;
-  border-radius: 50%;
-  background: radial-gradient(
-    closest-side,
-    rgb(243 252 248 / 0.94) 0%,
-    rgb(236 253 245 / 0.8) 40%,
-    rgb(209 250 229 / 0.36) 64%,
-    rgb(16 185 129 / 0.06) 84%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-/* Green light behind the lettering: it builds as the logo forms, flares
-   once as the ecosystem connects, and rests faint. */
-.introBloom {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 118%;
-  height: 170%;
-  translate: -50% -50%;
-  border-radius: 50%;
-  background: radial-gradient(
-    closest-side,
-    rgb(52 211 153 / 0.34) 0%,
-    rgb(16 185 129 / 0.16) 42%,
-    rgb(13 148 136 / 0.05) 70%,
-    transparent 100%
-  );
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* The digital environment round the logo — ayatechIntro.ts has its map. */
-.introField {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 200%;
-  aspect-ratio: 1200 / 700;
-  translate: -50% -50%;
-  pointer-events: none;
-}
-
-.introTraces {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-/* A circuit trace. Its dash is its whole length, so the intro can draw it in. */
-.introTrace {
-  fill: none;
-  stroke: rgb(13 148 136 / 0.26);
-  stroke-width: 1.2;
-  stroke-dasharray: 1 1;
-}
-
-.introTraces g[data-ambient] .introTrace {
-  stroke: rgb(13 148 136 / 0.16);
-}
-
-/* The light running along a trace: one short dash, parked just off its start. */
-.introPulse {
-  fill: none;
-  stroke: #10b981;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-dasharray: 0.06 2;
-  stroke-dashoffset: 0.1;
-}
-
-/* Where a trace meets the logo's light. */
-.introTerminal {
-  fill: #0d9488;
-  fill-opacity: 0.5;
-}
-
-.introPoints circle {
-  fill: #0d9488;
-  fill-opacity: 0.3;
-}
-
-/* A capability, signalling: a point of light, and its name. */
-.introSignal {
-  position: absolute;
-  width: 0.5rem;
-  height: 0.5rem;
-  translate: -50% -50%;
-}
-
-.introSignalDot {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow:
-    0 0 0 3px rgb(16 185 129 / 0.14),
-    0 0 12px rgb(16 185 129 / 0.45);
-}
-
-.introSignalLabel {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 0.6rem);
-  translate: -50% 0;
-  white-space: nowrap;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgb(4 120 87 / 0.72);
-}
-
-.introSignal[data-label='above'] .introSignalLabel {
-  top: auto;
-  bottom: calc(100% + 0.6rem);
-}
-
-/* The official logo — the heading of the world — exactly as drawn. */
-.introLogo {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  line-height: 0;
-  filter: drop-shadow(0 8px 22px rgb(4 42 34 / 0.1));
-}
-
-.introLogoImg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  user-select: none;
-}
-
-/* While the intro plays, the logo forms out from its centre… */
-.introAct[data-playing] .introLogoImg {
-  mask-image: radial-gradient(
-    ellipse 62% 92% at 50% 50%,
-    #000 var(--reveal, 100%),
-    transparent calc(var(--reveal, 100%) + 26%)
-  );
-}
-
-/* …and one light passes across it, on its own ink (the element is masked
-   by the logo itself, inline). */
-.introSheen {
-  position: absolute;
-  inset: 0;
+/* Scenery: only the stage has any. */
+.bleed,
+.backdrop,
+.canvas,
+.shade,
+.skylight,
+.outro,
+.hud,
+.hint {
   display: none;
-  background: linear-gradient(105deg, transparent 38%, rgb(255 255 255 / 0.8) 50%, transparent 62%);
-  background-size: 300% 100%;
-  background-position: 100% 0%;
-  mask-size: 100% 100%;
-  mask-repeat: no-repeat;
-  pointer-events: none;
 }
 
-.introAct[data-playing] .introSheen {
-  display: block;
+.copy {
+  display: grid;
+  gap: clamp(3rem, 7vw, 5rem);
+  max-width: 64rem;
+  margin-inline: auto;
 }
 
-/* What it is, and the way on. */
-.introCopy {
-  grid-row: 3;
-  align-self: start;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
+/* ---------- the words ---------- */
 
-.introBadge {
+.kicker {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.4rem 1.15rem;
-  border-radius: 9999px;
-  background: rgb(255 255 255 / 0.85);
-  border: 1px solid rgb(16 185 129 / 0.25);
-  box-shadow: 0 4px 14px rgb(16 185 129 / 0.08);
-  backdrop-filter: blur(12px);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  gap: 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #047857;
+  color: var(--emerald);
 }
 
-.pulseIndicator {
+.kicker::before {
+  content: '';
+  width: 1.75rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+/* IDEA: the one sentence the world opens on. */
+.ideaTitle {
+  margin-top: 1rem;
+  font-size: clamp(1.9rem, min(5.4vw, 9.5svh), 4.75rem);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+.ideaLine {
+  display: block;
+}
+
+/* Each word rises out of its own slot. */
+.wordMask {
+  display: inline-block;
+  overflow: hidden;
+  padding-block: 0.04em 0.08em;
+  vertical-align: bottom;
+}
+
+.word {
+  display: inline-block;
+  will-change: transform;
+}
+
+.ideaLine[data-accent] .word {
+  background: linear-gradient(95deg, #6ee7b7, #a5f3fc 55%, #60a5fa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.title {
+  margin-top: 0.9rem;
+  font-size: clamp(1.75rem, min(4vw, 7.4svh), 3.5rem);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+/* A one-word title: the chapter itself, said large. */
+.title[data-size='word'] {
+  font-size: clamp(2.75rem, min(7.4vw, 13svh), 6.25rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+.line {
+  max-width: 30rem;
+  margin-top: 0.9rem;
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--quiet);
+}
+
+/* The line that answers its title, a beat later. */
+.line[data-late] {
+  font-size: clamp(1.2rem, 1.9vw, 1.65rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--emerald);
+}
+
+/* What the canvas is drawing, in words (Tags in AyatechWorld.tsx). */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tags li {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid rgb(148 163 184 / 0.3);
+  border-radius: 9999px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+/* Not built yet: drawn in dashes here too. */
+.tags[data-dashed] li {
+  border-style: dashed;
+  border-color: rgb(103 232 249 / 0.45);
+}
+
+/* ---------- what is being taught now (ProgrammeStrip.tsx) ---------- */
+
+.strip {
+  max-width: 30rem;
+  margin-top: 1.4rem;
+}
+
+.stripLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--emerald);
+}
+
+.stripDot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 10px #10b981;
-  animation: pulseBeacon 2s infinite ease-in-out;
+  background: var(--emerald);
+  box-shadow: 0 0 10px var(--emerald);
+  animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulseBeacon {
-  0%, 100% { opacity: 0.4; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.3); }
+.stripWindow {
+  margin-top: 0.6rem;
+  overflow: hidden;
 }
 
-.introMotto {
-  margin-top: 0.9rem;
-  font-size: clamp(1.05rem, 1.7vw, 1.4rem);
+.stripTrack {
+  display: flex;
+  width: max-content;
+}
+
+.stripRow {
+  display: flex;
+  flex: none;
+  gap: 0.5rem;
+  margin: 0;
+  /* The gap carried past the last chip, so two rows end to end have no seam. */
+  padding: 0 0.5rem 0 0;
+  list-style: none;
+}
+
+/* More than fit: the row drifts, and fades at the window's edges. */
+.stripWindow[data-drifts] {
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 90%, transparent);
+}
+
+.stripWindow[data-drifts] .stripTrack {
+  animation: drift 24s linear infinite;
+}
+
+.stripWindow[data-drifts]:hover .stripTrack {
+  animation-play-state: paused;
+}
+
+.chip {
+  flex: none;
+  max-width: 26ch;
+  overflow: hidden;
+  padding: 0.38rem 0.85rem;
+  border: 1px solid rgb(52 211 153 / 0.32);
+  border-radius: 9999px;
+  background: rgb(16 185 129 / 0.09);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #d1fae5;
+}
+
+.stripFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  margin-top: 0.7rem;
+  font-size: 0.74rem;
+  color: rgb(148 163 184 / 0.9);
+}
+
+.stripLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  color: var(--paper);
+  transition: color 0.2s ease;
+}
+
+.stripLink:hover {
+  color: var(--emerald);
+}
+
+.stripLink:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--emerald);
+  outline-offset: 3px;
+}
+
+@keyframes drift {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    scale: 0.9;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.25;
+  }
+}
+
+/* ---------- Ayadi's mark, over the system ---------- */
+
+.ayadi {
+  width: min(15rem, 62vw);
+}
+
+.ayadi img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- learn / build / deliver ---------- */
+
+.pillars {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .pillars {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.pillar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.pillarWord {
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
   font-weight: 800;
-  letter-spacing: 0.02em;
-  color: #047857;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
-.introTagline {
-  margin-top: 0.3rem;
-  max-width: 32rem;
-  font-size: clamp(0.92rem, 1.1vw, 1.05rem);
-  line-height: 1.6;
-  color: #475569;
+.pillar[data-pillar='learn'] .pillarWord {
+  color: var(--emerald);
 }
 
-.introScrollHint {
+.pillar[data-pillar='build'] .pillarWord {
+  color: var(--blue);
+}
+
+.pillar[data-pillar='deliver'] .pillarWord {
+  color: var(--cyan);
+}
+
+.pillarLine {
+  max-width: 15rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--quiet);
+}
+
+/* ---------- the name ---------- */
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* The logo's own box: its artwork is 1000 × 450. */
+.mark {
+  position: relative;
+  width: min(19.5rem, 100%);
+  aspect-ratio: 1000 / 450;
+}
+
+/* A lit plate for the official logo to stand on: its lettering is half
+   navy, and navy on this ground is not there at all. */
+.markPlate {
+  position: absolute;
+  inset: 10% 4%;
+  border-radius: 1.5rem;
+  background: radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f1fdf8 52%, #d6f6e8 100%);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.55),
+    0 0 70px rgb(52 211 153 / 0.32),
+    0 28px 80px -28px rgb(96 165 250 / 0.45);
+}
+
+/* The same artwork as a mask, filled with light — the stage's own version,
+   for inside the arcs. The glow is on the wrapper: a filter on the masked
+   element itself would be cut to the letters with everything else. */
+.markLight {
+  position: absolute;
+  inset: 0;
+  display: none;
+  filter: drop-shadow(0 0 16px rgb(52 211 153 / 0.5));
+}
+
+.markInk {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, #6ee7b7 0%, #ecfdf5 40%, #ffffff 55%, #a5f3fc 80%, #60a5fa 100%);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.markTrue {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+.fields {
+  margin-top: 0.5rem;
+  font-family: var(--mono);
+  font-size: clamp(0.68rem, 1vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.motto {
+  margin-top: 0.7rem;
+  font-size: clamp(1.6rem, min(3.2vw, 6svh), 2.75rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  background: linear-gradient(95deg, #6ee7b7, #ecfdf5 45%, #93c5fd);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.creed {
+  max-width: 30rem;
+  margin-top: 0.7rem;
+  font-size: clamp(0.9rem, 1.15vw, 1.05rem);
+  line-height: 1.5;
+  color: var(--quiet);
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.4rem;
+}
+
+.ctaLearn,
+.ctaBuild {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1.75rem;
-  padding: 0.4rem 1rem;
+  padding: 0.8rem 1.4rem;
   border-radius: 9999px;
-  background: rgb(255 255 255 / 0.85);
-  border: 1px solid rgb(16 185 129 / 0.2);
-  box-shadow: 0 2px 8px rgb(16 185 129 / 0.06);
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #047857;
+  transition:
+    translate 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
-/* Tablets: the environment's own wiring and points go; the signals stay. */
-@media (max-width: 1023px) {
-  .introTraces g[data-ambient],
-  .introPoints {
-    display: none;
-  }
+/* For learners. */
+.ctaLearn {
+  color: #04261c;
+  background: linear-gradient(135deg, #6ee7b7, #34d399 55%, #2dd4bf);
+  box-shadow: 0 14px 36px -14px rgb(52 211 153 / 0.8);
+}
 
-  .introSignalLabel {
-    font-size: 0.6rem;
-    letter-spacing: 0.16em;
-  }
+/* For organisations. */
+.ctaBuild {
+  border: 1px solid rgb(103 232 249 / 0.5);
+  color: var(--paper);
+  background: rgb(96 165 250 / 0.1);
+}
+
+.ctaLearn:hover,
+.ctaBuild:hover {
+  translate: 0 -2px;
+}
+
+.ctaLearn:hover {
+  box-shadow: 0 18px 44px -14px rgb(52 211 153 / 0.95);
+}
+
+.ctaBuild:hover {
+  border-color: var(--cyan);
+  background: rgb(96 165 250 / 0.2);
+}
+
+.ctaLearn:focus-visible,
+.ctaBuild:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
 }
 
 /* =========================================================================
-   SCENE 2: DIGITAL CORE (Central 3D Holographic Element)
+   THE STAGE
+   One screen, pinned under the navbar; every beat stacked on it.
    ========================================================================= */
 
-.coreWrapper {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 280px;
-  height: 280px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 3;
-  transform-style: preserve-3d;
+.section[data-mode='cinematic'] {
+  padding: 0;
+  /* The pin's own spacer shows behind the stage for its whole length. */
+  background: var(--ink);
 }
 
-.coreRingOuter {
+.section[data-mode='cinematic'] .frame {
+  height: calc(100svh - var(--nav));
+}
+
+/* The stage clips; the frame round it must not, or the dark could not run
+   up behind the navbar. */
+.section[data-mode='cinematic'] .stage {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  border: 1.5px dashed rgba(16, 185, 129, 0.45);
-  box-shadow: 0 0 35px rgba(16, 185, 129, 0.15);
-  animation: rotateClockwise 30s linear infinite;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.coreRingMiddle {
+/* ---------- scenery ---------- */
+
+/* The stage stops at the navbar's clearance, as Cloudversity's does. On a
+   light page nobody sees that seam; on this one it would be a light band
+   over a dark room. So the dark carries on up to the top of the window —
+   part of what is pinned, so it stays put with the stage. */
+.section[data-mode='cinematic'] .bleed {
   position: absolute;
-  inset: 24px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(13, 148, 136, 0.4);
-  border-top-color: #059669;
-  border-bottom-color: #0d9488;
-  transform: rotateX(65deg) rotateY(15deg);
-  animation: rotateCounter 22s linear infinite;
-  transform-style: preserve-3d;
+  inset: calc(var(--nav) * -1) 0 auto;
+  display: block;
+  height: calc(var(--nav) + 1px);
+  background: var(--ink);
+  pointer-events: none;
 }
 
-.coreRingInner {
+.section[data-mode='cinematic'] .backdrop {
   position: absolute;
-  inset: 52px;
-  border-radius: 50%;
-  border: 1.5px dashed rgba(20, 184, 166, 0.5);
-  transform: rotateY(60deg) rotateX(20deg);
-  animation: rotateClockwise 15s linear infinite;
-  transform-style: preserve-3d;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  background:
+    radial-gradient(60% 55% at 78% 8%, rgb(37 99 235 / 0.16), transparent 70%),
+    radial-gradient(55% 60% at 12% 96%, rgb(16 185 129 / 0.12), transparent 70%),
+    radial-gradient(40% 40% at 50% 45%, rgb(6 182 212 / 0.05), transparent 70%),
+    linear-gradient(180deg, #050a12 0%, #06111c 52%, #050a12 100%);
 }
 
-/* Orbital tracks with floating satellite particles */
-.coreOrbitTrack1 {
-  position: absolute;
-  inset: -15px;
-  border-radius: 50%;
-  border: 1px solid rgba(16, 185, 129, 0.16);
-  transform: rotateX(72deg) rotateZ(30deg);
-  animation: rotateClockwise 8s linear infinite;
-  transform-style: preserve-3d;
-}
-
-.coreOrbitTrack2 {
-  position: absolute;
-  inset: -25px;
-  border-radius: 50%;
-  border: 1px solid rgba(13, 148, 136, 0.16);
-  transform: rotateY(70deg) rotateZ(-40deg);
-  animation: rotateCounter 11s linear infinite;
-  transform-style: preserve-3d;
-}
-
-.orbitParticle {
+/* Light falling from the skylight, into the room. */
+.section[data-mode='cinematic'] .backdrop::after {
+  content: '';
   position: absolute;
   top: 0;
   left: 50%;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #059669;
-  box-shadow: 0 0 10px #059669;
-  transform: translate(-50%, -50%);
+  width: min(60rem, 120%);
+  height: 70%;
+  translate: -50% 0;
+  background: radial-gradient(ellipse 28% 100% at 50% 0%, rgb(167 243 208 / 0.09), transparent 72%);
 }
 
-.coreCenterHex {
-  position: relative;
-  width: 108px;
-  height: 108px;
-  border-radius: 28px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(236, 253, 245, 0.9) 100%);
-  border: 1.5px solid rgba(16, 185, 129, 0.45);
-  box-shadow: 
-    0 14px 34px -8px rgba(16, 185, 129, 0.22),
-    inset 0 1px 2px rgba(255, 255, 255, 0.95),
-    inset 0 -6px 14px rgba(16, 185, 129, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #059669;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  transform: rotate(45deg);
-}
-
-.coreFacetHighlight {
+/* What is left of the light the reader came through. At rest it is not
+   there; ayatechIntro.ts folds it into the signal. */
+.afterglow {
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, transparent 55%);
+  top: var(--cy, 45%);
+  left: 50%;
+  width: 90vmin;
+  height: 90vmin;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgb(236 253 245 / 0.95),
+    rgb(167 243 208 / 0.55) 30%,
+    rgb(52 211 153 / 0.18) 60%,
+    transparent 100%
+  );
+  opacity: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 
-.coreInnerContent {
-  transform: rotate(-45deg);
-  display: flex;
-  flex-direction: column;
+.section[data-mode='cinematic'] .canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Dark where the words stand, and at the edges of the room. Painted, not
+   blurred: a backdrop-filter over a canvas that redraws every frame is the
+   one cost worth refusing here. */
+.section[data-mode='cinematic'] .shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  background:
+    radial-gradient(ellipse 62% 78% at 0% 100%, rgb(4 8 14 / 0.86), rgb(4 8 14 / 0.5) 45%, transparent 72%),
+    radial-gradient(ellipse at 50% 45%, transparent 52%, rgb(2 5 10 / 0.7) 100%);
+  pointer-events: none;
+}
+
+.section[data-mode='cinematic'][data-compact] .shade {
+  background:
+    linear-gradient(to top, rgb(4 8 14 / 0.94) 0%, rgb(4 8 14 / 0.72) 30%, transparent 56%),
+    radial-gradient(ellipse at 50% 40%, transparent 55%, rgb(2 5 10 / 0.7) 100%);
+}
+
+/* The world switcher is glass made for a light page, and it is not this
+   world's to restyle. So this world gives it something to be read against:
+   a slot of light overhead, exactly where it sits. It belongs to the frame
+   rather than the stage — it straddles the navbar's clearance, as the
+   switcher does on a phone — and it is the room's one fixed light. */
+.section[data-mode='cinematic'] .skylight {
+  --switch: 1.8rem;
+  position: absolute;
+  top: calc(var(--nav) * -1);
+  left: 50%;
+  z-index: 5;
+  display: block;
+  width: min(46rem, 100%);
+  height: calc(var(--nav) + 10rem);
+  translate: -50% 0;
+  background: radial-gradient(
+    ellipse 40% 26% at 50% calc(var(--nav) + var(--switch)),
+    rgb(232 255 246 / 0.84) 0%,
+    rgb(167 243 208 / 0.42) 38%,
+    rgb(52 211 153 / 0.1) 64%,
+    transparent 82%
+  );
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  /* The switcher sits higher on a phone (hero.module.css). */
+  .section[data-mode='cinematic'] .skylight {
+    --switch: 0.45rem;
+  }
+}
+
+/* The dark letting go: past the pin, the page is light again. */
+.section[data-mode='cinematic'] .outro {
+  display: block;
+  height: 18svh;
+  background: linear-gradient(
+    to bottom,
+    var(--ink),
+    color-mix(in srgb, var(--ink) 38%, var(--color-page)) 58%,
+    var(--color-page)
+  );
+}
+
+/* ---------- the words, on the stage ---------- */
+
+.section[data-mode='cinematic'] .copy {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  max-width: none;
+  margin: 0;
+  /* It covers the stage; only what can be pressed takes the pointer. */
+  pointer-events: none;
+}
+
+.section[data-mode='cinematic'] .strip,
+.section[data-mode='cinematic'] .ctas {
+  pointer-events: auto;
+}
+
+/* IDEA is said to the room: centred, under the signal. */
+.section[data-mode='cinematic'] .idea {
+  position: absolute;
+  bottom: clamp(5.5rem, 15svh, 9rem);
+  left: 50%;
+  width: min(66rem, calc(100% - 2.5rem));
+  translate: -50% 0;
+  text-align: center;
+}
+
+/* Every other beat is a caption: bottom left, and the scene steps aside. */
+.section[data-mode='cinematic'] .beat {
+  position: absolute;
+  bottom: clamp(4.75rem, 13svh, 7.5rem);
+  left: clamp(1.25rem, 5vw, 5rem);
+  width: min(31rem, calc(100% - 2.5rem));
+}
+
+/* On the stage the canvas is the picture; these are its alt text. */
+.section[data-mode='cinematic'] .tags {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Over the slab, where the scene has it (--aside: how far the scene has
+   stepped; --u and --cy: its unit and its centre). */
+.section[data-mode='cinematic'] .ayadi {
+  position: absolute;
+  top: calc(var(--cy, 45%) - var(--u, 5rem) * 1.3);
+  left: calc(50% + var(--aside, 0px));
+  width: calc(var(--u, 5rem) * 3.3);
+  translate: -50% -50%;
+}
+
+/* Soft light behind it. */
+.section[data-mode='cinematic'] .ayadi::before {
+  content: '';
+  position: absolute;
+  inset: -25% -15%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(52 211 153 / 0.22), transparent 100%);
+}
+
+/* The three labels, at the three arcs (scene/reach.ts ARCS: 140°, 40° and
+   270°, on a ring `orbit` units out — these stand just past it). */
+.section[data-mode='cinematic'] .pillars {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.section[data-mode='cinematic'] .pillar {
+  position: absolute;
+  width: max-content;
+  max-width: 14rem;
+}
+
+.section[data-mode='cinematic'] .pillar[data-pillar='learn'] {
+  top: calc(var(--cy, 45%) - var(--u, 5rem) * 1.86);
+  left: calc(50% - var(--u, 5rem) * 2.22);
+  translate: -100% -50%;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.section[data-mode='cinematic'] .pillar[data-pillar='build'] {
+  top: calc(var(--cy, 45%) - var(--u, 5rem) * 1.86);
+  left: calc(50% + var(--u, 5rem) * 2.22);
+  translate: 0 -50%;
+}
+
+.section[data-mode='cinematic'] .pillar[data-pillar='deliver'] {
+  top: calc(var(--cy, 45%) + var(--u, 5rem) * 2.75);
+  left: 50%;
+  translate: -50% 0;
   align-items: center;
+  text-align: center;
+}
+
+/* The name, centred on the scene's centre: the block hangs from the middle
+   of the logo, so the logo sits inside the arcs and the rest falls below. */
+.section[data-mode='cinematic'] .identity {
+  position: absolute;
+  top: var(--cy, 45%);
+  left: 50%;
+  width: min(42rem, calc(100% - 2.5rem));
+  translate: -50% calc(var(--u, 5rem) * -0.8775);
+  align-items: center;
+  text-align: center;
+}
+
+.section[data-mode='cinematic'] .mark {
+  width: calc(var(--u, 5rem) * 3.9);
+  max-width: 100%;
+}
+
+.section[data-mode='cinematic'] .markLight {
+  display: block;
+}
+
+/* Up into the artwork's own margin. */
+.section[data-mode='cinematic'] .fields {
+  margin-top: calc(var(--u, 5rem) * -0.1);
+}
+
+.section[data-mode='cinematic'] .creed {
+  margin-inline: auto;
+}
+
+.section[data-mode='cinematic'] .ctas {
   justify-content: center;
 }
 
-.coreCpuIcon {
-  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
-}
+/* ---------- the rail ---------- */
 
-.coreGlowPulse {
+.section[data-mode='cinematic'] .hud {
   position: absolute;
-  inset: -20%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.28) 0%, rgba(13, 148, 136, 0.12) 50%, transparent 70%);
-  animation: coreGlowPulse 4.5s ease-in-out infinite;
+  right: clamp(1.25rem, 5vw, 5rem);
+  bottom: 1.1rem;
+  left: clamp(1.25rem, 5vw, 5rem);
+  z-index: 4;
+  display: block;
 }
 
-@keyframes rotateClockwise {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes rotateCounter {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
-}
-
-@keyframes coreGlowPulse {
-  0%, 100% { opacity: 0.5; transform: scale(0.95); }
-  50% { opacity: 0.95; transform: scale(1.15); }
-}
-
-/* Core HUD callout on activation */
-.coreCallout {
-  position: absolute;
-  top: calc(50% + 155px);
-  left: 50%;
-  transform: translateX(-50%);
+.rail {
+  position: relative;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.75rem;
+}
+
+.railTrack {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: rgb(148 163 184 / 0.22);
+}
+
+/* Learning into building into delivering, as the story goes. */
+.railFill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #34d399, #60a5fa 60%, #67e8f9);
+  transform-origin: 0% 50%;
+}
+
+.chapters {
+  display: flex;
+  flex: 1;
+  gap: clamp(0.6rem, 1.8vw, 1.6rem);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chapter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.3rem 0;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(148 163 184 / 0.6);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.chapter:hover,
+.chapter[aria-current] {
+  color: var(--paper);
+}
+
+.chapterIndex {
+  color: rgb(52 211 153 / 0.75);
+}
+
+/* "/ 06" — only where the other five are not on show. */
+.chapterOf {
+  display: none;
+}
+
+.skip {
+  display: inline-flex;
+  flex: none;
   align-items: center;
   gap: 0.35rem;
-  z-index: 4;
-  pointer-events: none;
-}
-
-.coreCalloutBadge {
-  font-family: monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: #047857;
-  padding: 0.3rem 0.9rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgb(148 163 184 / 0.3);
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12);
-}
-
-.coreCalloutText {
-  font-size: 0.75rem;
+  font-family: var(--mono);
+  font-size: 0.64rem;
   font-weight: 600;
-  color: #475569;
-  letter-spacing: 0.08em;
-}
-
-/* =========================================================================
-   SCENE 4: SVG NETWORK CONSTELLATION
-   Connection lines connecting core & 5 nodes
-   ========================================================================= */
-
-.networkSvg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.circuitLine {
-  stroke: rgba(16, 185, 129, 0.35);
-  stroke-width: 1.5;
-  stroke-dasharray: 5 5;
-  fill: none;
-  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.25));
-}
-
-.circuitLineActive {
-  stroke: #0d9488;
-  stroke-width: 2.2;
-  stroke-dasharray: 8 6;
-  fill: none;
-  filter: drop-shadow(0 0 8px rgba(13, 148, 136, 0.45));
-}
-
-/* =========================================================================
-   SCENE 3: 3D SPATIAL CAPABILITY NODES (5 Specialized Broad Areas)
-   1. Innovation
-   2. Cyber Security
-   3. Artificial Intelligence
-   4. Software Development
-   5. Digital Technology
-   ========================================================================= */
-
-.nodesContainer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 5;
-  transform-style: preserve-3d;
-}
-
-.spatialNode {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  pointer-events: auto;
-  transform-style: preserve-3d;
-  will-change: transform, opacity;
-  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.spatialNode:hover {
-  transform: translateY(-4px) scale(1.03) !important;
-}
-
-/* Glowing Beacon Anchor */
-.nodeBeacon {
-  position: relative;
-  width: 12px;
-  height: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.beaconDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #0d9488;
-  box-shadow: 0 0 10px #0d9488;
-}
-
-.beaconPing {
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1.5px solid #0d9488;
-  animation: ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
-}
-
-/* Compact Floating 3D Frosted Glass Panel */
-.nodePanel {
-  position: relative;
-  width: min(280px, 80vw);
-  padding: 0.85rem 1.15rem;
-  border-radius: 1.15rem;
-  background: linear-gradient(
-    140deg,
-    rgba(255, 255, 255, 0.9) 0%,
-    rgba(240, 253, 250, 0.82) 100%
-  );
-  border: 1px solid rgba(16, 185, 129, 0.24);
-  box-shadow: 
-    0 16px 36px -12px rgba(4, 42, 34, 0.08),
-    0 1px 3px rgba(4, 42, 34, 0.04),
-    inset 0 1px 1px rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  overflow: hidden;
-}
-
-.nodePanelGlow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-}
-
-.nodeHeaderRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.35rem;
-}
-
-.nodeIconBox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.6rem;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(13, 148, 136, 0.08));
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: #059669;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
-}
-
-.nodeBadge {
-  font-family: monospace;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: #0d9488;
-  padding: 0.18rem 0.5rem;
-  border-radius: 9999px;
-  background: rgba(13, 148, 136, 0.08);
-  border: 1px solid rgba(13, 148, 136, 0.2);
-}
-
-.nodeTextContent {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.nodeTitle {
-  font-size: 0.975rem;
-  font-weight: 800;
-  color: #042f2e;
-  letter-spacing: -0.015em;
-  line-height: 1.25;
-}
-
-.nodeDomain {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #0d9488;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: var(--quiet);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
-/* =========================================================================
-   SCENE 5: GRAND AYA TECH IDENTITY REVEAL
-   ========================================================================= */
-
-.identityContainer {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  max-width: 960px;
-  padding: 2.5rem 1.5rem;
-  z-index: 5;
-  pointer-events: auto;
+.skip:hover {
+  border-color: rgb(52 211 153 / 0.6);
+  color: var(--paper);
 }
 
-.identityCard {
-  position: relative;
-  width: 100%;
-  padding: clamp(2.2rem, 5vw, 3.8rem) clamp(1.8rem, 4vw, 3.4rem);
-  border-radius: 2.25rem;
-  background: linear-gradient(
-    150deg,
-    rgba(255, 255, 255, 0.94) 0%,
-    rgba(240, 253, 250, 0.9) 50%,
-    rgba(236, 253, 245, 0.95) 100%
-  );
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 
-    0 32px 70px -16px rgba(4, 42, 34, 0.12),
-    0 0 55px -10px rgba(16, 185, 129, 0.15),
-    inset 0 1px 2px rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  overflow: hidden;
+.chapter:focus-visible,
+.skip:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--emerald);
+  outline-offset: 3px;
 }
 
-.identityCardGlow {
+/* The way in, until the first scroll takes it. */
+.section[data-mode='cinematic'] .hint {
   position: absolute;
-  top: 0;
+  bottom: 3.9rem;
   left: 50%;
-  transform: translateX(-50%);
-  width: 75%;
-  height: 150px;
-  background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.identityHeaderPill {
-  position: relative;
-  overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.45rem 1.25rem;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  font-size: 0.775rem;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #047857;
-  margin-bottom: 1.25rem;
-}
-
-.pillSweep {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.55),
-    transparent
-  );
-  transform: skewX(-20deg);
-  pointer-events: none;
-}
-
-.identityLogoWrap {
-  margin: 0.5rem auto 1.25rem;
-  display: flex;
-  justify-content: center;
-}
-
-.identityLogoImg {
+  z-index: 4;
   display: block;
-  width: auto;
-  max-width: 17rem;
-  height: auto;
-  max-height: 5.5rem;
-  object-fit: contain;
-  user-select: none;
-  filter: drop-shadow(0 4px 16px rgba(4, 42, 34, 0.12));
+  margin: 0;
+  translate: -50% 0;
+  pointer-events: none;
 }
 
-.identityMotto {
-  font-size: clamp(1.25rem, 2.6vw, 1.95rem);
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: #042f2e;
-  margin-bottom: 0.35rem;
-}
-
-.mottoWord {
-  display: inline-block;
-  will-change: transform, opacity;
-}
-
-.identityTagline {
-  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
-  font-weight: 600;
-  color: #047857;
-  margin-bottom: 1.8rem;
-  letter-spacing: 0.02em;
-}
-
-/* Capability Pills Ribbon */
-.pillarsRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  margin-bottom: 2.25rem;
-}
-
-.pillarChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 1rem;
-  border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(16, 185, 129, 0.22);
-  color: #042f2e;
-  font-size: 0.8rem;
-  font-weight: 700;
-  box-shadow: 0 2px 6px rgba(4, 42, 34, 0.04);
-  transition: all 0.25s ease;
-}
-
-.pillarIconWrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transform-origin: center center;
-  will-change: transform, opacity;
-}
-
-.pillarChip:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(16, 185, 129, 0.45);
-  color: #047857;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(16, 185, 129, 0.12);
-}
-
-/* Action CTA */
-.ctaGroup {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.primaryCta {
+.hintInner {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.85rem 2rem;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, #059669, #0d9488);
-  color: #ffffff;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: 
-    0 12px 28px -8px rgba(16, 185, 129, 0.45),
-    0 0 20px rgba(13, 148, 136, 0.2);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(203 213 225 / 0.7);
 }
 
-.primaryCta:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 16px 36px -6px rgba(16, 185, 129, 0.55),
-    0 0 30px rgba(13, 148, 136, 0.3);
-  background: linear-gradient(135deg, #10b981, #14b8a6);
+.hintInner::before {
+  content: '';
+  width: 1px;
+  height: 1.6rem;
+  background: linear-gradient(to bottom, transparent, var(--emerald));
+  animation: fall 1.8s ease-in-out infinite;
+}
+
+@keyframes fall {
+  0% {
+    opacity: 0;
+    translate: 0 -40%;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 40%;
+  }
 }
 
 /* =========================================================================
-   MOBILE / RESPONSIVE FLOW LAYOUT
+   A TALL FRAME
+   The same stage, composed for a phone: the scene in the upper part, the
+   words across the bottom, the rail down to the one chapter you are in.
    ========================================================================= */
 
-@media (max-width: 1024px) {
-  .stage {
-    perspective: 800px;
-  }
-  
-  .nodePanel {
-    width: min(240px, 80vw);
-    padding: 0.75rem 1rem;
-  }
+.section[data-mode='cinematic'][data-compact] .ideaTitle {
+  font-size: clamp(1.7rem, 8.6vw, 2.6rem);
 }
 
-@media (max-width: 767px) {
-  .section {
-    padding-bottom: 5rem;
+.section[data-mode='cinematic'][data-compact] .idea {
+  bottom: clamp(5.5rem, 14svh, 8rem);
+}
+
+.section[data-mode='cinematic'][data-compact] .beat {
+  right: 1.25rem;
+  bottom: 4.4rem;
+  left: 1.25rem;
+  width: auto;
+}
+
+.section[data-mode='cinematic'][data-compact] .title {
+  font-size: clamp(1.6rem, 7vw, 2.2rem);
+}
+
+.section[data-mode='cinematic'][data-compact] .title[data-size='word'] {
+  font-size: clamp(2.4rem, 13vw, 3.4rem);
+}
+
+.section[data-mode='cinematic'][data-compact] .line {
+  margin-top: 0.6rem;
+}
+
+.section[data-mode='cinematic'][data-compact] .strip {
+  margin-top: 1rem;
+}
+
+/* No room beside the arcs: the three stand in a column under them. */
+.section[data-mode='cinematic'][data-compact] .pillars {
+  inset: calc(var(--cy, 31%) + var(--u, 4rem) * 2.5) 1.25rem auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+}
+
+.section[data-mode='cinematic'][data-compact] .pillar[data-pillar] {
+  position: static;
+  width: auto;
+  max-width: none;
+  translate: none;
+  align-items: center;
+  text-align: center;
+}
+
+.section[data-mode='cinematic'][data-compact] .pillarLine {
+  max-width: none;
+}
+
+.section[data-mode='cinematic'][data-compact] .ctas {
+  margin-top: 1.1rem;
+}
+
+.section[data-mode='cinematic'][data-compact] .hud {
+  right: 1.25rem;
+  bottom: 0.9rem;
+  left: 1.25rem;
+}
+
+.section[data-mode='cinematic'][data-compact] .chapters {
+  gap: 0;
+}
+
+.section[data-mode='cinematic'][data-compact] .chapter:not([aria-current]) {
+  display: none;
+}
+
+.section[data-mode='cinematic'][data-compact] .chapterOf {
+  display: inline;
+}
+
+/* =========================================================================
+   STILLNESS
+   Without motion the stage is never set up, so little is left to do here.
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .stripDot,
+  .hintInner::before {
+    animation: none;
   }
 
-  .stage {
-    height: auto;
-    max-height: none;
-    overflow: visible;
-    padding: 3rem 1rem;
-    display: block;
+  /* No drift: the row wraps instead, and its second copy is not needed. */
+  .stripTrack {
+    width: auto;
   }
 
-  .actsContainer {
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 3.5rem;
-    padding: 0;
+  .stripRow {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    padding-right: 0;
   }
 
-  .actLayer {
-    position: relative;
-    inset: auto;
-    height: auto;
-    pointer-events: auto;
+  .stripWindow[data-drifts] .stripTrack {
+    animation: none;
   }
 
-  /* The logo and its light, then the copy — no environment round it. */
-  .introAct {
-    display: flex;
-    gap: 0.25rem;
-  }
-
-  .introStage {
-    width: min(21rem, 84vw);
-  }
-
-  .introCopy {
-    align-self: auto;
-  }
-
-  .introField {
+  .stripRow[aria-hidden] {
     display: none;
   }
 
-  .introHalo {
-    width: 130%;
-    height: 200%;
-  }
-
-  .coreWrapper {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
-    margin: 2.5rem auto;
-  }
-
-  .coreCallout {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
-    margin-top: 1rem;
-  }
-
-  .networkSvg {
-    display: none;
-  }
-
-  .nodesContainer {
-    position: relative;
-    inset: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.25rem;
-    pointer-events: auto;
-    margin: 1.5rem 0;
-  }
-
-  .spatialNode {
-    position: relative;
-    left: auto !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    width: 100%;
-    max-width: 360px;
-    transform: none !important;
-  }
-
-  .nodePanel {
-    width: 100%;
-  }
-
-  .identityContainer {
-    position: relative;
-    padding: 0;
-  }
-
-  .identityCard {
-    padding: 2.25rem 1.25rem;
-  }
-
-  .identityLogoImg {
-    max-width: 13rem;
+  .ctaLearn,
+  .ctaBuild,
+  .chapter,
+  .skip,
+  .stripLink {
+    transition: none;
   }
 }

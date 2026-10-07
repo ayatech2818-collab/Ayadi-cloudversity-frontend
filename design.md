@@ -5,7 +5,7 @@ It records the design system as it exists in the code today, the reasoning
 behind it, and the open questions. When this file and the code disagree, the
 code wins — update this file.
 
-Last updated: 2026-09-22.
+Last updated: 2026-10-07.
 
 ---
 
@@ -34,14 +34,16 @@ Last updated: 2026-09-22.
 | Brand | Role | Current colour identity in code |
 |---|---|---|
 | **Ayadi Cloudversity** | Parent platform — the site itself | Green → teal, with navy as the accent colour |
-| **AyaTech** | Sub-brand: technology, software, AI | **Inconsistent — see §13.** Navy on `/courses` and the Home "Learning Pathways" panels; green + white in the Home hero's Choose your world card |
-| **Netscape** | Sub-brand: training for teachers | Teal (→ navy) |
+| **AyaTech** | Sub-brand: technology, software, AI | **Two treatments — see §13.** Teal (→ navy) on `/courses`; green + white in the Home hero's Choose your world card |
+| **Ayadi Glocal School (AGS)** | Sub-brand: online school, Grades 1–8 (ayadischool.com) | Navy |
 
-`globals.css` states the intended scale: *green (Ayadi) → teal (Netscape) →
-navy (AyaTech)*. The latest direction from the owner (for the Home hero) is
-that **AyaTech's official colours are green and white, not blue**. The hero
-follows that; the rest of the site has not been updated. Resolve it with the
-owner before extending either treatment.
+`globals.css` states the scale: *green (Ayadi) → teal (AyaTech) → navy (AGS)*.
+On 2026-10-07 the owner removed the **Netscape** sub-brand, added AGS in its
+place, moved AyaTech onto the teal theme Netscape had, and gave AyaTech's old
+navy theme to AGS. That brings `/courses` in line with the owner's earlier
+direction for the Home hero — **AyaTech's official colours are green and
+white, not blue** — though the hero and `/courses` still use two different
+green-family treatments for it.
 
 Spelling in code is **"AyaTech"** (`brands.ts`, hero labels). The owner's
 briefs have also used "Ayatech" — confirm before changing copy.
@@ -80,7 +82,7 @@ logo — the exact hex is unconfirmed with the client.
 | Utility | Definition | Use |
 |---|---|---|
 | `bg-brand-gradient` | 135° `#059669 → #16a34a → #0d9488` | Gradient words in headings, icon tiles, Enroll button, progress bars |
-| `bg-accent-gradient` | 135° `#141d3f → #1e2b57 → #2f4480` | Hero CTA, selected filter pills, AyaTech (courses) |
+| `bg-accent-gradient` | 135° `#141d3f → #1e2b57 → #2f4480` | Hero CTA, selected filter pills, AGS (courses) |
 | `bg-hero-ambient` | radial, primary @16% → transparent | Soft green glow behind hero/sections |
 
 Gradient text pattern: `bg-brand-gradient bg-clip-text text-transparent` on a
@@ -304,9 +306,12 @@ Order and intent:
   pills (navy when selected), `PostCard` grid (whole card clickable through
   one stretched link). Post page: `max-w-[68ch]` article, sticky contents
   sidebar, related posts.
-- **Media** (`media/`) — hero with a dispersing composition, pinned 3D
-  filmstrip (`Reel.tsx`), filterable mosaic grid (tile shapes declared per
-  item, no layout shift), lightbox.
+- **Media** (`media/`) — real data: published galleries from the Gallery API
+  (`useMediaLibrary.ts`, shaped in `media.ts`), one album per gallery. Hero
+  with a dispersing composition, pinned 3D filmstrip (`Reel.tsx`, up to six
+  frames drawn across albums), album mosaic filterable by Photos / Films (tile
+  shapes dealt by position, no layout shift), frosted-glass lightbox scoped to
+  one album, with a preview row for albums of three or more items.
 - **Courses** (`components/website/courses/`):
   1. `CoursesIntro` — GSAP entrance, cursor light, magnetic CTA, a pathway
      indicator sliding between the three brands.
@@ -751,9 +756,12 @@ generic stock.
 
 ## 13. Known inconsistencies and open decisions
 
-1. **AyaTech colour:** navy in `/courses`, LearningPathways panel 02 and the
-   `globals.css` scale; green + white in the Home hero (the owner's latest
-   direction). Needs one answer.
+1. **AyaTech colour:** teal (→ navy) on `/courses` since 2026-10-07; green +
+   white in the Home hero. No longer navy anywhere, but still two treatments.
+   The Home "Learning Pathways" panels are not brand-labelled — they only
+   borrow the three colours — so they were left as they are.
+   **AGS copy is placeholder:** the brand entry and its three programme cards
+   were written from ayadischool.com and need the school's sign-off.
 2. **AyaTech vs Ayatech** spelling.
 3. **Navy is "on trial"** and its hex is unconfirmed.
 4. **`font-sans` → `--font-plus-jakarta` is never loaded**; Manrope is the

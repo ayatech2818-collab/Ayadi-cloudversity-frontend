@@ -2,13 +2,18 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // Course photos in the Featured Courses section are hosted on Unsplash.
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "raihan-materials.s3.ap-southeast-1.amazonaws.com",
+        port: "",
+        pathname: "/**",
       },
     ],
   },

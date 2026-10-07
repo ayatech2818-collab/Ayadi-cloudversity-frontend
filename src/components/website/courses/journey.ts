@@ -108,7 +108,7 @@ export const collageItems: CollageItem[] = [
    ACT THREE — the learning worlds
 ================================================== */
 
-/* Ayadi's six subjects. AyaTech and Netscape will each need their own list
+/* Ayadi's six subjects. AyaTech and AGS will each need their own list
    when their journeys are built — they do not share these. */
 export type LearningWorld = {
   id: string;

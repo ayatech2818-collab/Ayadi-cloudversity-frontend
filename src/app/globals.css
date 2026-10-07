@@ -22,8 +22,8 @@
   --color-accent: #1e2b57;
   --color-accent-strong: #141d3f;
 
-  /* Sub-brand identities sit on one scale: green (Ayadi) → teal (Netscape) →
-     navy (AyaTech). `brand-end` (#0d9488) is only 3.7:1 on white, so this
+  /* Sub-brand identities sit on one scale: green (Ayadi) → teal (AyaTech) →
+     navy (AGS). `brand-end` (#0d9488) is only 3.7:1 on white, so this
      darker teal carries the small text while brand-end carries the fills. */
   --color-brand-teal: #0f766e;
   --background-image-accent-gradient: linear-gradient(135deg, #141d3f, #1e2b57, #2f4480);

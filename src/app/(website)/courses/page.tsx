@@ -4,7 +4,7 @@ import { CoursesPageContent } from '@/components/website/courses/CoursesPageCont
 export const metadata: Metadata = {
   title: 'Courses & Programs',
   description:
-    'Explore courses and learning programs from Ayadi Cloudversity, AyaTech, and Netscape.',
+    'Explore courses and learning programs from Ayadi Cloudversity, AyaTech, and Ayadi Glocal School.',
 };
 
 export default function CoursesPage() {

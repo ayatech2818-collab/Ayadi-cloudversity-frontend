@@ -1,11 +1,11 @@
-export type BrandId = 'ayadi' | 'ayatech' | 'netscape';
+export type BrandId = 'ayadi' | 'ayatech' | 'ags';
 
 export interface BrandTabInfo {
   id: BrandId;
   name: string;
   subtitle: string;
   tagline: string;
-  iconName: 'GraduationCap' | 'Cpu' | 'BookOpen';
+  iconName: 'GraduationCap' | 'Cpu' | 'School';
 }
 
 export interface DummyCourseItem {

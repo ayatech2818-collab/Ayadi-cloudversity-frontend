@@ -13,7 +13,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState, type SVGProps } from 'react';
-import { Images } from 'lucide-react';
+import { Images, Phone } from 'lucide-react';
 import { EnrollmentModal } from '@/components/website/enrollment/EnrollmentModal';
 
 /* ==================================================
@@ -61,6 +61,7 @@ const navigation = [
   { href: '/courses', label: 'Courses', Icon: CoursesIcon },
   { href: '/blog', label: 'Blog', Icon: BlogIcon },
   { href: '/media', label: 'media', Icon: Images },
+  { href: '/contact', label: 'Contact', Icon: Phone },
 ];
 
 /*

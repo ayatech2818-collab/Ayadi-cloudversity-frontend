@@ -3,36 +3,46 @@
 import { ArrowUpRight, CalendarDays, Clock3 } from 'lucide-react';
 import Link from 'next/link';
 
-import { CARD_CHROME, CardDecor, handleSpotlight } from '@/components/website/ui/card-chrome';
+import {
+  CARD_CHROME,
+  CardDecor,
+  handleSpotlight,
+} from '@/components/website/ui/card-chrome';
 
 import BlogCover from './BlogCover';
-import type { Post } from './posts';
 
-/*
- * Shared by the index grid and the related-posts strip on a post page.
- *
- * The title's link carries `after:absolute after:inset-0`, which stretches an
- * invisible hit area over the whole card. That makes the entire card clickable
- * while leaving exactly one link in the accessibility tree — the old markup had
- * three links per card all pointing at the same URL.
- */
+export type PublicBlogPost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  date: string;
+  displayDate: string;
+  readTime: string;
+  author: string;
+  image: string;
+};
+
 export default function PostCard({
   post,
   sizes,
   priority = false,
 }: {
-  post: Post;
+  post: PublicBlogPost;
   sizes: string;
   priority?: boolean;
 }) {
   return (
-    <article onPointerMove={handleSpotlight} className={`${CARD_CHROME} flex flex-col`}>
+    <article
+      onPointerMove={handleSpotlight}
+      className={`${CARD_CHROME} flex flex-col`}
+    >
       <CardDecor />
 
       <div className="relative aspect-[16/10] overflow-hidden bg-primary/5">
         <BlogCover
           src={post.image}
-          /* Decorative: the title sits directly beneath it. */
           alt=""
           sizes={sizes}
           priority={priority}
@@ -52,12 +62,24 @@ export default function PostCard({
       <div className="flex flex-1 flex-col p-6">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
           <span className="flex items-center gap-1.5">
-            <CalendarDays aria-hidden="true" size={14} className="text-primary" />
-            <time dateTime={post.date}>{post.displayDate}</time>
+            <CalendarDays
+              aria-hidden="true"
+              size={14}
+              className="text-primary"
+            />
+
+            <time dateTime={post.date}>
+              {post.displayDate}
+            </time>
           </span>
 
           <span className="flex items-center gap-1.5">
-            <Clock3 aria-hidden="true" size={14} className="text-primary" />
+            <Clock3
+              aria-hidden="true"
+              size={14}
+              className="text-primary"
+            />
+
             {post.readTime}
           </span>
         </div>
@@ -71,11 +93,16 @@ export default function PostCard({
           </Link>
         </h3>
 
-        <p className="mt-2.5 line-clamp-3 text-sm leading-7 text-muted">{post.excerpt}</p>
+        <p className="mt-2.5 line-clamp-3 text-sm leading-7 text-muted">
+          {post.excerpt}
+        </p>
 
-        {/* Not a link — the stretched hit area above already covers it. */}
-        <span aria-hidden="true" className="mt-auto flex items-center gap-2 pt-6 text-sm font-bold text-primary">
+        <span
+          aria-hidden="true"
+          className="mt-auto flex items-center gap-2 pt-6 text-sm font-bold text-primary"
+        >
           Read article
+
           <ArrowUpRight
             size={16}
             className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"

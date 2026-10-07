@@ -17,7 +17,7 @@ import type { BrandId } from './types';
    before paint or the acts flash stacked. Swap the hook, not the timing. */
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
-/* The parent platform. AyaTech and Netscape get their own journeys further down
+/* The parent platform. AyaTech and AGS get their own journeys further down
    the page — one brand per pinned sequence, so no act has to introduce two
    things at once. */
 const brand = brandById.ayadi;

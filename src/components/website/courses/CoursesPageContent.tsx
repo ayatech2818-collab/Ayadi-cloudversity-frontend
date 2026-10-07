@@ -28,7 +28,7 @@ export function CoursesPageContent() {
       <CoursesIntro onSelectBrand={selectAndScroll} />
 
       {/* Pinned three-act sequence for the parent platform. AyaTech and
-          Netscape get their own journeys once Ayadi's is signed off. */}
+          AGS get their own journeys once Ayadi's is signed off. */}
           
       {/* <AyadiJourney onSelectBrand={selectAndScroll} /> */}
 

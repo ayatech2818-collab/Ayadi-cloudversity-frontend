@@ -9,7 +9,7 @@ import { handleSpotlight } from '@/components/website/ui/card-chrome';
 
 /*
  * One panel, one colour. The three steps of the brand scale used on the courses
- * page — green (Ayadi), navy (AyaTech), teal (Netscape) — so the home page and
+ * page — green (Ayadi), navy (AGS), teal (AyaTech) — so the home page and
  * /courses read as the same family.
  *
  * Every value is a literal Tailwind class: a variant assembled at runtime is
@@ -88,7 +88,7 @@ const pathways: Pathway[] = [
     subtitle: 'Skills',
     description: 'Practical Knowledge',
     icon: Lightbulb,
-    /* Netscape's teal→navy, run to the top-right so the navy end lands under
+    /* AyaTech's teal→navy, run to the top-right so the navy end lands under
        the text. White on `brand-end` is only 3.7:1, which the chip and the
        "Explore" label would fail. */
     theme: {

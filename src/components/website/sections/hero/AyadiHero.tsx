@@ -1022,11 +1022,6 @@ export function AyadiHero() {
                   <span className="bg-brand-gradient bg-clip-text text-transparent">Ayadi Cloudversity</span>
                 </h1>
 
-                <p className="mt-5 max-w-[44rem] text-[0.95rem] leading-7 text-muted sm:text-[1.0625rem] sm:leading-8">
-                  At Ayadi Cloudversity, education goes beyond facts. It sparks curiosity, builds character, and shapes
-                  futures. From playschool to post-graduation to workspace readiness, we are with you, providing learning
-                  pathways, academic excellence, career preparedness and personal growth.
-                </p>
 
                 <Link
                   href="/courses"

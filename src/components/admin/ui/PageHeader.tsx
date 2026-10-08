@@ -36,7 +36,7 @@ export default function PageHeader({
 }: PageHeaderProps) {
   return (
     <section className="px-4 pt-6 sm:px-6 lg:px-8">
-      <div className="relative isolate overflow-hidden rounded-3xl bg-accent-gradient px-6 py-7 text-white shadow-[0_30px_60px_-30px_rgba(20,29,63,0.75)] sm:px-8 sm:py-8">
+      <div className="relative isolate overflow-hidden rounded-3xl bg-accent-gradient px-6 py-7 text-white shadow-[0_30px_60px_-30px_rgba(20,29,63,0.75)] sm:px-8 sm:py-8 dark:ring-1 dark:ring-white/10">
         {/* Decor */}
         <div
           aria-hidden="true"

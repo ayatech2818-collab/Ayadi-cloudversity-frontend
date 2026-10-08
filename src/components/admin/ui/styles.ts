@@ -47,7 +47,7 @@ export const iconButtonClass = (
     small ? "h-7 w-7 rounded-lg" : "h-9 w-9 rounded-xl"
   } ${
     danger
-      ? "enabled:hover:bg-rose-50 enabled:hover:text-rose-600 enabled:hover:ring-rose-200 focus-visible:outline-rose-600"
+      ? "enabled:hover:bg-rose-50 enabled:hover:text-rose-600 enabled:hover:ring-rose-200 focus-visible:outline-rose-600 dark:enabled:hover:bg-rose-500/15 dark:enabled:hover:text-rose-400 dark:enabled:hover:ring-rose-500/40"
       : "enabled:hover:bg-page enabled:hover:text-primary enabled:hover:ring-primary/40 focus-visible:outline-primary"
   }`;
 

@@ -51,7 +51,7 @@ export default function LogoutDialog({
       onCancel={onCancel}
       onConfirm={handleLogout}
     >
-      <div className="flex items-center gap-3 rounded-xl border border-border bg-background p-4">
+      <div className="flex items-center gap-3 rounded-xl border border-border bg-page p-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
           <LogOut className="h-5 w-5" />
         </div>

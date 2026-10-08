@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getCurrentAdmin } from "@/lib/api/auth";
 import { supabase } from "@/lib/supabase/client";
 import AdminShell from "@/components/admin/AdminShell";
+import AdminThemeProvider from "@/components/admin/theme/AdminThemeProvider";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -41,15 +42,17 @@ export default function AdminLayout({
     checkAdmin();
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f8f6]">
-        <p className="text-sm text-gray-500">
-          Checking authentication...
-        </p>
-      </div>
-    );
-  }
-
-  return <AdminShell>{children}</AdminShell>;
+  return (
+    <AdminThemeProvider>
+      {loading ? (
+        <div className="flex min-h-screen items-center justify-center bg-[#f5f8f6] dark:bg-page">
+          <p className="text-sm text-gray-500 dark:text-muted">
+            Checking authentication...
+          </p>
+        </div>
+      ) : (
+        <AdminShell>{children}</AdminShell>
+      )}
+    </AdminThemeProvider>
+  );
 }

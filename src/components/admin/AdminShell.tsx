@@ -62,7 +62,7 @@ export default function AdminShell({
     mobileSidebarOpen;
 
   return (
-    <div className="min-h-screen bg-[#f5f8f6]">
+    <div className="min-h-screen bg-[#f5f8f6] dark:bg-page">
       <AdminSidebar
         open={mobileSidebarOpen}
         pinned={sidebarPinned}

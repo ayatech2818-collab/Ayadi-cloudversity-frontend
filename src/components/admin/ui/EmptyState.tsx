@@ -40,7 +40,7 @@ export default function EmptyState({
       <div
         className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${
           danger
-            ? "bg-rose-50 text-rose-600"
+            ? "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
             : "bg-brand-gradient text-white shadow-lg shadow-brand-start/30"
         }`}
       >

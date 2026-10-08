@@ -108,7 +108,7 @@ export default function AuthorPhotoField({
         {error && (
           <p
             role="alert"
-            className="mt-2 text-xs font-medium text-rose-600"
+            className="mt-2 text-xs font-medium text-rose-600 dark:text-rose-400"
           >
             {error}
           </p>

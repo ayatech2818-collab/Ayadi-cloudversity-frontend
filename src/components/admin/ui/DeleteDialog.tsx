@@ -41,7 +41,7 @@ export default function DeleteDialog({
     >
       <div className="p-6">
         <div className="flex items-start gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-100">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-100 dark:bg-rose-500/15 dark:text-rose-400 dark:ring-rose-500/25">
             <TriangleAlert size={20} />
           </span>
 

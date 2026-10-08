@@ -166,7 +166,7 @@ function EnquiryDetail({
           onClick={onDelete}
           className={`mr-auto ${buttonClass("secondary")}`}
         >
-          <Trash2 size={15} className="text-rose-600" />
+          <Trash2 size={15} className="text-rose-600 dark:text-rose-400" />
           Delete
         </button>
 

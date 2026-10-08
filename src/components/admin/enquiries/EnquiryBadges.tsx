@@ -14,11 +14,11 @@ const STATUS_STYLES: Record<
   { pill: string; dot: string }
 > = {
   new: {
-    pill: "bg-sky-50 text-sky-700 ring-sky-200",
+    pill: "bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-400/10 dark:text-sky-300 dark:ring-sky-400/30",
     dot: "bg-sky-500",
   },
   contacted: {
-    pill: "bg-amber-50 text-amber-700 ring-amber-200",
+    pill: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-400/30",
     dot: "bg-amber-500",
   },
   converted: {

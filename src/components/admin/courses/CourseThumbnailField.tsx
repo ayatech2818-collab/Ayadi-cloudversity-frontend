@@ -69,7 +69,7 @@ export default function CourseThumbnailField({
         {error && (
           <p
             role="alert"
-            className="mt-1 text-xs font-medium text-rose-600"
+            className="mt-1 text-xs font-medium text-rose-600 dark:text-rose-400"
           >
             {error}
           </p>

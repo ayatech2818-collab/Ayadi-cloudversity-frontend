@@ -40,7 +40,7 @@ export default function SegmentedTabs<Value extends string>({
             onClick={() => onChange(option.value)}
             className={`flex h-9 flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
               selected
-                ? "bg-accent-gradient text-white shadow-md shadow-accent/25"
+                ? "bg-accent-gradient text-white shadow-md shadow-accent/25 dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/15"
                 : "text-muted hover:text-text"
             }`}
           >

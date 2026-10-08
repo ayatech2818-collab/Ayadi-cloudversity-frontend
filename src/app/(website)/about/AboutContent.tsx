@@ -49,7 +49,7 @@ const values = [
   {
     icon: Brain,
     title: 'Critical thinking',
-    text: 'Our learning experiences help students think independently and approach challenges with confidence.',
+    text: 'Our learning experiences help students think independently.',
   },
   {
     icon: Heart,
@@ -227,16 +227,7 @@ export default function AboutContent() {
           <div>
             <ScrollReveal text="We are passionate educators driven by a shared mission to provide exceptionally high-quality learning experiences for every individual." />
 
-            <motion.p
-              variants={fadeUp}
-              initial={start}
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="mt-10 max-w-2xl text-base leading-8 text-muted"
-            >
-              Rooted in our commitment to diversity, innovation, and academic excellence, we work tirelessly to create an
-              environment where curiosity is nurtured and students feel empowered to explore, question, and grow.
-            </motion.p>
+         
           </div>
         </div>
       </section>
@@ -263,11 +254,6 @@ export default function AboutContent() {
             >
               Building learners for the real world.
             </motion.h2>
-
-            <motion.p variants={fadeUp} className="mt-5 text-base leading-8 text-muted">
-              Our classrooms, teaching methods, and learning resources are thoughtfully designed to inspire confidence,
-              encourage critical thinking, and prepare learners for real-world challenges.
-            </motion.p>
           </motion.div>
 
           <motion.ul
@@ -405,16 +391,6 @@ export default function AboutContent() {
               <p className="mt-1 text-sm text-primary">Chief Executive Officer</p>
 
               <div aria-hidden="true" className="mt-8 h-px bg-border" />
-
-              <p className="mt-8 text-base leading-8 text-muted">
-                Our commitment goes far beyond academics — we strive to nurture curiosity, spark innovation, and prepare
-                each learner for the opportunities of tomorrow.
-              </p>
-
-              <p className="mt-5 text-base leading-8 text-muted">
-                With the dedication of our passionate team, we continue to push boundaries, redefine possibilities, and
-                work toward a future where high-quality education is accessible to all.
-              </p>
             </motion.div>
 
             <LeadershipVideo start={start} />

@@ -118,7 +118,7 @@ export default function Modal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-accent-strong/60 p-3 backdrop-blur-sm sm:p-6"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-accent-strong/60 p-3 backdrop-blur-sm sm:p-6 dark:bg-black/60"
           >
             <motion.div
               ref={panelRef}
@@ -130,7 +130,7 @@ export default function Modal({
                 duration: 0.28,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-3xl bg-surface text-text shadow-[0_40px_100px_-30px_rgba(20,29,63,0.65)] outline-none ${WIDTHS[size]}`}
+              className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-3xl bg-surface text-text shadow-[0_40px_100px_-30px_rgba(20,29,63,0.65)] outline-none dark:ring-1 dark:ring-white/10 ${WIDTHS[size]}`}
             >
               {children}
             </motion.div>

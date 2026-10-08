@@ -106,7 +106,7 @@ export default function GalleryCoverField({
           {error && (
             <p
               role="alert"
-              className="text-xs font-medium text-rose-600"
+              className="text-xs font-medium text-rose-600 dark:text-rose-400"
             >
               {error}
             </p>
@@ -117,7 +117,7 @@ export default function GalleryCoverField({
             lives in this modal only until the backend can store it.
           */}
           {fileName && (
-            <div className="flex items-start gap-2 rounded-xl bg-amber-50 p-2.5 text-amber-800 ring-1 ring-inset ring-amber-200">
+            <div className="flex items-start gap-2 rounded-xl bg-amber-50 p-2.5 text-amber-800 ring-1 ring-inset ring-amber-200 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-400/30">
               <Info size={13} className="mt-0.5 shrink-0" />
 
               <p className="text-[11px] font-medium leading-relaxed">

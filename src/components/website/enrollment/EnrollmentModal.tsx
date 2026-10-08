@@ -1,9 +1,10 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, ChevronLeft, X } from 'lucide-react';
+import { CheckCircle2, X } from 'lucide-react';
 import { useCallback, useEffect, useState, useSyncExternalStore, type ChangeEvent, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { createEnrollment } from '@/lib/api/enrollment';
 
 export interface EnrollmentModalProps {
   isOpen: boolean;
@@ -21,9 +22,6 @@ interface FormData {
   country: string;
   zipcode: string;
   message: string;
-  // Step 2 details
-  programInterest: string;
-  learningMode: string;
 }
 
 interface FormErrors {
@@ -44,23 +42,7 @@ const initialFormData: FormData = {
   country: '',
   zipcode: '',
   message: '',
-  programInterest: 'Cloud Computing & DevOps',
-  learningMode: 'Self-Paced with Mentor Support',
 };
-
-const programs = [
-  'Cloud Computing & DevOps',
-  'Cloud Solutions Architecture',
-  'AI & Cloud Data Engineering',
-  'Cloud Security & Compliance',
-  'Full-Stack Cloud Development',
-];
-
-const learningModes = [
-  'Self-Paced with Mentor Support',
-  'Instructor-Led Live Cohort',
-  'Accelerated Bootcamp',
-];
 
 const emptySubscribe = () => () => {};
 
@@ -70,9 +52,12 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
     () => true,
     () => false
   );
-  const [step, setStep] = useState<1 | 2 | 'success'>(1);
+  const [step, setStep] = useState<1 | 'success'>(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   // Lock body scrolling when modal is open
   useEffect(() => {
@@ -147,19 +132,50 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (validateStep1()) {
-      setStep(2);
+
+    if (!validateStep1()) {
+      return;
+    }
+
+    setSubmitError("");
+    setIsSubmitting(true);
+
+    try {
+      await createEnrollment({
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim() || null,
+
+        date_of_birth:
+            formData.dateOfBirth || null,
+
+        email: formData.email.trim(),
+        phone: formData.phone.trim() || null,
+
+        address: formData.address.trim() || null,
+        city: formData.city.trim() || null,
+        country: formData.country.trim() || null,
+        zipcode: formData.zipcode.trim() || null,
+
+        message: formData.message.trim() || null,
+      });
+
+      setStep("success");
+    } catch (error: any) {
+      console.error(
+          "Enrollment submission failed:",
+          error
+      );
+
+      setSubmitError(
+          error?.response?.data?.detail ||
+              "Something went wrong while submitting your application. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    // Ready for future backend submission
-    setStep('success');
-  };
-
   if (!mounted) return null;
 
   return createPortal(
@@ -280,7 +296,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
 
             {/* ---------- STEP 1: CONTACT & PERSONAL DETAILS ---------- */}
             {step === 1 && (
-              <form onSubmit={handleNext} noValidate>
+              <form onSubmit={handleSubmit} noValidate>
                 <div className="grid grid-cols-1 gap-x-5 gap-y-3.5 sm:grid-cols-2 sm:gap-y-4">
                   {/* First Name */}
                   <div>
@@ -686,177 +702,17 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   </div>
                 </div>
 
-                {/* Bottom Action - Next Button */}
+                {submitError && (
+                  <div className="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+                    {submitError}
+                  </div>
+                )}
+
+                {/* Bottom Action - Submit Application */}
                 <div className="mt-5 flex justify-end sm:mt-6">
                   <button
                     type="submit"
-                    className="
-                      h-[42px]
-                      w-[120px]
-                      rounded-[14px]
-                      bg-brand-gradient
-                      font-bold
-                      text-sm
-                      text-white
-                      shadow-md
-                      shadow-accent/40
-                      transition-all
-                      duration-300
-                      hover:-translate-y-0.5
-                      hover:shadow-lg
-                      hover:shadow-brand-middle/25
-                      active:translate-y-0
-                      active:scale-[0.98]
-                      focus-visible:outline-2
-                      focus-visible:outline-offset-2
-                      focus-visible:outline-primary
-                      flex
-                      items-center
-                      justify-center
-                      cursor-pointer
-                    "
-                  >
-                    Next
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* ---------- STEP 2: PROGRAM SELECTION & PREFERENCES ---------- */}
-            {step === 2 && (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="rounded-2xl bg-white/[0.04] p-4 ring-1 ring-white/10">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                    Step 2 of 2
-                  </span>
-                  <h3 className="mt-1 text-lg font-bold text-white">
-                    Program & Learning Preferences
-                  </h3>
-                  <p className="mt-0.5 text-xs text-slate-300">
-                    Select your preferred track to personalize your enrollment curriculum.
-                  </p>
-                </div>
-
-                {/* Program Track Selection */}
-                <div>
-                  <label
-                    htmlFor="programInterest"
-                    className="mb-1.5 block text-[13px] font-medium text-slate-200"
-                  >
-                    Choose Program / Track
-                  </label>
-                  <select
-                    id="programInterest"
-                    name="programInterest"
-                    value={formData.programInterest}
-                    onChange={handleChange}
-                    className="
-                      h-11
-                      w-full
-                      rounded-[14px]
-                      bg-[#1c274c]
-                      border
-                      border-white/10
-                      px-3.5
-                      text-sm
-                      text-white
-                      transition-all
-                      duration-200
-                      focus:border-brand-middle
-                      focus:ring-1
-                      focus:ring-brand-middle
-                      focus:outline-none
-                      cursor-pointer
-                    "
-                  >
-                    {programs.map((prog) => (
-                      <option key={prog} value={prog} className="bg-accent-strong text-white">
-                        {prog}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Learning Mode */}
-                <div>
-                  <label
-                    htmlFor="learningMode"
-                    className="mb-1.5 block text-[13px] font-medium text-slate-200"
-                  >
-                    Study Format
-                  </label>
-                  <select
-                    id="learningMode"
-                    name="learningMode"
-                    value={formData.learningMode}
-                    onChange={handleChange}
-                    className="
-                      h-11
-                      w-full
-                      rounded-[14px]
-                      bg-[#1c274c]
-                      border
-                      border-white/10
-                      px-3.5
-                      text-sm
-                      text-white
-                      transition-all
-                      duration-200
-                      focus:border-brand-middle
-                      focus:ring-1
-                      focus:ring-brand-middle
-                      focus:outline-none
-                      cursor-pointer
-                    "
-                  >
-                    {learningModes.map((mode) => (
-                      <option key={mode} value={mode} className="bg-accent-strong text-white">
-                        {mode}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Applicant Summary Preview */}
-                <div className="rounded-xl bg-[#1c274c]/50 p-3.5 border border-white/5 text-xs text-slate-300">
-                  <div className="font-semibold text-white mb-1">Applicant Summary:</div>
-                  <div>
-                    {formData.firstName} {formData.lastName} &bull; {formData.email}
-                  </div>
-                  {formData.city && <div>Location: {formData.city}, {formData.country || 'Global'}</div>}
-                </div>
-
-                {/* Bottom Actions - Back & Submit */}
-                <div className="mt-6 flex items-center justify-between pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="
-                      inline-flex
-                      items-center
-                      gap-1.5
-                      rounded-xl
-                      px-3.5
-                      py-2
-                      text-sm
-                      font-medium
-                      text-slate-300
-                      transition-colors
-                      duration-200
-                      hover:bg-white/10
-                      hover:text-white
-                      focus-visible:outline-2
-                      focus-visible:outline-offset-2
-                      focus-visible:outline-primary
-                      cursor-pointer
-                    "
-                  >
-                    <ChevronLeft className="size-4" />
-                    Back
-                  </button>
-
-                  <button
-                    type="submit"
+                    disabled={isSubmitting}
                     className="
                       h-[42px]
                       min-w-[140px]
@@ -873,15 +729,16 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       hover:-translate-y-0.5
                       hover:shadow-lg
                       hover:shadow-brand-middle/25
-                      active:translate-y-0
                       active:scale-[0.98]
+                      disabled:cursor-not-allowed
+                      disabled:opacity-60
                       focus-visible:outline-2
                       focus-visible:outline-offset-2
                       focus-visible:outline-primary
                       cursor-pointer
                     "
                   >
-                    Submit Application
+                    {isSubmitting ? "Submitting..." : "Submit Application"}
                   </button>
                 </div>
               </form>
@@ -897,8 +754,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   Enrollment Request Submitted!
                 </h3>
                 <p className="mx-auto mt-2 max-w-md text-sm text-slate-300">
-                  Thank you, <span className="font-semibold text-white">{formData.firstName}</span>. Our admissions advisor will review your preferences for{' '}
-                  <span className="text-emerald-300 font-medium">{formData.programInterest}</span> and reach out to you within 24 hours.
+                  Thank you, <span className="font-semibold text-white">{formData.firstName}</span>. Our admissions advisor will review your application and reach out to you within 24 hours.
                 </p>
 
                 <div className="mt-7 flex justify-center">

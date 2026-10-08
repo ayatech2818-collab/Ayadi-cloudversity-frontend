@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
 
-import { AyadiJourney } from './AyadiJourney';
+
 import { BrandCourses } from './BrandCourses';
 import { CourseBrandTabs } from './CourseBrandTabs';
 import { CoursesIntro } from './CoursesIntro';

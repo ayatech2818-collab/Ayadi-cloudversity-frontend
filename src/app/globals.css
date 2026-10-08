@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* `dark:` answers to the admin dashboard's own switch, not to the visitor's
+   system setting: the public site is light only. The attribute is written by
+   AdminThemeProvider and exists nowhere outside the dashboard. */
+@custom-variant dark (&:where([data-admin-theme="dark"], [data-admin-theme="dark"] *));
+
 :root {
   /* Brand Colors */
   --color-primary: #15803d;
@@ -66,6 +71,36 @@
     color-mix(in srgb, var(--color-primary) 16%, transparent),
     transparent 68%
   );
+}
+
+/*
+ * Admin dashboard, dark.
+ *
+ * Re-points the tokens the admin components are built from, so `bg-surface`,
+ * `text-text`, `ring-border` and the rest follow without a `dark:` variant
+ * each. Only what a token cannot reach — a hard-coded tint, the white header —
+ * carries `dark:` in the component.
+ *
+ * The page sits a step below the sidebar's navy, so the sidebar still reads as
+ * its own panel.
+ */
+[data-admin-theme="dark"] {
+  color-scheme: dark;
+
+  --color-page: #0b1020;
+  --color-surface: #131b33;
+  --color-text: #e8ecf6;
+  --color-muted: #97a4c0;
+  --color-border: #27324f;
+
+  /* As text, brand green and navy are too dark to read on a dark surface.
+     The fills keep the brand stops: the gradients do not use these. */
+  --color-primary: #34d399;
+  --color-primary-hover: #6ee7b7;
+  --color-accent: #c3cffa;
+
+  /* Lifted a little, so a navy band still stands off a navy page. */
+  --background-image-accent-gradient: linear-gradient(135deg, #18224b, #243367, #364c96);
 }
 
 @theme inline {

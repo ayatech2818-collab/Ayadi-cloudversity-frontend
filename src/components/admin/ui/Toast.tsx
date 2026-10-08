@@ -114,7 +114,7 @@ export function Toaster({ toasts, onDismiss }: ToasterProps) {
                   ${
                     isSuccess
                       ? "bg-primary/10 text-primary"
-                      : "bg-rose-50 text-rose-600"
+                      : "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
                   }
                 `}
               >

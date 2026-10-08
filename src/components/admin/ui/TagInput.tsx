@@ -54,7 +54,7 @@ export default function TagInput({
             onClick={() =>
               onChange(values.filter((item) => item !== value))
             }
-            className="flex h-4 w-4 cursor-pointer items-center justify-center rounded transition-colors hover:bg-rose-100 hover:text-rose-600 disabled:cursor-not-allowed"
+            className="flex h-4 w-4 cursor-pointer items-center justify-center rounded transition-colors hover:bg-rose-100 hover:text-rose-600 disabled:cursor-not-allowed dark:hover:bg-rose-500/20 dark:hover:text-rose-300"
           >
             <X size={11} />
           </button>

@@ -8,7 +8,7 @@ import { WHY_KEYS, type Rig } from '../rig';
 import { WHY_ENTRANCES } from '../whyCards';
 import type { Frame } from './frame';
 import { RIPPLE_FRAGMENT, SPRITE_VERTEX } from './shaders';
-import { createWhyPhase, whyPhase } from './why';
+import { cardProgress, createWhyPhase, whyPhase } from './why';
 
 /** A ripple's height against its card's, and its width against its height. */
 const TALL = 1.9;
@@ -50,7 +50,7 @@ export function WhyRipples({ rig, frame }: { rig: RefObject<Rig>; frame: RefObje
     meshes.current.forEach((mesh, index) => {
       if (!mesh) return;
 
-      const e = r[WHY_KEYS[Math.min(index, WHY_KEYS.length - 1)]];
+      const e = cardProgress(layout, index, r[WHY_KEYS[Math.min(index, WHY_KEYS.length - 1)]], r.info);
       const through = e > 0 && e < 1 && layout.unit > 0;
       if (through) whyPhase(e, phase);
       mesh.visible = through && phase.ripple > 0.002;

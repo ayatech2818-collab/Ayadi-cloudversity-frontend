@@ -14,12 +14,14 @@ import { Mark } from './Mark';
 import { LIQUID_FRAGMENT, SCREEN_VERTEX } from './shaders';
 import {
   cardMatrix,
+  cardProgress,
   createWhyPhase,
   isDrawable,
   layoutWhy,
   nearFade,
   toMatrix3d,
   whyPhase,
+  wordsScale,
   type WhySizes,
 } from './why';
 import { WhyRipples } from './WhyRipples';
@@ -357,8 +359,9 @@ function placeWhy(state: RootState, r: Rig, f: Frame, nodes: WhyNodes) {
      suits the glass — so they grow as the camera approaches and sway with
      the pointer's orbit, exactly as the glass does — but never too small to
      read, nor wider than the screen. That point is the middle of the glass
-     wherever the frame has room for the cards beside them; where it has
-     not, they start above the cards and settle there as the cards leave
+     wherever the frame has room for the cards beside them (a little above
+     it on a phone, where the cards take their turns under them); where it
+     has not, they start above the cards and settle there as the cards leave
      (rig.settle; scene/why.ts). For as long as they are there (rig.info). */
   const head = nodes.head;
   if (head) {
@@ -371,8 +374,7 @@ function placeWhy(state: RootState, r: Rig, f: Frame, nodes: WhyNodes) {
       const x = ((headPoint.x + 1) / 2) * width;
       const y = ((1 - headPoint.y) / 2) * height;
       const pixelsPerUnit = ((headAbove.y - headBelow.y) / 2) * height;
-      const onGlass = (layout.wordsAcross * pixelsPerUnit) / r.infoWidth;
-      const scale = Math.min(Math.max(onGlass, 0.85), (0.92 * width) / r.infoWidth);
+      const scale = wordsScale(layout.wordsAcross, pixelsPerUnit, layout.wordsFloor, width, r.infoWidth);
 
       /* Centred on itself first, then scaled about that centre: the element
          is laid out from its corner (.whyAnchor). */
@@ -390,7 +392,7 @@ function placeWhy(state: RootState, r: Rig, f: Frame, nodes: WhyNodes) {
      at which point there is no pane to draw. */
   nodes.cards.forEach((card, index) => {
     const drawn = nodes.drawn[index];
-    const e = r[WHY_KEYS[Math.min(index, WHY_KEYS.length - 1)]];
+    const e = cardProgress(layout, index, r[WHY_KEYS[Math.min(index, WHY_KEYS.length - 1)]], r.info);
 
     let shown = active && e > 0 && layout.unit > 0;
     let fade = 1;
@@ -400,7 +402,7 @@ function placeWhy(state: RootState, r: Rig, f: Frame, nodes: WhyNodes) {
       shown = isDrawable(nearest);
       if (shown) {
         card.style.transform = toMatrix3d(pane);
-        fade = nearFade(pane.elements[15], f.fit);
+        fade = nearFade(pane.elements[15], f.fit, layout.fade);
       }
     }
 

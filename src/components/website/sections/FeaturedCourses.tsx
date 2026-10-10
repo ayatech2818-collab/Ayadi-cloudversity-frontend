@@ -107,14 +107,15 @@ export default function FeaturedCourses() {
   const maxIndex = Math.max(0, courses.length - perView);
 
   // How many cards fit at the current breakpoint — keeps the slide step in sync
-  // with the card widths below (1 / 2 / 4).
+  // with the card widths below (2 / 2 / 4). A phone shows two as well, with the
+  // card itself made smaller there (the `max-md:` classes on CourseCard).
   useEffect(() => {
     const breakpoints = [
       { query: window.matchMedia('(min-width: 1024px)'), value: 4 },
       { query: window.matchMedia('(min-width: 768px)'), value: 2 },
     ];
 
-    const update = () => setPerView(breakpoints.find(({ query }) => query.matches)?.value ?? 1);
+    const update = () => setPerView(breakpoints.find(({ query }) => query.matches)?.value ?? 2);
 
     update();
     breakpoints.forEach(({ query }) => query.addEventListener('change', update));
@@ -204,6 +205,10 @@ export default function FeaturedCourses() {
                   ring-inset
                   ring-[#087f4f]/25
                   backdrop-blur-sm
+                  max-md:gap-2
+                  max-md:px-3
+                  max-md:py-1
+                  max-md:text-[10px]
                 "
               >
                 <span aria-hidden="true" className="relative flex size-2">
@@ -227,6 +232,8 @@ export default function FeaturedCourses() {
                 md:text-5xl
                 lg:text-6xl
                 text-accent
+                max-md:mt-4
+                max-md:text-[1.75rem]
               "
             >
               Discover your next{' '}
@@ -244,21 +251,21 @@ export default function FeaturedCourses() {
 
             <motion.p
               variants={itemVariants}
-              className="mt-5 max-w-xl text-base leading-relaxed text-[#182653]/65 md:text-lg"
+              className="mt-5 max-w-xl text-base leading-relaxed text-[#182653]/65 max-md:mt-3 max-md:text-sm md:text-lg"
             >
               Explore 200+ courses designed to help you learn something new and move forward.
             </motion.p>
           </div>
 
           {/* NAVIGATION */}
-          <motion.div variants={itemVariants} className="flex items-center gap-5">
-            <span className="text-sm font-bold tabular-nums text-[#182653]">
+          <motion.div variants={itemVariants} className="flex items-center gap-5 max-md:gap-3">
+            <span className="text-sm font-bold tabular-nums text-[#182653] max-md:text-xs">
               {String(activeIndex + 1).padStart(2, '0')}
               <span className="mx-1 text-[#182653]/35">/</span>
               <span className="text-[#182653]/60">{String(maxIndex + 1).padStart(2, '0')}</span>
             </span>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 max-md:gap-2">
               <button
                 type="button"
                 onClick={previous}
@@ -266,6 +273,7 @@ export default function FeaturedCourses() {
                 className="
                   flex
                   size-12
+                  max-md:size-10
                   items-center
                   justify-center
                   rounded-full
@@ -296,6 +304,7 @@ export default function FeaturedCourses() {
                 className="
                   flex
                   size-12
+                  max-md:size-10
                   items-center
                   justify-center
                   rounded-full
@@ -330,7 +339,7 @@ export default function FeaturedCourses() {
           role="group"
           aria-roledescription="carousel"
           aria-label="Featured courses"
-          className="-mx-2.5 overflow-hidden"
+          className="-mx-2.5 overflow-hidden max-md:-mx-1.5"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onFocusCapture={() => setPaused(true)}
@@ -350,7 +359,7 @@ export default function FeaturedCourses() {
                   // Off-screen slides must not be focusable or read by screen readers.
                   inert={!isVisible}
                   aria-hidden={!isVisible}
-                  className="w-full shrink-0 px-2.5 md:w-1/2 lg:w-1/4"
+                  className="w-1/2 shrink-0 px-2.5 max-md:px-1.5 lg:w-1/4"
                 >
                   <CourseCard course={course} />
                 </div>
@@ -416,6 +425,9 @@ export default function FeaturedCourses() {
               focus-visible:outline-2
               focus-visible:outline-offset-4
               focus-visible:outline-lime-300
+              max-md:px-4
+              max-md:py-2
+              max-md:text-xs
             "
           >
             View All Courses
@@ -460,6 +472,7 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
         flex-col
         overflow-hidden
         rounded-3xl
+        max-md:rounded-2xl
         bg-white
         ring-1
         ring-inset
@@ -489,7 +502,7 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
           src={course.image}
           alt=""
           fill
-          sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
+          sizes="(min-width: 1024px) 25vw, 50vw"
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.07]"
         />
 
@@ -524,17 +537,30 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
             ring-1
             ring-inset
             ring-[#62e62b]/25
+            max-md:left-2
+            max-md:top-2
+            max-md:px-2
+            max-md:py-1
+            max-md:text-[9px]
           "
         >
           {course.level}
         </span>
 
         {/* RATING */}
+        {/* On a phone's narrower card it sits in the photo's lower corner, so
+            it can never meet the level badge. */}
         <span
           className="
             absolute
             right-4
             top-4
+            max-md:bottom-2
+            max-md:right-2
+            max-md:top-auto
+            max-md:px-2
+            max-md:py-1
+            max-md:text-[10px]
             inline-flex
             items-center
             gap-1
@@ -558,18 +584,22 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
 
       {/* CONTENT */}
       {/* z-20 keeps the text above the spotlight wash */}
-      <div className="relative z-20 flex flex-1 flex-col p-6">
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-black/65">
+      <div className="relative z-20 flex flex-1 flex-col p-6 max-md:p-2.5">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-black/65 max-md:text-[10px]">
           <Clock3 aria-hidden="true" size={13} />
           {course.duration}
         </span>
 
-        <h3 className="mt-3 text-lg font-semibold leading-snug tracking-[-0.02em] text-accent">{course.title}</h3>
+        <h3 className="mt-3 text-lg font-semibold leading-snug tracking-[-0.02em] text-accent max-md:mt-1 max-md:text-[13px]">
+          {course.title}
+        </h3>
 
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-black/80">{course.description}</p>
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-black/80 max-md:mt-1 max-md:text-[11px] max-md:leading-snug">
+          {course.description}
+        </p>
 
         {/* LEARN MORE */}
-        <div className="mt-auto pt-6">
+        <div className="mt-auto pt-6 max-md:pt-2.5">
           <a
             href="/courses"
             className="
@@ -598,6 +628,11 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
               focus-visible:outline-2
               focus-visible:outline-offset-4
               focus-visible:outline-lime-300
+              max-md:gap-1
+              max-md:rounded-lg
+              max-md:px-2
+              max-md:py-1.5
+              max-md:text-[11px]
             "
           >
             {/* Fills with lime when the card is hovered */}

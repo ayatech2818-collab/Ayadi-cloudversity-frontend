@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { WHY_ENTRANCES } from '../whyCards';
-import { PORTAL_HALF } from './geometry';
+import { GLOBE_R, PORTAL_DEPTH, PORTAL_HALF } from './geometry';
 
 /*
  * Where the Why Choose Ayadi heading and cards are, in the portal's space,
@@ -13,12 +13,19 @@ import { PORTAL_HALF } from './geometry';
  * screen. It brings them closer and wider apart, carries the nearest out of
  * the frame first, and goes past each in turn before it reaches the glass.
  *
+ * A phone held upright gets a stage of its own (see "on a phone", below): the
+ * portal stands upright in it, and the same things are arranged down it
+ * rather than across — so the layout also says what shape the portal is.
+ *
  * Nothing here knows about time or scroll. The Director asks for the layout
  * when the stage changes shape, and for a matrix per card per frame.
  */
 
 /** The camera's lens through the stage, as the tangent of half its field of view. */
 const HALF_FOV_TAN = Math.tan(THREE.MathUtils.degToRad(40 / 2));
+
+/** Half the frame's height, in world units, at a depth from the camera. */
+const halfHeight = (distance: number) => distance * HALF_FOV_TAN;
 
 /** How far the camera is from the glass (rig.camZ − rig.push) as the first
     card arrives — the moment the composition is laid out for. */
@@ -61,9 +68,103 @@ const HEAD_WIDE = 0.39;
 const WORDS_OF_GLASS = 0.46;
 const WORDS_CLEAR = 0.06;
 
+/** However far off the glass is, the words are never drawn smaller than
+    this against their laid-out size — nor wider than this much of the screen. */
+const WORDS_FLOOR = 0.85;
+const WORDS_OF_SCREEN = 0.92;
+
 /** How near the lens a card may come before it is no longer drawn, as its
     depth from the camera in world units. */
 const NEAR = 0.12;
+
+/** A card fades only as the lens reaches it: gone at the first of these
+    depths from the camera, whole at the second (in the stage's own scale of
+    distances — see nearFade). */
+const NEAR_FADE: readonly [number, number] = [0.4, 1.25];
+
+/* ---------- on a phone ----------
+   A phone held upright is a tall frame, and the portal stands upright in it:
+   the frame every other screen has, turned on end, and as wide as the globe
+   it squares off from — so the whole of it, the flare of its mouth included,
+   is inside the screen for as long as there is anything to read on it, and
+   its glass fills a tall screen at the crossing as it fills a wide one.
+
+   The stage is set for that frame too. The words stand on the glass from the
+   start, a little above the middle of it, and there is room in front of it
+   for one card with them, not three: so the cards take turns. Each comes
+   through the portal's side into the one place under the words, clear of
+   them, stands there, and goes back the way it came before the next one
+   comes (PHONE_TURNS). There is no room
+   beside the lens for the camera to pass a card here either, so that place
+   is just in front of the portal's mouth, where a card grows with it.
+
+   Everything else — the camera, the story, how a card comes through — is the
+   same. */
+
+/** Narrower than this, and no wider than it is tall: a phone, held upright.
+    A tablet is not, and nor is a phone on its side. (hero.module.css makes
+    the card smaller for the same screens — keep the two in step.) */
+const PHONE_BELOW = 640;
+
+/** How far the camera is from the glass as the stage ends and the approach
+    begins — when everything on the stage is at its largest. */
+const LEAVING = 5.69;
+
+/** The outermost of the portal's frames against its glass: the flare at the
+    near end of its rails (LATTICE_VERTEX in shaders.ts — 1 − 0.24 × height). */
+const MOUTH = 1.24;
+
+/** Kept clear on a phone: the fixed navbar and a little under it, in pixels
+    (the portal's caption is said there on a phone — hero.module.css), and
+    the foot of the frame as a share of its height (a phone's own bars). */
+const PHONE_TOP = 92;
+const PHONE_FOOT = 0.12;
+
+/** How far in front of the glass a card stands there, as WhyEntrance.depth
+    is measured: at the portal's mouth. */
+const PHONE_CARD_DEPTH = 0.6;
+
+/** A card's width on screen as it arrives, as a share of the frame's — about
+    the width of the glass behind it — and never drawn much larger than it is
+    laid out. Short of room, it gives up no more than this much of that size. */
+const PHONE_CARD_ACROSS = 0.62;
+const PHONE_CARD_MAGNIFY = 1.12;
+const PHONE_CARD_LEAST = 0.86;
+
+/** The words there: most of the glass's width, and allowed a little smaller.
+    They stand a little above the middle of the glass — this far, in world
+    units — which leaves clear room between them and the card under them. */
+const PHONE_WORDS_OF_GLASS = 0.8;
+const PHONE_WORDS_FLOOR = 0.74;
+const PHONE_WORDS_UP = 0.4;
+
+/** That room, as the words and the card fall on the glass — world units. */
+const PHONE_GAP_WORDS = 0.57;
+
+/** A card's fade there, as NEAR_FADE, should one still be standing as the
+    camera closes: over as it would grow to the width of the screen. */
+const PHONE_FADE: readonly [number, number] = [4.05, 4.85];
+
+/** One card's turn on the stage, in the terms of the words' own life on the
+    glass (rig.info, 0 → 1 — it runs evenly with the scroll): when it starts
+    to come through, when it is through, when it starts back, when it is gone. */
+export type WhyTurn = readonly [from: number, through: number, back: number, gone: number];
+
+/** The turns on a phone, one after another with nothing between them. The
+    first card comes exactly when the story brings it (AyadiHero's STAGE), and
+    takes as long to; each then stands for a moment and goes more quickly than
+    it came. The last is gone as the camera sets off for the glass, which
+    leaves the words alone on it for the approach, as everywhere else. */
+const TURN_FIRST = 1 / 12;
+const TURN_COMES = 1 / 8;
+const TURN_STAYS = 0.065;
+const TURN_GOES = 0.06;
+const PHONE_TURNS: readonly WhyTurn[] = WHY_ENTRANCES.map((_, index) => {
+  const from = TURN_FIRST + index * (TURN_COMES + TURN_STAYS + TURN_GOES);
+  const through = from + TURN_COMES;
+  const back = through + TURN_STAYS;
+  return [from, through, back, back + TURN_GOES];
+});
 
 export type WhyPlace = { x: number; y: number; z: number; yaw: number };
 
@@ -82,6 +183,19 @@ export type WhyLayout = {
   restY: number;
   /** How wide the words are on the glass, world units. */
   wordsAcross: number;
+  /** The smallest the words are drawn, against their laid-out size. */
+  wordsFloor: number;
+  /** A card's fade as the lens nears it — see NEAR_FADE. */
+  fade: readonly [number, number];
+  /** Where the cards take turns on the stage rather than gather on it, each
+      one's turn (cardProgress); null where they gather. */
+  turns: readonly WhyTurn[] | null;
+  /** The portal itself, for a stage of this shape: its front frame's
+      half-width and half-height, and how far its frames reach in front of
+      and behind its glass. The lattice and the glass are drawn to these
+      (GlobePortal.tsx). The one portal everywhere but on a phone. */
+  frame: [number, number];
+  depth: number;
 };
 
 /** The cards and the words as the page lays them out, in CSS pixels. */
@@ -97,6 +211,11 @@ export function createWhyLayout(): WhyLayout {
     headY: 0,
     restY: 0,
     wordsAcross: 0,
+    wordsFloor: WORDS_FLOOR,
+    fade: NEAR_FADE,
+    turns: null,
+    frame: [PORTAL_HALF[0], PORTAL_HALF[1]],
+    depth: PORTAL_DEPTH,
   };
 }
 
@@ -119,11 +238,20 @@ export function layoutWhy(layout: WhyLayout, width: number, height: number, fit:
   Object.assign(was, sizes);
 
   const aspect = width / Math.max(height, 1);
+  if (width < PHONE_BELOW && aspect <= 1) {
+    layoutPhone(layout, width, height, fit, sizes);
+    return;
+  }
+
+  layout.frame[0] = PORTAL_HALF[0];
+  layout.frame[1] = PORTAL_HALF[1];
+  layout.depth = PORTAL_DEPTH;
+  layout.wordsFloor = WORDS_FLOOR;
+  layout.fade = NEAR_FADE;
+  layout.turns = null;
+
   /* 0 on a tall screen, 1 on a wide one, and every shape between. */
   const wide = THREE.MathUtils.smoothstep(aspect, 0.85, 1.3);
-
-  /* Half the frame's height, in world units, at a depth from the camera. */
-  const halfHeight = (distance: number) => distance * HALF_FOV_TAN;
 
   WHY_ENTRANCES.forEach((entrance, index) => {
     const place = layout.cards[index];
@@ -172,6 +300,78 @@ export function layoutWhy(layout: WhyLayout, width: number, height: number, fit:
     room = Math.max(room, suits * 0.6);
   }
   layout.wordsAcross = room;
+}
+
+/*
+ * The same, on a phone held upright (see "on a phone", above): the portal
+ * turned on end, the words in the middle of its glass, and one place in
+ * front of it, under the words, that the cards take turns in.
+ */
+function layoutPhone(layout: WhyLayout, width: number, height: number, fit: number, sizes: WhySizes) {
+  const { cardWidth, cardHeight, wordsWidth, wordsHeight } = sizes;
+
+  /* The camera's distance from the glass at either end of the stage, and the
+     cards' own from it. */
+  const eye = ARRIVAL * fit;
+  const end = LEAVING * fit;
+  const z = PHONE_CARD_DEPTH * fit;
+
+  /* The portal: as wide as the globe, with frames that reach as far as suits
+     that width — and as tall as the other screens' is wide, where the mouth
+     of it then still stands clear of the navbar and the foot of the frame as
+     the stage ends. Never wider than it is tall. */
+  const across = GLOBE_R;
+  const depth = PORTAL_DEPTH * (across / PORTAL_HALF[0]);
+  const clear = Math.min(1 - (2 * PHONE_TOP) / height, 1 - 2 * PHONE_FOOT);
+  const upright = across * (PORTAL_HALF[0] / PORTAL_HALF[1]);
+  layout.frame[0] = across;
+  layout.frame[1] = Math.max(across, Math.min(upright, (clear * halfHeight(end - depth)) / MOUTH));
+  layout.depth = depth;
+
+  /* The words: a little above the middle of the glass, and nowhere else. */
+  layout.headY = PHONE_WORDS_UP;
+  layout.restY = PHONE_WORDS_UP;
+  layout.wordsAcross = PHONE_WORDS_OF_GLASS * across * 2;
+  layout.wordsFloor = PHONE_WORDS_FLOOR;
+  layout.fade = PHONE_FADE;
+  layout.turns = PHONE_TURNS;
+
+  /* The cards' own plane: what one pixel of the stage is there, from the
+     arrival, and how tall the words are in it as the Director draws them.
+     That is most from the arrival — from there on a card draws away. Under
+     them, the room; and from there down, the card. */
+  const pixel = (2 * halfHeight(eye - z)) / height;
+  const onGlass = eye / (eye - z);
+  const words =
+    wordsWidth > 0
+      ? ((wordsHeight * wordsScale(layout.wordsAcross, height / (2 * halfHeight(eye)), PHONE_WORDS_FLOOR, width, wordsWidth)) / 2) *
+        pixel
+      : 0;
+  const inner = words + (PHONE_GAP_WORDS - PHONE_WORDS_UP) / onGlass;
+
+  /* A card's height, from its width on screen as it arrives — less, where
+     it would not otherwise stand clear of the foot of the frame as the stage
+     ends. */
+  const below = halfHeight(end - z) * (1 - 2 * PHONE_FOOT) - inner;
+  const drawn = Math.min(PHONE_CARD_ACROSS * width, PHONE_CARD_MAGNIFY * cardWidth);
+  const full = cardWidth > 0 ? drawn * pixel * (cardHeight / cardWidth) : 0;
+  const tall = Math.max(PHONE_CARD_LEAST * full, Math.min(full, below));
+  layout.unit = cardHeight > 0 ? tall / cardHeight : 0;
+
+  /* The one place, for whichever card's turn it is. */
+  for (const place of layout.cards) {
+    place.x = 0;
+    place.y = -(inner + tall / 2);
+    place.z = z;
+    place.yaw = 0;
+  }
+}
+
+/** How large the words are drawn, against their laid-out size: as wide as
+    suits the glass, seen at this many pixels to a world unit — but never too
+    small to read, nor wider than the screen. */
+export function wordsScale(across: number, pixelsPerUnit: number, floor: number, width: number, wordsWidth: number) {
+  return Math.min(Math.max((across * pixelsPerUnit) / wordsWidth, floor), (WORDS_OF_SCREEN * width) / wordsWidth);
 }
 
 const model = new THREE.Matrix4();
@@ -272,9 +472,21 @@ export function whyPhase(e: number, phase: WhyPhase) {
   return phase;
 }
 
+/** That number, for one card: its own from the story (rig.why1…3), which
+    only ever brings it — or, where the cards take turns on the stage, its
+    turn: brought through, and taken back the way it came, by how far the
+    words are through their life on the glass (rig.info). */
+export function cardProgress(layout: WhyLayout, index: number, own: number, info: number) {
+  const turn = layout.turns?.[index];
+  if (!turn) return own;
+  if (info <= turn[2]) return clamp((info - turn[0]) / (turn[1] - turn[0]), 0, 1);
+  return 1 - clamp((info - turn[2]) / (turn[3] - turn[2]), 0, 1);
+}
+
 /** A card fades only as the lens reaches it — the way anything does that the
     camera flies through. `depth` is its distance from the camera, `fit` the
-    stage's own scale of distances. */
-export function nearFade(depth: number, fit: number) {
-  return smoothstep(depth / fit, 0.4, 1.25);
+    stage's own scale of distances, and `fade` the layout's own: where it is
+    gone, and where it is whole. */
+export function nearFade(depth: number, fit: number, fade: readonly [number, number]) {
+  return smoothstep(depth / fit, fade[0], fade[1]);
 }

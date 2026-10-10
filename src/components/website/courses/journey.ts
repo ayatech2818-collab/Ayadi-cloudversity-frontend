@@ -26,6 +26,13 @@ export type CollageItem = {
   drift: number;
   /** Where the card flies on the way out, as a share of its own size. */
   spread: { x: number; y: number };
+  /* Its place in the cluster on a phone's pinned stage, where the box is
+     upright (5:6) rather than 16:10: `left` and `width` as percentages of the
+     box's width, `top` of its height, and the flat tilt in degrees. Numbers
+     rather than classes because below `sm` the classes above leave a grid —
+     which is what a phone gets without motion — and AyadiJourney lays the
+     cluster out itself only once it is driving the section. */
+  phone: { left: number; top: number; width: number; tilt: number };
 };
 
 /*
@@ -34,7 +41,9 @@ export type CollageItem = {
  * JourneyImage covers the gap if a request fails.
  *
  * Positions are percentages inside a 16:10 box and were laid out so no two
- * cards overlap — check that again if you move one.
+ * cards overlap — check that again if you move one. The `phone` places are
+ * laid out the same way inside a 5:6 box, with the top-right corner kept free
+ * for the script.
  */
 export const collageItems: CollageItem[] = [
   {
@@ -49,6 +58,7 @@ export const collageItems: CollageItem[] = [
     depth: 80,
     drift: -74,
     spread: { x: -18, y: -46 },
+    phone: { left: 2, top: 3, width: 58, tilt: -1.5 },
   },
   {
     id: 'classroom',
@@ -62,6 +72,7 @@ export const collageItems: CollageItem[] = [
     depth: -25,
     drift: -32,
     spread: { x: -72, y: 16 },
+    phone: { left: 3, top: 44, width: 46, tilt: 2.5 },
   },
   {
     id: 'detail',
@@ -75,6 +86,7 @@ export const collageItems: CollageItem[] = [
     depth: -70,
     drift: -98,
     spread: { x: -66, y: -52 },
+    phone: { left: 70, top: 35, width: 24, tilt: -4 },
   },
   {
     id: 'writing',
@@ -88,6 +100,7 @@ export const collageItems: CollageItem[] = [
     depth: 30,
     drift: -46,
     spread: { x: 0, y: 62 },
+    phone: { left: 9, top: 77, width: 36, tilt: 1.5 },
   },
   {
     id: 'making',
@@ -101,6 +114,7 @@ export const collageItems: CollageItem[] = [
     depth: -45,
     drift: -62,
     spread: { x: 64, y: 22 },
+    phone: { left: 56, top: 57.5, width: 38, tilt: -2.5 },
   },
 ];
 

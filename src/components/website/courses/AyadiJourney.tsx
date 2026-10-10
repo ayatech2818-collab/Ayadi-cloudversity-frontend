@@ -54,8 +54,9 @@ const TILE_EVEN = { filter: 'blur(0px)', autoAlpha: 1, x: 0, y: 0, scale: 1, zIn
 
 /* Act one's padding and column grid, shared with the brand-mark layer that
    overlays it. The mark has to land in the column the copy leaves empty, so the
-   two measure from one source. */
-const ACT_PADDING = 'px-5 py-8 pb-14 sm:px-8 sm:py-10 sm:pb-16 lg:px-12';
+   two measure from one source. A phone's stage is short, so there the acts
+   keep less of it to themselves. */
+const ACT_PADDING = 'px-5 py-8 pb-14 max-sm:py-5 max-sm:pb-12 sm:px-8 sm:py-10 sm:pb-16 lg:px-12';
 const HERO_GRID = 'mx-auto grid w-full max-w-[1180px] items-center gap-12 lg:grid-cols-[1.12fr_0.88fr]';
 
 /* The card the acts play inside: rounded, lifted off the page and clipping
@@ -70,6 +71,32 @@ const CARD =
    top of it. Both have to measure the same or the script and the sparks drift
    off the cluster. */
 const COLLAGE_BOX = 'sm:aspect-[16/10] sm:w-[min(100%,86svh)]';
+
+/* ---------- on a phone ----------
+   The same three acts on the same score, on a stage the size of a phone.
+
+   PHONE_TRAVEL is how much scroll the sequence owns there, in small-viewport
+   heights — the same 440% the wide layout pins for.
+
+   The collage is the same free-floating cluster, in a box that stands upright
+   (5:6) because the stage does. Its width is capped against the stage's height
+   — the navbar's 84px, the act's own padding and a little air come off first —
+   so it always fits; each card's place in it is `phone` in journey.ts, and the
+   script takes the corner those places leave free. The cards drift less, and
+   less still in a smaller box, so the cluster holds together. */
+const PHONE_TRAVEL = 440;
+const PHONE_BOX = { aspectRatio: '5 / 6', width: 'min(100%, calc((100svh - 160px) / 1.2))' };
+const PHONE_SCRIPT = { left: '64%', top: '6%', width: '34%' };
+const PHONE_DRIFT = 0.5;
+/** The box width the phone places and that drift were laid out at, px. */
+const PHONE_BOX_AT = 350;
+
+/* The brand mark has no column of its own on a phone, so there it is the
+   watermark from the start: behind the copy, dimmed (`opacity`), and turning
+   with the scroll exactly as it does on a wide stage. `across` is where it
+   goes as it crosses into act two — it still swells and settles, but not as
+   far or as large as on a wide stage, which it would overflow. */
+const PHONE_MARK = { opacity: 0.22, across: { xPercent: -6, scale: 1.45, opacity: 0.18 } };
 
 /* Small marks scattered around the cluster, as in the reference. Positions are
    percentages of the collage box, not the section. */
@@ -90,12 +117,21 @@ const SPARKS = [
  *
  * The markup ships in normal document flow: three acts stacked down the page,
  * everything visible, no transforms. GSAP stacks them only after checking that
- * the viewport is wide enough and that motion is welcome, which means the
- * section is complete without JS and degrades to plain sections otherwise.
+ * motion is welcome, which means the section is complete without JS and
+ * degrades to plain sections otherwise.
+ *
+ * A phone held upright gets the same sequence on the same score. Only how it
+ * is held differs: a wide screen is pinned by ScrollTrigger; a phone's stage
+ * is `position: sticky` inside a section that much taller, so the browser
+ * holds it and a finger never feels a script catching up. Its acts are laid
+ * out for a stage that size (see "on a phone" above). Held sideways there is
+ * no room for a stage at all, and the blocks simply arrive as they scroll in.
  *
  * A pinned act cannot scroll, so everything in one has to fit inside 100svh on
  * a laptop. That constraint — not taste — sets the type scale and the collage
- * sizing below; check it again before adding a line to any act.
+ * sizing below; check it again before adding a line to any act. On a phone
+ * the `max-sm:` sizes do the same job, and an act that is still too tall for
+ * a short screen is scaled down whole to fit.
  */
 export function AyadiJourney({
   onSelectBrand,
@@ -183,27 +219,35 @@ export function AyadiJourney({
       });
 
       media.add(
-        { motion: '(prefers-reduced-motion: no-preference)', wide: '(min-width: 768px)' },
+        {
+          motion: '(prefers-reduced-motion: no-preference)',
+          wide: '(min-width: 768px)',
+          upright: '(orientation: portrait)',
+        },
         (mediaContext) => {
-          const { motion: allowMotion, wide } = mediaContext.conditions as { motion: boolean; wide: boolean };
+          const {
+            motion: allowMotion,
+            wide,
+            upright,
+          } = mediaContext.conditions as { motion: boolean; wide: boolean; upright: boolean };
           if (!allowMotion) return;
 
           const hero = q('[data-hero]');
-          const cards = q('[data-collage-card]') as Element[];
+          const cards = q('[data-collage-card]') as HTMLElement[];
           const script = q('[data-script]');
           const heads = q('[data-grid-head]');
           const tiles = q('[data-grid-card]') as Element[];
           /* Same DOM order as the tiles, so one index addresses both. */
           const comets = q('[data-tile-comet]') as Element[];
 
-          /* ---------- phones: no pin ----------
-             Scroll-jacking a touch screen is unpleasant, and a pinned act would
-             have to clip the taller stacked layouts. Reveal each block as it
-             arrives instead and leave the page scrolling normally.
+          /* ---------- a small screen on its side: no stage ----------
+             A phone held sideways has a stage a few hundred pixels tall, which
+             no act fits. Reveal each block as it arrives instead and leave the
+             page scrolling normally.
 
              The hero is left out: it has its own entrance above, at every
              width. */
-          if (!wide) {
+          if (!wide && !upright) {
             [...cards, ...script, ...heads, ...tiles, ...q('[data-grid-cta]')].forEach((element) => {
               gsap.from(element, {
                 autoAlpha: 0,
@@ -223,11 +267,52 @@ export function AyadiJourney({
 
           /* ---------- cinematic layout ----------
              Collapse the three acts onto one screen. matchMedia reverts these on
-             cleanup, so narrowing the window or turning motion off restores the
-             flow layout. */
+             cleanup, so crossing the breakpoint or turning motion off restores
+             the flow layout. */
           /* 84px is the clearance the sticky brand tabs below already use for
              the fixed navbar, so the card's top edge lands clear of it. */
-          gsap.set(stageEl, { height: 'calc(100svh - 84px)', overflow: 'hidden' });
+          if (wide) {
+            gsap.set(stageEl, { height: 'calc(100svh - 84px)', overflow: 'hidden' });
+          } else {
+            /* A phone: the section is the stage plus the scroll the sequence
+               owns, and the stage sticks under the navbar for the length of
+               it. Nothing is pinned by script. */
+            gsap.set(sectionEl, { height: `calc(${100 + PHONE_TRAVEL}svh - 84px)` });
+            gsap.set(stageEl, { position: 'sticky', top: 84, height: 'calc(100svh - 84px)', overflow: 'hidden' });
+
+            /* The collage: out of its grid and into the upright box, each card
+               to its own place. The flat tilt is the CSS `rotate` the wider
+               layouts get from a class, so it composes with GSAP's transforms
+               the same way. */
+            gsap.set(q('[data-plane-inner]'), { display: 'block', marginLeft: 'auto', marginRight: 'auto', ...PHONE_BOX });
+            cards.forEach((card, index) => {
+              const at = collageItems[index]?.phone;
+              if (!at) return;
+              gsap.set(card, { position: 'absolute', left: `${at.left}%`, top: `${at.top}%`, width: `${at.width}%` });
+              card.style.rotate = `${at.tilt}deg`;
+            });
+
+            /* And the script over it rather than under it, as from `sm` up. */
+            gsap.set(q('[data-script-layer]'), {
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              marginTop: 0,
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+            });
+            gsap.set(q('[data-script-box]'), PHONE_BOX);
+            gsap.set(script, { position: 'absolute', textAlign: 'left', ...PHONE_SCRIPT });
+
+            /* The mark: its layer is only laid out from `lg` up, where it has
+               a column to stand in. Here it is laid out as well, behind
+               everything, and dimmed from the first frame (PHONE_MARK). */
+            gsap.set(q('[data-mark-layer]'), { display: 'flex' });
+            gsap.set(q('[data-mark-travel]'), { opacity: PHONE_MARK.opacity });
+          }
           /* The breath between the card's edge and the stage's. Without a
              card there is no edge, and the acts take the whole screen. */
           const inset = bare ? 0 : 14;
@@ -242,6 +327,25 @@ export function AyadiJourney({
             height: 'auto',
           });
           gsap.set(q('[data-stack]'), { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' });
+
+          /* ---------- a phone's acts have to fit ----------
+             The copy and the subject grid are as tall as their text makes
+             them; where that is more than a short screen's stage holds, the
+             block is scaled down whole. CSS `scale`, so it sits under whatever
+             GSAP does to the same element, and measured from layout heights,
+             which no transform changes. Again on every refresh. */
+          const fitted = wide ? [] : (q('[data-hero-body], [data-grid-body]') as HTMLElement[]);
+          const fit = () => {
+            for (const body of fitted) {
+              const act = body.parentElement;
+              if (!act) continue;
+              const padding = getComputedStyle(act);
+              const room = act.clientHeight - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom);
+              const needed = body.offsetHeight;
+              body.style.scale = needed > room && needed > 0 && room > 0 ? (room / needed).toFixed(3) : '';
+            }
+          };
+          fit();
 
           const collageAct = q('[data-act="collage"]');
           const gridAct = q('[data-act="grid"]');
@@ -266,15 +370,27 @@ export function AyadiJourney({
 
           const timeline = gsap.timeline({
             defaults: { ease: 'power2.inOut' },
-            scrollTrigger: {
-              trigger: sectionEl,
-              start: 'top 84px',
-              end: '+=440%',
-              pin: true,
-              scrub: 1.2,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-            },
+            scrollTrigger: wide
+              ? {
+                  trigger: sectionEl,
+                  start: 'top 84px',
+                  end: '+=440%',
+                  pin: true,
+                  scrub: 1.2,
+                  anticipatePin: 1,
+                  invalidateOnRefresh: true,
+                }
+              : {
+                  /* No pin: the stage is sticky (above). The trigger only maps
+                     the section's scroll onto the timeline, from the stage
+                     locking under the navbar to the moment it lets go. */
+                  trigger: sectionEl,
+                  start: 'top 84px',
+                  end: () => `bottom ${84 + stageEl.offsetHeight}px`,
+                  scrub: 1.2,
+                  invalidateOnRefresh: true,
+                  onRefresh: fit,
+                },
           });
 
           /* ---------- act one: the platform ----------
@@ -332,11 +448,17 @@ export function AyadiJourney({
              It does not leave with the hero — it drops back, swells and dims
              into a watermark behind the photographs. Everything it does between
              acts rides on [data-mark-travel]; [data-mark-spin] keeps the
-             rotation, so neither tween has to know about the other. */
+             rotation, so neither tween has to know about the other. On a
+             phone it is that watermark already, and only swells a little. */
           timeline
             .to(
               q('[data-mark-travel]'),
-              { xPercent: -34, yPercent: 8, scale: 2.2, opacity: 0.18, duration: 0.9, ease: 'power2.inOut' },
+              {
+                ...(wide ? { xPercent: -34, scale: 2.2, opacity: 0.18 } : PHONE_MARK.across),
+                yPercent: 8,
+                duration: 0.9,
+                ease: 'power2.inOut',
+              },
               COLLAGE_IN - 0.2,
             )
             .to(
@@ -355,11 +477,23 @@ export function AyadiJourney({
           );
 
           /* Parallax. `y` in pixels rather than `yPercent`, so it composes with
-             the entrance above instead of fighting it for the same property. */
+             the entrance above instead of fighting it for the same property.
+             A phone's cluster is smaller and closer set, so it drifts less
+             there — measured against the box, on every refresh. */
+          const driftOf = (index: number) => collageItems[index]?.drift ?? -50;
+          const phoneDrift = () => {
+            const box = cards[0]?.offsetParent as HTMLElement | null;
+            return PHONE_DRIFT * Math.min(1, (box?.offsetWidth ?? PHONE_BOX_AT) / PHONE_BOX_AT);
+          };
+
           cards.forEach((card, index) => {
             timeline.to(
               card,
-              { y: collageItems[index]?.drift ?? -50, duration: COLLAGE_OUT - COLLAGE_IN, ease: 'none' },
+              {
+                y: wide ? driftOf(index) : () => driftOf(index) * phoneDrift(),
+                duration: COLLAGE_OUT - COLLAGE_IN,
+                ease: 'none',
+              },
               COLLAGE_IN + 0.2,
             );
           });
@@ -502,6 +636,15 @@ export function AyadiJourney({
 
           /* Sets the timeline's length, and doubles as the progress read-out. */
           timeline.to(bar, { scaleX: 1, duration: TOTAL, ease: 'none' }, 0);
+
+          if (wide) return;
+
+          /* The two CSS properties written by hand on a phone — GSAP reverts
+             only what it set itself. */
+          return () => {
+            for (const body of fitted) body.style.scale = '';
+            for (const card of cards) card.style.rotate = '';
+          };
         },
       );
 
@@ -676,9 +819,12 @@ export function AyadiJourney({
                 {/* Outer plane takes the pointer tilt, inner takes the scroll
                     drift — two layers so the two never write the same property. */}
                 <div data-plane className="[transform-style:preserve-3d]">
-                  {/* A grid on a phone; a free-floating cluster from `sm` up.
-                      The width is capped against the viewport height (99svh wide
-                      at 16:10 is 62svh tall) so it always fits a pinned act. */}
+                  {/* A free-floating cluster from `sm` up, its width capped
+                      against the viewport height (99svh wide at 16:10 is 62svh
+                      tall) so it always fits a pinned act. Below that the
+                      classes leave a grid, which is what a phone shows without
+                      motion; with it, GSAP stands the same cluster in an
+                      upright box (PHONE_BOX). */}
                   <div
                     data-plane-inner
                     className={`relative grid grid-cols-2 gap-3 sm:mx-auto sm:block sm:gap-0 [transform-style:preserve-3d] ${COLLAGE_BOX}`}
@@ -701,15 +847,18 @@ export function AyadiJourney({
                 </div>
 
                 {/* Kept outside the plane: the script stays upright and sharp
-                    instead of tilting with the gallery. Stacks under the cluster
-                    on a phone, overlays it from `sm` up. */}
-                <div className="pointer-events-none mt-5 sm:absolute sm:inset-0 sm:mt-0 sm:flex sm:items-start sm:justify-center">
-                  <div className={`relative w-full ${COLLAGE_BOX}`}>
+                    instead of tilting with the gallery. Overlays the cluster;
+                    under it only in a phone's flow layout. */}
+                <div
+                  data-script-layer
+                  className="pointer-events-none mt-5 sm:absolute sm:inset-0 sm:mt-0 sm:flex sm:items-start sm:justify-center"
+                >
+                  <div data-script-box className={`relative w-full ${COLLAGE_BOX}`}>
                     <p
                       data-script
                       className="text-center sm:absolute sm:left-[66%] sm:top-[8%] sm:w-[30%] sm:text-left"
                     >
-                      <span className="font-serif text-[1.6rem] italic leading-[1.15] tracking-[-0.01em] text-accent sm:text-[1.9rem] lg:text-[2.4rem]">
+                      <span className="font-serif text-[1.6rem] italic leading-[1.15] tracking-[-0.01em] text-accent max-sm:text-[1.2rem] sm:text-[1.9rem] lg:text-[2.4rem]">
                         Skills
                         <span className="block text-primary">for a better</span>
                         tomorrow
@@ -738,7 +887,7 @@ export function AyadiJourney({
             data-stack
             className={`flex min-h-[70svh] w-full items-center ${ACT_PADDING}`}
           >
-            <div className="mx-auto w-full max-w-[1180px]">
+            <div data-grid-body className="mx-auto w-full max-w-[1180px]">
               <span
                 data-grid-head
                 className="inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.22em] text-primary"
@@ -749,12 +898,12 @@ export function AyadiJourney({
 
               <h2
                 data-grid-head
-                className="mt-3 text-[1.8rem] font-semibold tracking-[-0.04em] text-accent sm:text-[2.1rem] lg:text-[2.6rem]"
+                className="mt-3 text-[1.8rem] font-semibold tracking-[-0.04em] text-accent max-sm:mt-2 max-sm:text-[1.4rem] max-sm:leading-[1.15] sm:text-[2.1rem] lg:text-[2.6rem]"
               >
                 A brighter tomorrow, by subject.
               </h2>
 
-              <ul className="relative mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+              <ul className="relative mt-6 grid grid-cols-2 gap-3 max-sm:mt-3.5 max-sm:gap-2.5 sm:gap-4 lg:grid-cols-3">
                 {learningWorlds.map((world) => {
                   const WorldIcon = world.icon;
 
@@ -791,28 +940,30 @@ export function AyadiJourney({
                         type="button"
                         onClick={() => onSelectBrand(brand.id)}
                         onPointerMove={handleSpotlight}
-                        className={`${CARD_CHROME} w-full px-4 py-5 text-center outline-primary focus-visible:outline-2 focus-visible:outline-offset-2 sm:px-5`}
+                        className={`${CARD_CHROME} w-full px-4 py-5 text-center outline-primary focus-visible:outline-2 focus-visible:outline-offset-2 max-sm:px-2.5 max-sm:py-2.5 sm:px-5`}
                       >
                         <CardDecor />
 
                         <span
-                          className={`mx-auto flex size-10 items-center justify-center rounded-xl transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-105 ${world.tint}`}
+                          className={`mx-auto flex size-10 items-center justify-center rounded-xl transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-105 max-sm:size-8 ${world.tint}`}
                         >
                           <WorldIcon aria-hidden="true" size={20} strokeWidth={1.9} />
                         </span>
 
-                        <span className="mt-3 block text-base font-bold tracking-[-0.02em] text-accent sm:text-lg">
+                        <span className="mt-3 block text-base font-bold tracking-[-0.02em] text-accent max-sm:mt-1.5 max-sm:text-sm max-sm:leading-snug sm:text-lg">
                           {world.title}
                         </span>
 
-                        <span className="mt-1 block text-xs text-muted sm:text-sm">{world.blurb}</span>
+                        <span className="mt-1 block text-xs text-muted max-sm:mt-0.5 max-sm:text-[11px] max-sm:leading-[1.3] sm:text-sm">
+                          {world.blurb}
+                        </span>
                       </button>
                     </li>
                   );
                 })}
               </ul>
 
-              <div data-grid-cta className="mt-6 text-center">
+              <div data-grid-cta className="mt-6 text-center max-sm:mt-2">
                 <button
                   type="button"
                   onClick={() => onSelectBrand(brand.id)}
@@ -834,7 +985,9 @@ export function AyadiJourney({
               sits behind the collage and the subject grid while still covering
               act one's watermark. Cinematic only — GSAP reveals it — because in
               the flow fallback the acts are stacked screens apart and one
-              centred overlay cannot serve all three. */}
+              centred overlay cannot serve all three. Laid out from `lg` up,
+              where act one leaves it a column; on a phone's stage GSAP lays
+              it out too, as a watermark behind the copy (PHONE_MARK). */}
           <div
             data-mark-layer
             aria-hidden="true"

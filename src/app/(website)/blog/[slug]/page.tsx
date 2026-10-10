@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
-import { getBlog, getBlogs, type Blog } from '@/lib/api/blogs';
+import { getPublicBlog, getPublicBlogs, type Blog } from '@/lib/api/blogs';
 
 import BlogCover from '../BlogCover';
 import PostCard, { type PublicBlogPost } from '../PostCard';
@@ -159,27 +159,13 @@ function mapBlogToPost(blog: Blog): PublicBlogPost {
    Fetch published blog by slug
 --------------------------------------------------------- */
 
-async function getPublishedBlogBySlug(slug: string) {
-  const blogs = await getBlogs({
-    status: 'published',
-    sort_by: 'newest',
-  });
-
-  const matchedBlog = blogs.find((blog) => blog.slug === slug);
-
-  if (!matchedBlog) {
-    return null;
-  }
-
-  /*
-   * getBlogs() gives us the blog reference.
-   * getBlog() gives us the complete article record.
-   */
-  try {
-    return await getBlog(matchedBlog.id);
-  } catch {
-    return matchedBlog;
-  }
+/*
+ * The public endpoint looks the article up by slug and only returns it when
+ * it is published; an unknown or unpublished slug is a 404, which rejects here
+ * and is handled by each caller.
+ */
+async function getPublishedBlogBySlug(slug: string): Promise<Blog | null> {
+  return getPublicBlog(slug);
 }
 
 /* ---------------------------------------------------------
@@ -189,8 +175,7 @@ async function getPublishedBlogBySlug(slug: string) {
 async function getRelatedBlogPosts(
   currentBlog: Blog,
 ): Promise<PublicBlogPost[]> {
-  const blogs = await getBlogs({
-    status: 'published',
+  const blogs = await getPublicBlogs({
     sort_by: 'newest',
     ...(currentBlog.category
       ? { category: currentBlog.category }

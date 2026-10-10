@@ -1,51 +1,64 @@
 'use client';
 
 import gsap from 'gsap';
-import { ArrowDown, ArrowRight } from 'lucide-react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Compass } from 'lucide-react';
+import { Fragment, useEffect, useLayoutEffect, useRef } from 'react';
 
-import { brands } from './brands';
-import type { BrandId } from './types';
+import { categoryStyle } from './categoryStyles';
+import { CourseSearch } from './CourseSearch';
+import type { CatalogueCategory } from './types';
 
 /* useLayoutEffect warns during SSR; the entrance has to run before paint or the
    hidden state flashes, so swap the hook rather than the timing. */
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 const HEADLINE = [
-  ['One', 'ecosystem,'],
-  ['three', 'pathways.'],
+  ['Discover', 'your', 'next'],
+  ['learning', 'journey.'],
 ];
+
+/* Where each category's tile rides the outer ring, as its centre point —
+   roughly a third of a turn apart. A fourth category would simply not get
+   one: the orbit is decoration, the tiles below are the navigation. */
+const SATELLITES = ['left-[7%] top-[25%]', 'left-[97%] top-[38%]', 'left-[33%] top-[97%]'];
 
 /*
  * The courses intro.
  *
- * GSAP owns this section — a single entrance timeline, a cursor light driven by
- * quickTo, a magnetic call to action, and an indicator that slides between the
- * three pathways. Nothing here is scroll-linked, so it never competes with the
- * framer-driven pathway stage below it.
+ * A short hero with as few words as it can get away with: the headline, one
+ * line under it, the search, and an orbit of the three categories as its one
+ * decorative accent. It is deliberately not a full screen — the catalogue
+ * should already be showing underneath it on a laptop.
  *
- * Everything animated is transform or opacity, and the three coloured washes
- * cross-fade rather than re-tinting a single blurred layer — changing the
- * colour of a 130px blur re-rasters it every frame, changing its opacity does
- * not.
+ * GSAP owns the motion: a single entrance timeline and a cursor light driven
+ * by quickTo. Everything animated is transform or opacity, and all of it is
+ * skipped under prefers-reduced-motion, where the section simply renders.
  */
-export function CoursesIntro({ onSelectBrand }: { onSelectBrand: (id: BrandId) => void }) {
+export function CoursesIntro({
+  categories,
+  query,
+  onQueryChange,
+  onSearchSubmit,
+}: {
+  categories: CatalogueCategory[];
+  query: string;
+  onQueryChange: (value: string) => void;
+  onSearchSubmit: () => void;
+}) {
   const scope = useRef<HTMLElement>(null);
   const cursor = useRef<HTMLDivElement>(null);
-  const indicator = useRef<HTMLSpanElement>(null);
 
-  const [active, setActive] = useState<BrandId>(brands[0].id);
-
-  /* ---------- entrance + pointer ---------- */
   useIsomorphicLayoutEffect(() => {
     const context = gsap.context((self) => {
       const q = self.selector!;
       const media = gsap.matchMedia();
 
       media.add('(prefers-reduced-motion: no-preference)', () => {
-        gsap.set([q('[data-reveal]'), q('[data-word]')], { autoAlpha: 0 });
-        gsap.set(q('[data-word]'), { yPercent: 115, autoAlpha: 1 });
+        gsap.set(q('[data-reveal]'), { autoAlpha: 0, y: 16 });
+        gsap.set(q('[data-word]'), { yPercent: 115 });
         gsap.set(q('[data-rule]'), { scaleX: 0, transformOrigin: 'left center' });
+        gsap.set(q('[data-orbit]'), { autoAlpha: 0, scale: 0.9 });
+        gsap.set(q('[data-satellite]'), { autoAlpha: 0, scale: 0.4 });
 
         const timeline = gsap.timeline({ defaults: { ease: 'expo.out' } });
 
@@ -53,9 +66,13 @@ export function CoursesIntro({ onSelectBrand }: { onSelectBrand: (id: BrandId) =
           .to(q('[data-reveal="eyebrow"]'), { autoAlpha: 1, y: 0, duration: 0.6 })
           .to(q('[data-word]'), { yPercent: 0, duration: 1.1, stagger: 0.06 }, '-=0.3')
           .to(q('[data-rule]'), { scaleX: 1, duration: 0.9, ease: 'power3.inOut' }, '-=0.55')
-          .to(q('[data-reveal="lede"]'), { autoAlpha: 1, y: 0, duration: 0.7 }, '-=0.7')
-          .to(q('[data-reveal="row"]'), { autoAlpha: 1, x: 0, duration: 0.7, stagger: 0.08 }, '-=0.55')
-          .to(q('[data-reveal="cue"]'), { autoAlpha: 1, duration: 0.6 }, '-=0.4');
+          .to(q('[data-reveal="lede"]'), { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.08 }, '-=0.7')
+          .to(q('[data-orbit]'), { autoAlpha: 1, scale: 1, duration: 1.2 }, 0.2)
+          .to(
+            q('[data-satellite]'),
+            { autoAlpha: 1, scale: 1, duration: 0.7, ease: 'back.out(1.7)', stagger: 0.1 },
+            0.6,
+          );
       });
 
       /* A cursor light is noise on touch, and quickTo is the reason GSAP is
@@ -81,39 +98,10 @@ export function CoursesIntro({ onSelectBrand }: { onSelectBrand: (id: BrandId) =
         section.addEventListener('pointerenter', onEnter);
         section.addEventListener('pointerleave', onLeave);
 
-        /* Magnetic primary action */
-        const magnet = q('[data-magnet]')[0] as HTMLElement | undefined;
-        let magnetCleanup: (() => void) | undefined;
-
-        if (magnet) {
-          const pullX = gsap.quickTo(magnet, 'x', { duration: 0.5, ease: 'power3' });
-          const pullY = gsap.quickTo(magnet, 'y', { duration: 0.5, ease: 'power3' });
-
-          const onMagnetMove = (event: PointerEvent) => {
-            const rect = magnet.getBoundingClientRect();
-            pullX((event.clientX - (rect.left + rect.width / 2)) * 0.35);
-            pullY((event.clientY - (rect.top + rect.height / 2)) * 0.45);
-          };
-
-          const onMagnetLeave = () => {
-            pullX(0);
-            pullY(0);
-          };
-
-          magnet.addEventListener('pointermove', onMagnetMove);
-          magnet.addEventListener('pointerleave', onMagnetLeave);
-
-          magnetCleanup = () => {
-            magnet.removeEventListener('pointermove', onMagnetMove);
-            magnet.removeEventListener('pointerleave', onMagnetLeave);
-          };
-        }
-
         return () => {
           section.removeEventListener('pointermove', onMove);
           section.removeEventListener('pointerenter', onEnter);
           section.removeEventListener('pointerleave', onLeave);
-          magnetCleanup?.();
         };
       });
 
@@ -123,63 +111,18 @@ export function CoursesIntro({ onSelectBrand }: { onSelectBrand: (id: BrandId) =
     return () => context.revert();
   }, []);
 
-  /* ---------- pathway focus ----------
-     Deliberately not inside a gsap.context: reverting on every change would
-     snap these back to their starting values. */
-  useEffect(() => {
-    const q = gsap.utils.selector(scope);
-
-    brands.forEach((brand) => {
-      const on = brand.id === active;
-
-      gsap.to(q(`[data-wash="${brand.id}"]`), { autoAlpha: on ? 1 : 0, duration: 0.8, ease: 'power2.out' });
-      gsap.to(q(`[data-ghost="${brand.id}"]`), {
-        autoAlpha: on ? 1 : 0,
-        yPercent: on ? 0 : 6,
-        duration: 1,
-        ease: 'power3.out',
-      });
-    });
-
-    const move = () => {
-      const row = q(`[data-row="${active}"]`)[0] as HTMLElement | undefined;
-      if (!row || !indicator.current) return;
-
-      gsap.to(indicator.current, {
-        y: row.offsetTop,
-        height: row.offsetHeight,
-        duration: 0.5,
-        ease: 'power3.out',
-      });
-    };
-
-    move();
-
-    window.addEventListener('resize', move);
-    return () => window.removeEventListener('resize', move);
-  }, [active]);
-
-  const activeBrand = brands.find((brand) => brand.id === active) ?? brands[0];
-
   return (
     <section
       ref={scope}
-      className="relative isolate flex min-h-[92svh] items-center overflow-hidden px-5 pb-20 pt-32 sm:px-8 sm:pt-36 lg:px-16 lg:pt-40"
+      aria-labelledby="courses-heading"
+      className="relative isolate overflow-hidden px-5 pb-8 pt-32 sm:px-8 sm:pt-36 lg:px-16 lg:pb-10 lg:pt-40"
     >
       {/* ---------- AMBIENT ---------- */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(rgba(30,43,87,0.07)_1px,transparent_1px)] bg-size-[28px_28px] [mask-image:radial-gradient(ellipse_at_50%_40%,black_5%,transparent_72%)]" />
 
-        {/* One wash per pathway; they cross-fade instead of re-tinting */}
-        {brands.map((brand) => (
-          <div
-            key={brand.id}
-            data-wash={brand.id}
-            style={{ opacity: 0 }}
-            className={`absolute -right-32 -top-32 size-[620px] rounded-full blur-[140px] ${brand.theme.glow}`}
-          />
-        ))}
-
+        {/* Static washes — an animated blur this size repaints every frame */}
+        <div className="absolute -right-32 -top-32 size-[620px] rounded-full bg-primary/[0.16] blur-[140px]" />
         <div className="absolute -left-40 bottom-0 size-[460px] rounded-full bg-accent/[0.06] blur-[130px]" />
 
         {/* Cursor light */}
@@ -188,142 +131,113 @@ export function CoursesIntro({ onSelectBrand }: { onSelectBrand: (id: BrandId) =
           style={{ opacity: 0 }}
           className="absolute -left-[280px] -top-[280px] size-[560px] rounded-full bg-primary/[0.09] blur-[120px]"
         />
-
-        {/* Ghost wordmark of the focused pathway */}
-        <div className="absolute inset-y-0 right-0 hidden items-center overflow-hidden lg:flex">
-          {brands.map((brand) => (
-            <span
-              key={brand.id}
-              data-ghost={brand.id}
-              style={{ opacity: 0 }}
-              className="absolute right-[-2%] whitespace-nowrap text-[13vw] font-bold leading-none tracking-[-0.06em] text-accent/[0.05]"
-            >
-              {brand.shortName}
-            </span>
-          ))}
-        </div>
       </div>
 
       {/* ---------- CONTENT ---------- */}
-      <div className="mx-auto grid w-full max-w-[1180px] items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
+      <div className="mx-auto grid w-full max-w-[1180px] items-center gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
         <div>
           <span
             data-reveal="eyebrow"
-            className="inline-flex translate-y-4 items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.22em] text-primary"
+            className="inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.22em] text-primary"
           >
             <span aria-hidden="true" className="h-px w-6 bg-primary/50" />
-            Courses &amp; Programmes
+            Ayadi Cloudversity
           </span>
 
-          <h1 className="mt-7 text-[2.6rem] font-semibold leading-[1.0] tracking-[-0.05em] text-accent sm:text-6xl lg:text-[4.6rem]">
-            {HEADLINE.map((line, lineIndex) => (
-              <span key={lineIndex} className="relative block">
-                {line.map((word) => (
-                  <span key={word} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
-                    <span data-word className="mr-[0.22em] inline-block">
-                      {word}
-                    </span>
-                  </span>
-                ))}
+          {/* Each word slides up from behind its own clip. The spaces are real
+              text nodes, so the heading still reads as a sentence to a screen
+              reader or a crawler. */}
+          <h1
+            id="courses-heading"
+            className="mt-6 text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-accent sm:text-6xl lg:text-[3.4rem] xl:text-[4rem]"
+          >
+            {HEADLINE.map((line, lineIndex) => {
+              const isLastLine = lineIndex === HEADLINE.length - 1;
 
-                {lineIndex === 1 ? (
-                  <span
-                    data-rule
-                    aria-hidden="true"
-                    className="absolute -bottom-0.5 left-0 block h-[5px] w-[6.2em] rounded-full bg-brand-gradient"
-                  />
-                ) : null}
-              </span>
-            ))}
+              return (
+                <span key={lineIndex} className="block">
+                  <span className="relative inline-block">
+                    {line.map((word, wordIndex) => (
+                      <Fragment key={word}>
+                        {wordIndex > 0 ? ' ' : null}
+
+                        <span className="inline-block overflow-hidden pb-[0.12em] align-bottom">
+                          <span data-word className="inline-block">
+                            {word}
+                          </span>
+                        </span>
+                      </Fragment>
+                    ))}
+
+                    {isLastLine ? (
+                      <span
+                        data-rule
+                        aria-hidden="true"
+                        className="absolute -bottom-1.5 left-0 block h-[5px] w-full rounded-full bg-brand-gradient"
+                      />
+                    ) : null}
+                  </span>
+
+                  {isLastLine ? null : ' '}
+                </span>
+              );
+            })}
           </h1>
 
-          <p data-reveal="lede" className="mt-9 max-w-md translate-y-4 text-lg leading-8 text-muted">
-            Ayadi Cloudversity and its two sub-brands — each built for a different kind of learner.
+          <p data-reveal="lede" className="mt-6 text-base text-muted sm:text-lg">
+            Courses for every stage of learning.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center gap-5">
-            <button
-              type="button"
-              data-magnet
-              data-reveal="lede"
-              onClick={() => onSelectBrand(activeBrand.id)}
-              className={`group inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 text-sm font-bold text-white shadow-lg transition-shadow duration-300 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-4 ${activeBrand.theme.gradient} ${activeBrand.theme.outline}`}
-            >
-              Explore {activeBrand.shortName}
-              <ArrowRight
-                aria-hidden="true"
-                size={16}
-                className="transition-transform duration-300 group-hover:translate-x-1"
-              />
-            </button>
-
-            <p
-              data-reveal="cue"
-              className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-muted/70"
-            >
-              <ArrowDown aria-hidden="true" size={14} className="text-primary motion-safe:animate-bounce" />
-              Scroll to explore
-            </p>
+          <div data-reveal="lede" className="mt-7 max-w-xl">
+            <CourseSearch value={query} onChange={onQueryChange} onSubmit={onSearchSubmit} />
           </div>
         </div>
 
-        {/* ---------- PATHWAY SELECTOR ---------- */}
-        <div className="relative">
-          {/* Slides to whichever row has focus */}
-          <span
-            ref={indicator}
-            aria-hidden="true"
-            className={`absolute left-0 top-0 block w-[3px] rounded-full ${activeBrand.theme.gradient}`}
-          />
+        {/* ---------- ORBIT ----------
+            The hero's one accent: the categories circling a navy core. Purely
+            decorative, and dropped below `lg` to keep the hero short. */}
+        <div
+          data-orbit
+          aria-hidden="true"
+          className="relative mx-auto hidden aspect-square w-full max-w-[300px] lg:block"
+        >
+          <span className="absolute inset-[12%] rounded-full bg-hero-ambient" />
+          <span className="absolute inset-0 rounded-full border border-accent/10" />
+          <span className="absolute inset-[15%] rounded-full border border-dashed border-primary/30" />
+          <span className="absolute inset-[30%] rounded-full border border-accent/10" />
 
-          <ul className="relative">
-            {brands.map((brand, index) => {
-              const isActive = brand.id === active;
+          <span className="absolute inset-[36%] flex items-center justify-center rounded-[30%] bg-accent-gradient text-white shadow-[0_28px_56px_-22px_rgba(20,29,63,0.7)] ring-1 ring-inset ring-white/15">
+            <Compass size={34} strokeWidth={1.5} />
+          </span>
 
-              return (
-                <li key={brand.id} data-row={brand.id}>
-                  {index > 0 ? <span aria-hidden="true" className="block h-px bg-border" /> : null}
+          {/* A marker riding the dashed ring */}
+          <span className="absolute left-1/2 top-[15%] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-gradient ring-4 ring-page" />
 
-                  <button
-                    type="button"
-                    data-reveal="row"
-                    onPointerEnter={() => setActive(brand.id)}
-                    onFocus={() => setActive(brand.id)}
-                    onClick={() => onSelectBrand(brand.id)}
-                    className={`group flex w-full translate-x-6 items-center gap-5 py-6 pl-6 pr-2 text-left transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 ${brand.theme.outline}`}
-                  >
-                    <span className={`font-mono text-[11px] font-bold tracking-[0.2em] ${brand.theme.text}`}>
-                      {brand.index}
-                    </span>
+          {categories.slice(0, SATELLITES.length).map((category, index) => {
+            const style = categoryStyle(category.slug);
+            const Icon = style.icon;
 
-                    <span className="flex-1">
-                      <span
-                        className={`block text-xl font-semibold tracking-[-0.02em] transition-colors duration-300 ${
-                          isActive ? brand.theme.text : 'text-accent'
-                        }`}
-                      >
-                        {brand.name}
-                      </span>
-
-                      <span className="mt-1 block text-sm text-muted">{brand.role}</span>
-                    </span>
-
-                    <span
-                      className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-                        isActive ? `text-white ${brand.theme.gradient}` : `${brand.theme.soft} ${brand.theme.text}`
-                      }`}
-                    >
-                      <ArrowRight
-                        aria-hidden="true"
-                        size={15}
-                        className="transition-transform duration-300 group-hover:translate-x-0.5"
-                      />
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+            return (
+              /* Three layers on purpose: Tailwind places this one (`translate`),
+                 GSAP scales it in (`transform`), and the float below is a CSS
+                 animation — which would override GSAP if they shared an
+                 element. */
+              <span
+                key={category.id}
+                data-satellite
+                className={`absolute -translate-x-1/2 -translate-y-1/2 ${SATELLITES[index]}`}
+              >
+                <span
+                  className="flex size-14 items-center justify-center rounded-2xl bg-surface shadow-[0_18px_36px_-18px_rgba(20,29,63,0.45)] ring-1 ring-inset ring-border motion-safe:animate-[icon-float_4.5s_ease-in-out_infinite]"
+                  style={{ animationDelay: `${index * 0.8}s` }}
+                >
+                  <span className={`flex size-10 items-center justify-center rounded-xl ${style.tile}`}>
+                    <Icon size={19} strokeWidth={1.9} />
+                  </span>
+                </span>
+              </span>
+            );
+          })}
         </div>
       </div>
     </section>

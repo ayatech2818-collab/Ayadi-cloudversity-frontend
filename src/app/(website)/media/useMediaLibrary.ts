@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { getGalleries } from '@/lib/api/galleries';
+import { getPublicGalleries } from '@/lib/api/galleries';
 
 import { pickReel, toAlbums, type Album, type MediaEntry } from './media';
 
@@ -28,7 +28,7 @@ export function useMediaLibrary(): Library & { retry: () => void } {
   useEffect(() => {
     let cancelled = false;
 
-    getGalleries({ is_published: true })
+    getPublicGalleries()
       .then((galleries) => {
         if (cancelled) return;
 

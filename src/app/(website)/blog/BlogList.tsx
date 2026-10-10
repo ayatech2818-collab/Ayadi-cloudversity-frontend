@@ -11,7 +11,7 @@ import {
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import { getBlogs, type Blog } from '@/lib/api/blogs';
+import { getPublicBlogs, type Blog } from '@/lib/api/blogs';
 
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
 import {
@@ -127,8 +127,7 @@ export default function BlogList() {
         setLoading(true);
         setError(null);
 
-        const data = await getBlogs({
-          status: 'published',
+        const data = await getPublicBlogs({
           sort_by: 'newest',
           ...(category !== 'All'
             ? {
@@ -234,7 +233,7 @@ export default function BlogList() {
 
   /*
    * Client-side pagination is retained because the current
-   * getBlogs() API does not expose page/limit parameters.
+   * getPublicBlogs() API does not expose page/limit parameters.
    */
   const totalPages = Math.max(
     1,

@@ -1,29 +1,86 @@
-import type { BrandId, BrandSectionData, BrandTabInfo } from './types';
+import { categoryById } from './categories';
+import type { BrandId, BrandSectionData, CatalogueCourse } from './types';
 
-export const brandTabs: BrandTabInfo[] = [
+/*
+ * The Ayadi Cloudversity catalogue — everything the Courses page lists.
+ *
+ * Placeholder data. Each course names its category by id (categories.ts), the
+ * way a backend course carries `category_id`, so moving to the API means
+ * replacing this array with `getCourses({ brand_id, is_published: true })`
+ * and mapping `short_description` → description, `thumbnail_url` → image.
+ *
+ * ayadi-1 to ayadi-3 are the page's original three, ids unchanged. ayadi-4 to
+ * ayadi-6 are the other Cloudversity courses the home page already features
+ * (FeaturedCourses.tsx), copied as they are there; they have no badge because
+ * none was written for them. Which category each course sits in is a
+ * placeholder too — confirm with the real catalogue.
+ */
+export const ayadiCourses: CatalogueCourse[] = [
   {
-    id: 'ayadi',
-    name: 'AYADI CLOUDVERSITY',
-    subtitle: 'Learning & Professional Programs',
-    tagline: 'Main Learning Platform',
-    iconName: 'GraduationCap',
+    id: 'ayadi-1',
+    title: 'Python Full Stack Development',
+    categoryId: 'readiness',
+    level: 'Advanced',
+    duration: '12 Weeks',
+    description: 'Build real-world full-stack web applications with Python, contemporary frameworks, and modern databases.',
+    image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=1200&q=80',
+    badge: 'Popular',
   },
   {
-    id: 'ayatech',
-    name: 'AYATECH',
-    subtitle: 'Technology & AI',
-    tagline: 'Tech & Software Hub',
-    iconName: 'Cpu',
+    id: 'ayadi-2',
+    title: 'Digital Marketing Mastery',
+    categoryId: 'readiness',
+    level: 'Intermediate',
+    duration: '8 Weeks',
+    description: 'Learn data-driven marketing campaigns, brand positioning, and omnichannel analytics to accelerate growth.',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80',
+    badge: 'Featured',
   },
   {
-    id: 'ags',
-    name: 'AYADI GLOCAL SCHOOL',
-    subtitle: 'Online Schooling',
-    tagline: 'Grades 1 to 8',
-    iconName: 'School',
+    id: 'ayadi-3',
+    title: 'UI/UX Design & Design Systems',
+    categoryId: 'creative',
+    level: 'Beginner',
+    duration: '6 Weeks',
+    description: 'Master human-centric interface design, wireframing, interactive prototyping, and design systems.',
+    image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=80',
+    badge: 'Hands-on',
+  },
+  {
+    id: 'ayadi-4',
+    title: 'Data Science & Analytics',
+    categoryId: 'academic',
+    level: 'Intermediate',
+    duration: '10 Weeks',
+    description: 'Turn data into meaningful insights using modern analytical tools.',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    id: 'ayadi-5',
+    title: 'Artificial Intelligence',
+    categoryId: 'academic',
+    level: 'Advanced',
+    duration: '12 Weeks',
+    description: 'Understand AI concepts and build intelligent applications.',
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    id: 'ayadi-6',
+    title: 'Communication Skills',
+    categoryId: 'creative',
+    level: 'Beginner',
+    duration: '4 Weeks',
+    description: 'Develop confident communication skills for academic and professional growth.',
+    image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=80',
   },
 ];
 
+/*
+ * The brand-keyed view. The Courses page no longer reads it — it lists
+ * Cloudversity only — but other sections still do (the AyaTech world's
+ * programme strip on the home page, the universe chapters), so AyaTech and
+ * AGS stay here.
+ */
 export const brandContentMap: Record<BrandId, BrandSectionData> = {
   ayadi: {
     eyebrow: 'Ayadi Cloudversity',
@@ -32,38 +89,11 @@ export const brandContentMap: Record<BrandId, BrandSectionData> = {
       'Explore programs designed to help you develop practical skills, strengthen your career, and continue learning at every stage.',
     brandBadge: 'Core Ecosystem',
     ctaText: 'Explore Ayadi Programs →',
-    courses: [
-      {
-        id: 'ayadi-1',
-        title: 'Python Full Stack Development',
-        category: 'Technology',
-        level: 'Advanced',
-        duration: '12 Weeks',
-        description: 'Build real-world full-stack web applications with Python, contemporary frameworks, and modern databases.',
-        image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=1200&q=80',
-        badge: 'Popular',
-      },
-      {
-        id: 'ayadi-2',
-        title: 'Digital Marketing Mastery',
-        category: 'Business & Growth',
-        level: 'Intermediate',
-        duration: '8 Weeks',
-        description: 'Learn data-driven marketing campaigns, brand positioning, and omnichannel analytics to accelerate growth.',
-        image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80',
-        badge: 'Featured',
-      },
-      {
-        id: 'ayadi-3',
-        title: 'UI/UX Design & Design Systems',
-        category: 'Creative & Design',
-        level: 'Beginner',
-        duration: '6 Weeks',
-        description: 'Master human-centric interface design, wireframing, interactive prototyping, and design systems.',
-        image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=80',
-        badge: 'Hands-on',
-      },
-    ],
+    /* The catalogue above, with each category spelled out by name. */
+    courses: ayadiCourses.map(({ categoryId, ...course }) => ({
+      ...course,
+      category: categoryById(categoryId)?.name ?? '',
+    })),
   },
   ayatech: {
     eyebrow: 'AyaTech Ecosystem',

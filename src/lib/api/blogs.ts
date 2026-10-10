@@ -153,6 +153,28 @@ export const createBlog = async (
   return response.data;
 };
 
+
+export const getPublicBlogs = async (
+  filters?: Omit<BlogFilters, "status">
+): Promise<Blog[]> => {
+  const response = await api.get<Blog[]>("/blogs/public", {
+    params: filters,
+  });
+
+  return response.data;
+};
+
+export const getPublicBlog = async (
+  slug: string
+): Promise<Blog> => {
+  const response = await api.get<Blog>(
+    `/blogs/public/${encodeURIComponent(slug)}`
+  );
+
+  return response.data;
+};
+
+
 export const updateBlog = async (
   id: string,
   data: BlogFormData

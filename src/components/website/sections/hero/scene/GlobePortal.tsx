@@ -109,6 +109,10 @@ export function GlobePortal({
     const spin = r.spin + f.idleSpin + f.px * 0.3 * (1 - r.morph);
     const inSpace = r.world < 0.999;
 
+    /* The portal's shape for this stage — upright on a phone, the one portal
+       everywhere else (scene/why.ts). The Director has just laid it out. */
+    const { frame: shape, depth } = f.why;
+
     for (const mesh of [latticeMesh.current, haloMesh.current]) {
       if (!mesh) continue;
       mesh.visible = r.globe > 0.001 && inSpace;
@@ -118,6 +122,8 @@ export function GlobePortal({
       u.uSpin.value = spin;
       u.uTime.value = t;
       u.uSurface.value = r.surface;
+      (u.uFrame.value as THREE.Vector2).set(shape[0], shape[1]);
+      u.uDepth.value = depth;
     }
 
     const shellVisible = r.body > 0.002;
@@ -155,7 +161,11 @@ export function GlobePortal({
     const surface = surfaceMesh.current;
     if (surface) {
       surface.visible = r.surface > 0.002 && inSpace;
+      /* The glass is cut for the one portal: stretched to this one's frame,
+         and told its size, so its ripples stay round. */
+      surface.scale.set(shape[0] / PORTAL_HALF[0], shape[1] / PORTAL_HALF[1], 1);
       const u = (surface.material as THREE.ShaderMaterial).uniforms;
+      (u.uFrame.value as THREE.Vector2).set(shape[0], shape[1]);
       u.uSurface.value = r.surface;
       u.uRipple.value = r.ripple;
       u.uShine.value = r.shine;

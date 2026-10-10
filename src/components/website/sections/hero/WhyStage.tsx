@@ -61,7 +61,10 @@ function entrance(index: number) {
  * and one behind another, each coming through the portal's side by way of a
  * ripple of its own and then staying exactly where it is: the camera's
  * approach is what moves them, and what finally leaves them behind. The
- * words keep the glass after that, until the liquid takes it.
+ * words keep the glass after that, until the liquid takes it. (On a phone
+ * held upright the portal stands upright too, and the cards take turns in
+ * one place under the words instead: each comes, and goes back, before the
+ * next — scene/why.ts.)
  *
  * Everything is laid out once, flat. The scene's Director gives the heading
  * and each card its place every frame (placeWhy in scene/HeroScene.tsx) — a
@@ -177,10 +180,12 @@ function ReasonCard({ reason, index }: { reason: Reason; index: number }) {
       </span>
 
       <span className={styles.whyText}>
-        <span className="block text-[1.05rem] font-semibold leading-tight tracking-[-0.02em] text-white">
+        <span className={`${styles.whyTitle} block text-[1.05rem] font-semibold leading-tight tracking-[-0.02em] text-white`}>
           {reason.title}
         </span>
-        <span className="mt-1 block text-[0.85rem] leading-snug text-emerald-50/85">{reason.description}</span>
+        <span className={`${styles.whyDescription} mt-1 block text-[0.85rem] leading-snug text-emerald-50/85`}>
+          {reason.description}
+        </span>
         <span data-h="why-accent" className={styles.whyAccent} />
       </span>
     </motion.div>

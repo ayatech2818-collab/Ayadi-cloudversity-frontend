@@ -156,6 +156,35 @@ export const deleteGallery = async (
   await api.delete(`/galleries/${galleryId}`);
 };
 
+
+
+/**
+ * Public gallery list — published galleries only.
+ */
+export const getPublicGalleries = async (
+  filters?: Omit<GalleryFilters, "is_published">
+): Promise<Gallery[]> => {
+  const response = await api.get<Gallery[]>("/galleries/public", {
+    params: filters,
+  });
+
+  return response.data;
+};
+
+/**
+ * Public gallery details — published galleries only.
+ */
+export const getPublicGallery = async (
+  galleryId: string
+): Promise<Gallery> => {
+  const response = await api.get<Gallery>(
+    `/galleries/public/${galleryId}`
+  );
+
+  return response.data;
+};
+
+
 // =========================================================
 // GALLERY ITEMS
 // =========================================================
@@ -181,6 +210,36 @@ export const getGalleryItem = async (
 
   return response.data;
 };
+
+
+
+/**
+ * Public gallery items — parent gallery must be published.
+ */
+export const getPublicGalleryItems = async (
+  galleryId: string
+): Promise<GalleryItem[]> => {
+  const response = await api.get<GalleryItem[]>(
+    `/galleries/public/${galleryId}/items`
+  );
+
+  return response.data;
+};
+
+/**
+ * Public individual gallery item.
+ */
+export const getPublicGalleryItem = async (
+  galleryId: string,
+  itemId: string
+): Promise<GalleryItem> => {
+  const response = await api.get<GalleryItem>(
+    `/galleries/public/${galleryId}/items/${itemId}`
+  );
+
+  return response.data;
+};
+
 
 /**
  * Upload gallery media.

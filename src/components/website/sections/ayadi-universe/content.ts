@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { brandById } from '@/components/website/courses/brands';
+import { categoryBySlug } from '@/components/website/courses/categories';
 import { brandContentMap } from '@/components/website/courses/dummyData';
 import { learningWorlds } from '@/components/website/courses/journey';
 
@@ -24,8 +25,9 @@ import { learningWorlds } from '@/components/website/courses/journey';
  * taglines and ledes come from courses/brands.ts; the subjects from
  * courses/journey.ts; the programmes from courses/dummyData.ts (placeholder
  * data — it changes when the real catalogue does); the three Cloudversity
- * pathways are the Footer's own category links. No figures: the stats in
- * brands.ts are unverified, so they are left out on purpose.
+ * pathways are the course categories in courses/categories.ts, which the
+ * Footer links to as well. No figures: the stats in brands.ts are unverified,
+ * so they are left out on purpose.
  *
  * Both brands have exactly three chapters, so the scroll timeline is the same
  * length whichever one the visitor is reading.
@@ -91,6 +93,9 @@ const programmeMeta = (course: { category: string; level: string; duration: stri
 /* The blurb under each pathway is the matching subject's own line. */
 const blurbOf = (id: string) => learningWorlds.find((world) => world.id === id)?.blurb;
 
+/* Each pathway is a course category, named once in courses/categories.ts. */
+const pathwayName = (slug: string) => categoryBySlug(slug)?.name ?? '';
+
 export const CHAPTERS: Record<Brand, [Chapter, Chapter, Chapter]> = {
   cloudversity: [
     {
@@ -99,9 +104,9 @@ export const CHAPTERS: Record<Brand, [Chapter, Chapter, Chapter]> = {
       title: brandById.ayadi.tagline,
       text: brandById.ayadi.lede,
       cards: [
-        { title: 'Academic & Learning Pathways', meta: blurbOf('academic'), icon: GraduationCap, tint: GREEN },
-        { title: 'Life & Creative Skills', meta: blurbOf('creative'), icon: Palette, tint: TEAL },
-        { title: 'Workspace Readiness & PD', meta: blurbOf('professional'), icon: Briefcase, tint: NAVY },
+        { title: pathwayName('academic'), meta: blurbOf('academic'), icon: GraduationCap, tint: GREEN },
+        { title: pathwayName('creative'), meta: blurbOf('creative'), icon: Palette, tint: TEAL },
+        { title: pathwayName('readiness'), meta: blurbOf('professional'), icon: Briefcase, tint: NAVY },
       ],
     },
     {

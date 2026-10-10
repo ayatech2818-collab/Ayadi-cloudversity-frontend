@@ -3,6 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode, SVGProps } from 'react';
 
+import { courseCategories } from '@/components/website/courses/categories';
+
 /* ==================================================
    SOCIAL ICONS
 ================================================== */
@@ -57,11 +59,12 @@ const exploreLinks = [
   { label: 'Contact Us', href: '/contact' },
 ];
 
-const categoryLinks = [
-  { label: 'Academic & Learning Pathways', href: '/courses?category=academic' },
-  { label: 'Life & Creative Skills', href: '/courses?category=creative' },
-  { label: 'Workspace Readiness & PD', href: '/courses?category=readiness' },
-];
+/* Read from the catalogue's own list, so the names here cannot drift from the
+   ones on the Courses page. Each link opens that page filtered. */
+const categoryLinks = courseCategories.map((category) => ({
+  label: category.name,
+  href: `/courses?category=${category.slug}`,
+}));
 
 /* ==================================================
    FOOTER

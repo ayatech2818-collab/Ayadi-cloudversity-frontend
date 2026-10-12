@@ -21,6 +21,11 @@ export type Frame = {
   slotFrac: number;
   /** The globe's idle turn; slows to a stop as it becomes the portal. */
   idleSpin: number;
+  /** How much of the lattice's soft glow is drawn, 1 → 0, and where that is
+      heading. It only ever goes down: the Director lets it go first when the
+      GPU cannot keep the scene's pace (see "keeping up" in HeroScene.tsx). */
+  glow: number;
+  glowTo: number;
   /** Where the Why heading and cards stand in the portal's space, for a
       canvas of this shape. Laid out again only when the shape changes. */
   why: WhyLayout;
@@ -38,6 +43,8 @@ export function createFrame(): Frame {
     shiftY: 0,
     slotFrac: 0.4,
     idleSpin: 0,
+    glow: 1,
+    glowTo: 1,
     why: createWhyLayout(),
   };
 }

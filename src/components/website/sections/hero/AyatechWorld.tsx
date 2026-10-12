@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 
 import { brandById } from '@/components/website/courses/brands';
+import { jumpTo } from '@/lib/smooth-scroll';
 
 import styles from './ayatech.module.css';
 import { AyatechHud } from './ayatech/AyatechHud';
@@ -228,7 +229,7 @@ export function AyatechWorld() {
   const goTo = useCallback((time: number) => {
     const trigger = triggerRef.current;
     if (!trigger) return;
-    window.scrollTo({ top: trigger.start + (trigger.end - trigger.start) * (time / TOTAL), behavior: 'instant' });
+    jumpTo(trigger.start + (trigger.end - trigger.start) * (time / TOTAL));
   }, []);
 
   const jump = useCallback((chapter: number) => goTo(CHAPTER_VIEW[chapter] ?? 0), [goTo]);

@@ -232,11 +232,51 @@ export type Quality = {
   liquidScale: number;
 };
 
+/** What the browser can do, and what it says it is doing it on. */
+export type Gpu = {
+  webgl2: boolean;
+  /** The GPU's own name, where the browser gives it; '' where it does not. */
+  renderer: string;
+};
+
+let probed: Gpu | null = null;
+
+/** Asked once, of a context made for the question and thrown away. */
+export function probeGpu(): Gpu {
+  if (probed) return probed;
+  probed = { webgl2: false, renderer: '' };
+
+  try {
+    const context = document.createElement('canvas').getContext('webgl2');
+    if (context) {
+      probed.webgl2 = true;
+      const info = context.getExtension('WEBGL_debug_renderer_info');
+      if (info) probed.renderer = String(context.getParameter(info.UNMASKED_RENDERER_WEBGL) ?? '');
+      context.getExtension('WEBGL_lose_context')?.loseContext();
+    }
+  } catch {
+    /* No WebGL here: as probed. */
+  }
+
+  return probed;
+}
+
+/** A GPU with a card's worth of power behind it, by name. Not every such GPU
+    — only enough to know when a low core count is no reason to hold back. */
+const CAPABLE = /nvidia|geforce|quadro|radeon (rx|pro)|\barc\b|apple m\d/i;
+
 export function pickQuality(): Quality {
   const width = window.innerWidth;
+  /* A core count says little about a GPU — and some browsers report a made-up
+     one, as low as 2, so that it cannot identify the visitor (Brave does, on
+     a different draw each session). So few cores hold a wide screen back
+     only where the GPU has not said it is better than that. What a GPU turns
+     out unable to keep up with, the scene lets go of as it runs (see
+     "keeping up" in scene/HeroScene.tsx). */
   const cores = navigator.hardwareConcurrency || 4;
+  const modest = cores <= 4 && !CAPABLE.test(probeGpu().renderer);
 
-  if (width < 768 || cores <= 4) {
+  if (width < 768 || modest) {
     return { tier: 'low', dpr: [1, 1.25], antialias: false, particles: 70, segments: 96, halo: false, liquidScale: 0.5 };
   }
   if (width < 1280) {

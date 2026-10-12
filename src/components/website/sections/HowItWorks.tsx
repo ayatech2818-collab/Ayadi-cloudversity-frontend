@@ -269,13 +269,18 @@ function CinematicJourney() {
         <motion.div style={{ opacity: darkDecor }} className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.14)_1px,transparent_1px)] bg-size-[26px_26px] [mask-image:radial-gradient(ellipse_at_center,black_10%,transparent_70%)]" />
 
+          {/* will-change on the three that drift with the scroll: each is a
+              large blurred or masked shape, and without a layer of its own
+              every step of that drift repaints the whole backdrop — which,
+              measured, was most of what this stage cost a laptop's GPU. On
+              its own layer it is painted once and only moved. */}
           <motion.div
             style={{ y: glowOneY }}
-            className="absolute -left-40 top-[-10%] size-[560px] rounded-full bg-emerald-400/20 blur-3xl"
+            className="absolute -left-40 top-[-10%] size-[560px] rounded-full bg-emerald-400/20 blur-3xl will-change-transform"
           />
           <motion.div
             style={{ y: glowTwoY }}
-            className="absolute -right-32 bottom-[-15%] size-[520px] rounded-full bg-lime-300/15 blur-3xl"
+            className="absolute -right-32 bottom-[-15%] size-[520px] rounded-full bg-lime-300/15 blur-3xl will-change-transform"
           />
 
           {/* Perspective floor — the horizon that sells the 3D depth */}
@@ -290,6 +295,7 @@ function CinematicJourney() {
               [mask-image:linear-gradient(to_top,black,transparent_72%)]
               bg-[linear-gradient(to_right,rgba(190,242,100,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(190,242,100,0.12)_1px,transparent_1px)]
               bg-size-[80px_80px]
+              will-change-transform
             "
           />
 

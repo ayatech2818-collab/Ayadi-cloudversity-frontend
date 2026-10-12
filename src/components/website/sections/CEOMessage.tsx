@@ -111,9 +111,14 @@ export default function CEOMessage() {
               {!playing ? (
                 <>
                   {/* YouTube thumbnail */}
+                  {/* Lazy: it sits several screens down, and left eager React
+                      preloads it in the page's head — ahead of the hero's own
+                      first image. */}
                   <img
                     src={`https://img.youtube.com/vi/${VIDEO_ID}/maxresdefault.jpg`}
                     alt="Ayadi CEO message"
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
 

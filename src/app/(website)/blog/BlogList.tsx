@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { getPublicBlogs, type Blog } from '@/lib/api/blogs';
+import { releaseScroll } from '@/lib/smooth-scroll';
 
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
 import {
@@ -263,6 +264,7 @@ export default function BlogList() {
       )
     );
 
+    releaseScroll();
     gridRef.current?.scrollIntoView({
       block: 'start',
     });

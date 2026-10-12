@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState, type SVGProps } from 'react';
 import { Images, Phone } from 'lucide-react';
-import { EnrollmentModal } from '@/components/website/enrollment/EnrollmentModal';
+import { LazyEnrollmentModal, preloadEnrollment } from '@/components/website/enrollment/LazyEnrollmentModal';
 
 /* ==================================================
    ICONS
@@ -153,6 +153,7 @@ export function Navbar() {
           backdrop-blur-xl
           transition-[max-width,border-radius,box-shadow,background-color]
           duration-500
+          will-change-transform
           ${EASE}
           supports-[backdrop-filter]:bg-white/65
           ${
@@ -164,7 +165,7 @@ export function Navbar() {
              * the Enroll button.
              */
             isCompact
-              ? 'max-w-[1180px] shadow-[0_16px_50px_rgba(4,76,59,0.16)] md:max-w-[620px] md:rounded-full md:hover:max-w-[1180px] md:hover:rounded-2xl'
+              ? 'max-w-[1180px] shadow-[0_16px_50px_rgba(4,76,59,0.16)] md:max-w-[620px] md:rounded-full md:hover:max-w-[1180px]'
               : 'max-w-[1180px] shadow-[0_10px_40px_rgba(4,76,59,0.10)]'
           }
         `}
@@ -263,6 +264,8 @@ export function Navbar() {
           <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
+              onPointerEnter={preloadEnrollment}
+              onFocus={preloadEnrollment}
               onClick={() => {
                 setIsEnrollOpen(true);
                 closeMenu();
@@ -384,6 +387,8 @@ export function Navbar() {
                 <motion.div variants={mobileItemVariants}>
                   <button
                     type="button"
+                    onPointerDown={preloadEnrollment}
+                    onFocus={preloadEnrollment}
                     onClick={() => {
                       setIsEnrollOpen(true);
                       closeMenu();
@@ -417,7 +422,7 @@ export function Navbar() {
         </AnimatePresence>
       </nav>
       </motion.header>
-      <EnrollmentModal isOpen={isEnrollOpen} onClose={() => setIsEnrollOpen(false)} />
+      <LazyEnrollmentModal isOpen={isEnrollOpen} onClose={() => setIsEnrollOpen(false)} />
     </>
   );
 }

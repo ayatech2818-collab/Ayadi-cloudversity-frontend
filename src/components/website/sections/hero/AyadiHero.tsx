@@ -129,6 +129,10 @@ const SCORE: Line[] = [
   ['camZ', -7.6, 7.7, 1.6, 'sine.out'],
 ];
 
+/** Deep space at the edge of the frame: the sky's own colour there
+    (scene/shaders.ts), and its stand-in's (.shade in hero.module.css). */
+const SPACE = '#031210';
+
 /* When the HTML layers come and go, in the same units. The opening fades
    where it stands — the page no longer carries it away — clearing the middle
    of the screen as the mark comes free and heads for it. */
@@ -547,6 +551,17 @@ export function AyadiHero() {
       /* Stand-ins for the canvas's own sky, for the moment before it loads. */
       timeline.fromTo(layer('shade'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 1.45 }, 0.35);
       timeline.to(layer('shade'), { autoAlpha: 0, duration: 0.3 }, 6.5);
+
+      /* And the stage's own colour, under both, goes with that sky: deep
+         space while the scene is dark, the page's again on the far side.
+         Nothing on the page shows it — the canvas covers the stage — but a
+         phone's browser does. Safari (iOS 26) paints the strips behind its
+         own bars in the background colour of whatever is pinned at that
+         edge of the screen, and a stage left the page's colour put a pale
+         band under the night sky: the scene looked cut short of the screen. */
+      const page = getComputedStyle(stage).backgroundColor;
+      timeline.fromTo(stage, { backgroundColor: page }, { backgroundColor: SPACE, duration: 1.45 }, 0.35);
+      timeline.to(stage, { backgroundColor: page, duration: 0.3 }, 6.5);
       timeline.fromTo(layer('fade'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8 }, 7.4);
 
       const show = (name: string, [at, duration]: readonly [number, number]) =>

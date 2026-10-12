@@ -257,16 +257,18 @@ function CinematicJourney() {
         </ol>
       </div>
 
-      {/* As tall as the screen as it stands (dvh). On a phone the browser's
-          bars take a strip off it, and at 100vh — the screen without them —
-          the foot of the stage, with its progress rail, sat behind them. */}
+      {/* As tall as the screen with a phone's browser bars away (100vh is
+          that), and never resized as they come and go. When they are up the
+          foot of the stage is behind them, so what stands at the foot — the
+          label and the progress rail, below — is placed from the foot of the
+          small viewport instead (100lvh − 100svh is nothing on a desktop). */}
       <motion.div
         aria-hidden="true"
         style={{ backgroundColor: stageBg }}
         onPointerEnter={handlePointerEnter}
         onPointerMove={handlePointerMove}
         onPointerLeave={handlePointerLeave}
-        className="sticky top-0 isolate h-screen overflow-hidden supports-[height:100dvh]:h-dvh"
+        className="sticky top-0 isolate h-screen overflow-hidden"
       >
         {/* ---------------- DARK BACKDROP ---------------- */}
         <motion.div style={{ opacity: darkDecor }} className="pointer-events-none absolute inset-0 -z-10">
@@ -400,13 +402,13 @@ function CinematicJourney() {
 
         <motion.span
           style={{ opacity: introOpacity, visibility: introVisibility }}
-          className="absolute bottom-6 left-6 z-20 text-[10px] font-semibold uppercase tracking-[0.3em] text-emerald-50/40 lg:left-12"
+          className="absolute bottom-[calc(100lvh-100svh+1.5rem)] left-6 z-20 text-[10px] font-semibold uppercase tracking-[0.3em] text-emerald-50/40 lg:left-12"
         >
           Scroll to explore
         </motion.span>
 
         {/* ---------------- TIMELINE ---------------- */}
-        <div className="absolute inset-x-6 bottom-16 z-20 lg:inset-x-12">
+        <div className="absolute inset-x-6 bottom-[calc(100lvh-100svh+4rem)] z-20 lg:inset-x-12">
           <motion.div style={{ backgroundColor: palette.hairline }} className="relative h-px">
             <motion.div
               style={{ scaleX: lineScaleX, backgroundColor: lineColor }}

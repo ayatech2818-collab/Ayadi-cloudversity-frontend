@@ -2,8 +2,9 @@
 
 import { Suspense, useCallback, useState } from 'react';
 
-import { EnrollmentModal } from '@/components/website/enrollment/EnrollmentModal';
+import { LazyEnrollmentModal } from '@/components/website/enrollment/LazyEnrollmentModal';
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
+import { releaseScroll } from '@/lib/smooth-scroll';
 
 import { CourseCatalogue } from './CourseCatalogue';
 import { CourseCategoryNav } from './CourseCategoryNav';
@@ -12,6 +13,7 @@ import type { CatalogueCategory } from './types';
 import { CategoryParam, useCourseCatalogue } from './useCourseCatalogue';
 
 const scrollToCatalogue = () => {
+  releaseScroll();
   document.getElementById('catalogue')?.scrollIntoView({ block: 'start' });
 };
 
@@ -97,7 +99,7 @@ export function CoursesPageContent() {
       {/* Overlaps the footer below it — see the note in GetStartedCta.tsx */}
       <GetStartedCta />
 
-      <EnrollmentModal isOpen={isEnrollOpen} onClose={closeEnrollment} />
+      <LazyEnrollmentModal isOpen={isEnrollOpen} onClose={closeEnrollment} />
     </main>
   );
 }

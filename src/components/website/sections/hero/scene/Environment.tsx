@@ -1,13 +1,13 @@
 'use client';
 
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import * as THREE from 'three';
 
 import type { Rig, WatermarkSpec } from '../rig';
 import { AYADI_BOX, AYADI_PATH } from '../wordmark';
 import type { Frame } from './frame';
-import { buildParticles, fullscreenTriangle } from './geometry';
+import { buildParticles, canRenderFields, createField, disposeField, drawField, fullscreenTriangle } from './geometry';
 import {
   BACKDROP_FRAGMENT,
   FLOOR_FRAGMENT,
@@ -15,14 +15,19 @@ import {
   PARTICLES_FRAGMENT,
   PARTICLES_VERTEX,
   SCREEN_VERTEX,
+  SKY_FRAGMENT,
   SPRITE_FRAGMENT,
   SPRITE_VERTEX,
 } from './shaders';
 
 type Props = { rig: RefObject<Rig>; frame: RefObject<Frame> };
 
+/** Tells BACKDROP_FRAGMENT its skies come from the small target. */
+const SKY_TEXTURE = { SKY_TEXTURE: '' };
+
 /* The sky behind everything: page-light, then deep space, then the far side. */
 export function Backdrop({ rig, frame }: Props) {
+  const gl = useThree((state) => state.gl);
   const watermark = useRef<WatermarkLayer | null>(null);
   useEffect(() => {
     const layer: WatermarkLayer = { texture: null, drawn: -1, pending: false, shownAt: -1, alive: true };
@@ -45,6 +50,7 @@ export function Backdrop({ rig, frame }: Props) {
       uAspect: { value: 1 },
       uGlow: { value: new THREE.Vector2() },
       uPointer: { value: new THREE.Vector2() },
+      uSky: { value: null },
       uWatermark: { value: null },
       uWatermarkRect: { value: new THREE.Vector4(0, 0, 1, 1) },
       uWatermarkAlpha: { value: 0 },
@@ -54,30 +60,75 @@ export function Backdrop({ rig, frame }: Props) {
   );
   const material = useRef<THREE.ShaderMaterial>(null);
 
+  /* The skies, drawn small each frame and stretched over the screen (see the
+     full-screen passes in shaders.ts). Where the renderer cannot draw into
+     such a target there is none, and the backdrop works its skies out per
+     pixel as it always did.
+
+     Their pass has uniforms of its own, written alongside the backdrop's
+     each frame (setSkies). It cannot share the object above: a material made
+     in JSX is given its own copy of the uniforms it is handed, so nothing
+     written to the backdrop's would ever reach a second material built from
+     that object — it would go on drawing the first frame's sky. */
+  const skyUniforms = useMemo(
+    () => ({
+      uDark: { value: 0 },
+      uWorld: { value: 0 },
+      uTime: { value: 0 },
+      uAspect: { value: 1 },
+      uGlow: { value: new THREE.Vector2() },
+      uPointer: { value: new THREE.Vector2() },
+      uWake: { value: 0 },
+    }),
+    [],
+  );
+  const sky = useMemo(
+    () =>
+      canRenderFields(gl)
+        ? createField(
+            new THREE.ShaderMaterial({
+              vertexShader: SCREEN_VERTEX,
+              fragmentShader: SKY_FRAGMENT,
+              uniforms: skyUniforms,
+              depthTest: false,
+              depthWrite: false,
+            }),
+          )
+        : null,
+    [gl, skyUniforms],
+  );
+  useEffect(
+    () => () => {
+      if (sky) disposeField(sky);
+    },
+    [sky],
+  );
+
   useFrame((state) => {
     const shader = material.current;
     if (!shader) return;
     const r = rig.current;
     const f = frame.current;
     const u = shader.uniforms;
-    u.uDark.value = r.dark;
-    u.uWorld.value = r.world;
-    u.uTime.value = f.time;
-    u.uAspect.value = f.aspect;
-    /* The opening's wash sits wherever the mark is on screen. */
-    u.uGlow.value.set(f.shiftX, f.shiftY);
-    u.uPointer.value.set(f.px, -f.py);
-    u.uWake.value = r.wake;
+    setSkies(u, r, f);
 
     const layer = watermark.current;
     if (layer) updateWatermark(layer, r, f.time, u, state.size, state.viewport.dpr);
+
+    if (sky) {
+      setSkies(skyUniforms, r, f);
+      u.uSky.value = sky.target.texture;
+      drawField(state.gl, sky);
+    }
   });
 
   return (
     <mesh geometry={geometry} frustumCulled={false} renderOrder={-1000}>
       <shaderMaterial
+        key={sky ? 'field' : 'pixel'}
         ref={material}
         uniforms={uniforms}
+        defines={sky ? SKY_TEXTURE : undefined}
         vertexShader={SCREEN_VERTEX}
         fragmentShader={BACKDROP_FRAGMENT}
         depthTest={false}
@@ -85,6 +136,18 @@ export function Backdrop({ rig, frame }: Props) {
       />
     </mesh>
   );
+}
+
+/** What the three skies are worked out from (SKIES in shaders.ts). */
+function setSkies(u: Record<string, THREE.IUniform>, r: Rig, f: Frame) {
+  u.uDark.value = r.dark;
+  u.uWorld.value = r.world;
+  u.uTime.value = f.time;
+  u.uAspect.value = f.aspect;
+  /* The opening's wash sits wherever the mark is on screen. */
+  (u.uGlow.value as THREE.Vector2).set(f.shiftX, f.shiftY);
+  (u.uPointer.value as THREE.Vector2).set(f.px, -f.py);
+  u.uWake.value = r.wake;
 }
 
 /* ---------- the opening's AYADI watermark ----------

@@ -23,6 +23,9 @@ import {
   SURFACE_VERTEX,
 } from './shaders';
 
+/** How strong the lattice's glow is: a wide, faint second pass over it. */
+const HALO_OPACITY = 0.2;
+
 function latticeUniforms(width: number, opacity: number, brightness: number) {
   return {
     uRadius: { value: GLOBE_R },
@@ -72,7 +75,7 @@ export function GlobePortal({
   const uniforms = useMemo(
     () => ({
       lattice: latticeUniforms(0.0085, 1, 1),
-      halo: latticeUniforms(0.032, 0.2, 0.85),
+      halo: latticeUniforms(0.032, HALO_OPACITY, 0.85),
       body: { uOpacity: { value: 0 } },
       atmosphere: { uOpacity: { value: 0 } },
       nodes: { uTime: { value: 0 }, uSize: { value: 5 }, uPixelRatio: { value: 1 }, uNodes: { value: 0 } },
@@ -124,6 +127,14 @@ export function GlobePortal({
       u.uSurface.value = r.surface;
       (u.uFrame.value as THREE.Vector2).set(shape[0], shape[1]);
       u.uDepth.value = depth;
+    }
+
+    /* The glow is the one thing here the Director may let go of, where the
+       GPU cannot keep the scene's pace: faded out, then not drawn at all. */
+    const halo = haloMesh.current;
+    if (halo) {
+      halo.visible = halo.visible && f.glow > 0;
+      (halo.material as THREE.ShaderMaterial).uniforms.uOpacity.value = HALO_OPACITY * f.glow;
     }
 
     const shellVisible = r.body > 0.002;

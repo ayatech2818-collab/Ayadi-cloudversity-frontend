@@ -1,9 +1,9 @@
 'use client';
 
-import { motion, useReducedMotion, type Variants } from 'framer-motion';
+import { motion, useInView, useReducedMotion, type Variants } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Clock3, Star } from 'lucide-react';
 import Image from 'next/image';
-import { memo, useEffect, useState, type PointerEvent } from 'react';
+import { memo, useEffect, useRef, useState, type PointerEvent } from 'react';
 
 type Course = {
   id: number;
@@ -104,6 +104,12 @@ export default function FeaturedCourses() {
   const [paused, setPaused] = useState(false);
   const [perView, setPerView] = useState(4);
 
+  /* Autoplay is for someone looking at the carousel. Off screen it would
+     only re-render this section every few seconds — in the middle of
+     whatever the visitor is actually scrolling through. */
+  const sectionRef = useRef<HTMLElement>(null);
+  const inView = useInView(sectionRef, { amount: 0.1 });
+
   const maxIndex = Math.max(0, courses.length - perView);
 
   // How many cards fit at the current breakpoint — keeps the slide step in sync
@@ -128,20 +134,21 @@ export default function FeaturedCourses() {
   const activeIndex = Math.min(current, maxIndex);
 
   useEffect(() => {
-    if (paused || reduceMotion || maxIndex === 0) return;
+    if (paused || reduceMotion || maxIndex === 0 || !inView) return;
 
     const timer = window.setInterval(() => {
       setCurrent((prev) => (Math.min(prev, maxIndex) >= maxIndex ? 0 : Math.min(prev, maxIndex) + 1));
     }, AUTOPLAY_MS);
 
     return () => window.clearInterval(timer);
-  }, [paused, reduceMotion, maxIndex]);
+  }, [paused, reduceMotion, maxIndex, inView]);
 
   const next = () => setCurrent(activeIndex >= maxIndex ? 0 : activeIndex + 1);
   const previous = () => setCurrent(activeIndex <= 0 ? maxIndex : activeIndex - 1);
 
   return (
     <section
+  ref={sectionRef}
   aria-labelledby="featured-courses-title"
   style={{
   background:

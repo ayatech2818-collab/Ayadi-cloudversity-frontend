@@ -9,11 +9,12 @@ import Link from 'next/link';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react';
 
 import type { BrandId } from '@/components/website/courses/types';
+import { jumpTo, releaseScroll } from '@/lib/smooth-scroll';
 
 import { AyatechWorld } from './AyatechWorld';
 import { ChooseWorld, type WorldId } from './ChooseWorld';
 import styles from './hero.module.css';
-import { createRig, pickQuality, RIG_START, WHY_KEYS, type Quality, type Rig, type StoryKey } from './rig';
+import { createRig, pickQuality, probeGpu, RIG_START, WHY_KEYS, type Quality, type Rig, type StoryKey } from './rig';
 import { SceneBoundary } from './SceneBoundary';
 import { playWorldEntrance, playWorldTransitionOut } from './worldEntrance';
 import { WhyStage } from './WhyStage';
@@ -56,16 +57,6 @@ const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffec
    browser that cannot run the scene — the same content reads as an ordinary
    page: the opening, then the two worlds. */
 const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
-
-function supportsWebGL2() {
-  try {
-    const context = document.createElement('canvas').getContext('webgl2');
-    context?.getExtension('WEBGL_lose_context')?.loseContext();
-    return Boolean(context);
-  } catch {
-    return false;
-  }
-}
 
 /* ---------- the score ----------
    One timeline, TOTAL units long, scrubbed across the pinned scroll. Every
@@ -359,6 +350,7 @@ export function AyadiHero() {
      this page they belong to the courses further down it, not to another
      route: the reader stays in the world they chose. */
   const showCourses = useCallback(() => {
+    releaseScroll();
     document.getElementById('featured-courses-title')?.closest('section')?.scrollIntoView({ block: 'start' });
   }, []);
 
@@ -436,7 +428,7 @@ export function AyadiHero() {
     const media = gsap.matchMedia();
 
     media.add(MOTION_QUERY, () => {
-      if (!supportsWebGL2()) return;
+      if (!probeGpu().webgl2) return;
       /* A new scene starts asleep, under the logo's artwork (rig.wake). */
       rig.current.wake = 0;
       setQuality(pickQuality());
@@ -586,7 +578,16 @@ export function AyadiHero() {
       timeline.set({}, {}, TOTAL);
 
       /* ---------- the master: the story, stretched for the Why stage ---------- */
-      const master = gsap.timeline({ defaults: { ease: 'none', immediateRender: false } });
+      const master = gsap.timeline({
+        defaults: { ease: 'none', immediateRender: false },
+        /* The scrub goes on settling for most of a second after the scroll
+           has stopped. For as long as it is moving anything, the scene is
+           busy — or the end of every scroll would be drawn at its resting
+           rate. */
+        onUpdate: () => {
+          state.activeAt = performance.now();
+        },
+      });
 
       /* The story's clock: 1:1, slower through the stage, 1:1 again — it
          never stops. Children render in order going forward and in reverse
@@ -862,10 +863,7 @@ export function AyadiHero() {
     /* The old world took its triggers, its pin and its height with it. */
     ScrollTrigger.refresh();
     const pinned = ScrollTrigger.getAll().find((trigger) => trigger.pin && element.contains(trigger.trigger ?? null));
-    window.scrollTo({
-      top: pinned ? pinned.start : element.getBoundingClientRect().top + window.scrollY - NAV_CLEARANCE,
-      behavior: 'instant',
-    });
+    jumpTo(pinned ? pinned.start : element.getBoundingClientRect().top + window.scrollY - NAV_CLEARANCE);
 
     // 2. Play the INITIAL ENTRANCE ANIMATION for the newly mounted world
     activeEntranceTl.current = playWorldEntrance({
@@ -936,7 +934,7 @@ export function AyadiHero() {
   const skip = () => {
     const trigger = triggerRef.current;
     if (!trigger) return;
-    window.scrollTo({ top: trigger.start + (trigger.end - trigger.start) * CHOICE_AT, behavior: 'instant' });
+    jumpTo(trigger.start + (trigger.end - trigger.start) * CHOICE_AT);
   };
 
   return (

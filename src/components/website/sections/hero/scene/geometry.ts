@@ -32,11 +32,67 @@ function random(seed: number) {
   };
 }
 
-/** One triangle that covers the screen; its shaders write clip space directly. */
+/** One triangle that covers the screen; its shaders write clip space directly.
+    One, not a grid: a multisampled canvas slows down along every triangle
+    edge that crosses it, and this one has none on screen. */
 export function fullscreenTriangle() {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
   return geometry;
+}
+
+/* ---------- small targets for the full-screen passes ----------
+   What a full-screen pass works out that changes slowly across the screen is
+   drawn into one of these first, and read back with a filtered lookup (see
+   the full-screen passes in shaders.ts). Half-float, so a dark gradient
+   stretched over the whole screen has no steps in it. */
+
+/** Its size: a cell is a fraction of the finest thing drawn into it, and the
+    whole of it a fiftieth of the pixels of a laptop's screen. */
+const FIELD_SIZE: [number, number] = [256, 144];
+
+/** Whether this renderer can draw into such a target at all. */
+export function canRenderFields(gl: THREE.WebGLRenderer) {
+  return gl.extensions.has('EXT_color_buffer_float') || gl.extensions.has('EXT_color_buffer_half_float');
+}
+
+export type Field = {
+  target: THREE.WebGLRenderTarget;
+  scene: THREE.Scene;
+  camera: THREE.OrthographicCamera;
+};
+
+/** A field drawn by `material` — a full-screen material of the pass's own. */
+export function createField(material: THREE.ShaderMaterial): Field {
+  const mesh = new THREE.Mesh(fullscreenTriangle(), material);
+  mesh.frustumCulled = false;
+  const scene = new THREE.Scene();
+  scene.add(mesh);
+
+  return {
+    target: new THREE.WebGLRenderTarget(FIELD_SIZE[0], FIELD_SIZE[1], {
+      type: THREE.HalfFloatType,
+      depthBuffer: false,
+      stencilBuffer: false,
+    }),
+    scene,
+    camera: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1),
+  };
+}
+
+export function drawField(gl: THREE.WebGLRenderer, field: Field) {
+  gl.setRenderTarget(field.target);
+  gl.render(field.scene, field.camera);
+  gl.setRenderTarget(null);
+}
+
+export function disposeField(field: Field) {
+  field.target.dispose();
+  for (const child of field.scene.children) {
+    const mesh = child as THREE.Mesh;
+    mesh.geometry.dispose();
+    (mesh.material as THREE.Material).dispose();
+  }
 }
 
 /* ---------- the Ayadi mark ----------

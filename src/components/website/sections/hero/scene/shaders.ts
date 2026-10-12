@@ -30,7 +30,17 @@ const NOISE = /* glsl */ `
   }
 `;
 
-/* ---------- full-screen passes (backdrop, liquid) ---------- */
+/* ---------- full-screen passes (backdrop, liquid) ----------
+   Both cover every pixel of the canvas on every frame they run, so what they
+   cost per pixel is most of what the scene costs on an integrated GPU. Most
+   of what they work out changes slowly across the screen — gradients,
+   drifting noise — so that part is drawn first into a small half-float
+   target (SKY_FRAGMENT, FLOW_FRAGMENT) and read back here with one filtered
+   lookup; only what is sharp — the watermark's letterforms, the ripples, the
+   dither — is done per pixel. A cell of that target is a fraction of the
+   finest thing drawn into it, so the picture is the same to well under one
+   step of an 8-bit channel. Where a browser cannot render to a float target
+   the same maths runs per pixel instead (no SKY_TEXTURE / FLOW_TEXTURE). */
 
 export const SCREEN_VERTEX = /* glsl */ `
   varying vec2 vUv;
@@ -42,60 +52,102 @@ export const SCREEN_VERTEX = /* glsl */ `
 `;
 
 /* Three skies in one: the light page the hero opens on, deep green space,
-   and the bright far side of the portal. The opening also carries the AYADI
-   watermark — drawn here, in the background, so the 3D mark stands in front
-   of it. Its box, tint and fade mirror .watermark in hero.module.css. */
-export const BACKDROP_FRAGMENT = /* glsl */ `
+   and the bright far side of the portal — each worked out only while it is
+   on screen. */
+const SKIES = /* glsl */ `
   uniform float uDark;
   uniform float uWorld;
   uniform float uTime;
   uniform float uAspect;
   uniform vec2 uGlow;
   uniform vec2 uPointer;
-  uniform sampler2D uWatermark;
-  uniform vec4 uWatermarkRect;
-  uniform float uWatermarkAlpha;
   uniform float uWake;
-
-  varying vec2 vUv;
 
   ${NOISE}
 
-  void main() {
-    vec2 ndc = vUv * 2.0 - 1.0;
-    vec2 p = ndc * vec2(uAspect, 1.0);
-
-    // The opening: the page colour, with a soft mint wash round the mark.
-    // The wash comes in as the scene wakes; asleep it is the bare page.
+  // The opening: the page colour, with a soft mint wash round the mark.
+  // The wash comes in as the scene wakes; asleep it is the bare page.
+  vec3 pageLight(vec2 ndc) {
     vec3 page = vec3(0.973, 0.980, 0.976);
     vec3 mint = vec3(0.874, 0.950, 0.905);
     float wash = 1.0 - smoothstep(0.0, 1.1, length((ndc - uGlow) * vec2(uAspect, 1.0)));
-    vec3 light = mix(page, mint, wash * 0.8 * uWake);
+    return mix(page, mint, wash * 0.8 * uWake);
+  }
 
-    // The watermark: uWatermarkRect is its centre and half-size in NDC.
-    vec2 wm = (ndc - uWatermarkRect.xy) / uWatermarkRect.zw * 0.5 + 0.5;
-    float inside = step(0.0, wm.x) * step(wm.x, 1.0) * step(0.0, wm.y) * step(wm.y, 1.0);
-    float ink = texture2D(uWatermark, clamp(wm, 0.0, 1.0)).a * inside;
-    vec3 tint = mix(vec3(0.086, 0.639, 0.29), vec3(0.051, 0.58, 0.533), wm.x);
-    float fade = mix(0.45, 1.0, smoothstep(0.15, 0.85, wm.y));
-    light = mix(light, tint, ink * fade * uWatermarkAlpha * 0.075);
+  vec3 skies(vec2 ndc) {
+    vec2 p = ndc * vec2(uAspect, 1.0);
+    vec3 col = pageLight(ndc);
 
     // Deep space: brighter towards the middle, a slow nebula drifting through.
-    vec2 c = p - uPointer * 0.06;
-    float r = length(c);
-    vec3 deep = mix(vec3(0.043, 0.188, 0.161), vec3(0.008, 0.043, 0.037), smoothstep(0.0, 1.4, r));
-    float n = vnoise(c * 1.6 + vec2(uTime * 0.012, -uTime * 0.008)) * 0.65
-            + vnoise(c * 3.8 - vec2(uTime * 0.02, 0.0)) * 0.35;
-    deep += vec3(0.02, 0.1, 0.085) * smoothstep(0.45, 0.9, n) * (1.0 - smoothstep(0.1, 1.4, r));
+    if (uDark > 0.0 && uWorld < 1.0) {
+      vec2 c = p - uPointer * 0.06;
+      float r = length(c);
+      vec3 deep = mix(vec3(0.043, 0.188, 0.161), vec3(0.008, 0.043, 0.037), smoothstep(0.0, 1.4, r));
+      float n = vnoise(c * 1.6 + vec2(uTime * 0.012, -uTime * 0.008)) * 0.65
+              + vnoise(c * 3.8 - vec2(uTime * 0.02, 0.0)) * 0.35;
+      deep += vec3(0.02, 0.1, 0.085) * smoothstep(0.45, 0.9, n) * (1.0 - smoothstep(0.1, 1.4, r));
+      col = mix(col, deep, uDark);
+    }
 
     // The far side: an airy sky over a bright horizon.
-    float h = vUv.y - 0.5;
-    vec3 sky = mix(vec3(0.992, 1.0, 0.996), vec3(0.906, 0.961, 0.937), smoothstep(0.0, 0.55, h));
-    sky = mix(sky, vec3(0.93, 0.967, 0.95), 1.0 - smoothstep(-0.5, 0.0, h));
-    sky = mix(sky, vec3(0.84, 0.95, 0.9), (1.0 - smoothstep(0.0, 0.9, length(p - vec2(0.0, 0.05)))) * 0.22);
+    if (uWorld > 0.0) {
+      float h = ndc.y * 0.5;
+      vec3 sky = mix(vec3(0.992, 1.0, 0.996), vec3(0.906, 0.961, 0.937), smoothstep(0.0, 0.55, h));
+      sky = mix(sky, vec3(0.93, 0.967, 0.95), 1.0 - smoothstep(-0.5, 0.0, h));
+      sky = mix(sky, vec3(0.84, 0.95, 0.9), (1.0 - smoothstep(0.0, 0.9, length(p - vec2(0.0, 0.05)))) * 0.22);
+      col = mix(col, sky, uWorld);
+    }
 
-    vec3 col = mix(light, deep, uDark);
-    col = mix(col, sky, uWorld);
+    return col;
+  }
+`;
+
+/* The skies on their own, for the small target the backdrop reads. */
+export const SKY_FRAGMENT = /* glsl */ `
+  varying vec2 vUv;
+
+  ${SKIES}
+
+  void main() {
+    gl_FragColor = vec4(skies(vUv * 2.0 - 1.0), 1.0);
+  }
+`;
+
+/* The backdrop itself: the skies, and over the light page the AYADI
+   watermark — drawn here, in the background, so the 3D mark stands in front
+   of it. Its box, tint and fade mirror .watermark in hero.module.css. */
+export const BACKDROP_FRAGMENT = /* glsl */ `
+  uniform sampler2D uSky;
+  uniform sampler2D uWatermark;
+  uniform vec4 uWatermarkRect;
+  uniform float uWatermarkAlpha;
+
+  varying vec2 vUv;
+
+  ${SKIES}
+
+  void main() {
+    vec2 ndc = vUv * 2.0 - 1.0;
+
+    #ifdef SKY_TEXTURE
+      vec3 col = texture2D(uSky, vUv).rgb;
+    #else
+      vec3 col = skies(ndc);
+    #endif
+
+    // The watermark belongs to the light page: it is inked into that, so it
+    // goes as the page darkens or the far side takes over. uWatermarkRect is
+    // its centre and half-size in NDC.
+    float shown = uWatermarkAlpha * (1.0 - uDark) * (1.0 - uWorld);
+    if (shown > 0.0) {
+      vec2 wm = (ndc - uWatermarkRect.xy) / uWatermarkRect.zw * 0.5 + 0.5;
+      float inside = step(0.0, wm.x) * step(wm.x, 1.0) * step(0.0, wm.y) * step(wm.y, 1.0);
+      float ink = texture2D(uWatermark, clamp(wm, 0.0, 1.0)).a * inside;
+      vec3 tint = mix(vec3(0.086, 0.639, 0.29), vec3(0.051, 0.58, 0.533), wm.x);
+      float fade = mix(0.45, 1.0, smoothstep(0.15, 0.85, wm.y));
+      col += (tint - pageLight(ndc)) * ink * fade * shown * 0.075;
+    }
+
     col += (hash21(gl_FragCoord.xy) - 0.5) / 255.0;
     gl_FragColor = vec4(col, 1.0);
   }
@@ -105,25 +157,54 @@ export const BACKDROP_FRAGMENT = /* glsl */ `
    flowing refraction, ripples round the centre, and the membrane's edge
    sweeping outwards past the lens. uDistortion is 0 everywhere else, and the
    pass is skipped entirely when it is. */
-export const LIQUID_FRAGMENT = /* glsl */ `
-  uniform sampler2D uScene;
-  uniform float uDistortion;
-  uniform float uCrossing;
+const FLOW = /* glsl */ `
   uniform float uTime;
   uniform float uAspect;
 
+  ${NOISE}
+
+  // The slow part of it: two fields of noise, the second carried by the first.
+  vec2 flowAt(vec2 uv) {
+    vec2 p = (uv - 0.5) * vec2(uAspect, 1.0);
+    float n1 = vnoise(p * 2.6 + vec2(uTime * 0.35, -uTime * 0.22));
+    float n2 = vnoise(p * 4.1 - vec2(uTime * 0.27, uTime * 0.31) + n1 * 1.7);
+    return vec2(n1, n2);
+  }
+`;
+
+/* The flow on its own, for the small target the liquid pass reads. */
+export const FLOW_FRAGMENT = /* glsl */ `
   varying vec2 vUv;
 
-  ${NOISE}
+  ${FLOW}
+
+  void main() {
+    gl_FragColor = vec4(flowAt(vUv), 0.0, 1.0);
+  }
+`;
+
+export const LIQUID_FRAGMENT = /* glsl */ `
+  uniform sampler2D uScene;
+  uniform sampler2D uFlow;
+  uniform float uDistortion;
+  uniform float uCrossing;
+
+  varying vec2 vUv;
+
+  ${FLOW}
 
   void main() {
     vec2 p = (vUv - 0.5) * vec2(uAspect, 1.0);
     float r = length(p);
     vec2 dir = p / max(r, 0.0001);
 
-    float n1 = vnoise(p * 2.6 + vec2(uTime * 0.35, -uTime * 0.22));
-    float n2 = vnoise(p * 4.1 - vec2(uTime * 0.27, uTime * 0.31) + n1 * 1.7);
-    vec2 flow = vec2(n1, n2) - 0.5;
+    #ifdef FLOW_TEXTURE
+      vec2 field = texture2D(uFlow, vUv).rg;
+    #else
+      vec2 field = flowAt(vUv);
+    #endif
+    float n2 = field.y;
+    vec2 flow = field - 0.5;
 
     float waves = sin(r * 34.0 - uTime * 6.0) * exp(-r * 1.6);
     float membrane = exp(-pow((r - uCrossing * 1.9) * 5.5, 2.0));

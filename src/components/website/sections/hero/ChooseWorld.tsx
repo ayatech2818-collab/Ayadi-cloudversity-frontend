@@ -11,6 +11,13 @@ import styles from './hero.module.css';
 
 export type WorldId = 'cloudversity' | 'ayatech';
 
+/* The cards' logos are 13rem across at most (9.5rem on a phone — .cloudLogoImage
+   and .ayatechLogoImage in hero.module.css), and the artwork behind them is
+   3116px wide. Sized, so the browser is sent — and decodes — something near
+   what it shows. Not preloaded either: they are the last thing in the hero
+   to be seen, and the first screen has an image of its own to fetch first. */
+const LOGO_SIZES = '(min-width: 640px) 13rem, 9.5rem';
+
 type World = {
   id: WorldId;
   name: string;
@@ -121,8 +128,7 @@ function WorldCard({
                   alt="Ayadi Cloudversity"
                   width={3116}
                   height={1701}
-                  priority
-                  unoptimized
+                  sizes={LOGO_SIZES}
                   className={styles.cloudLogoImage}
                 />
                 <span className={styles.cloudLightSweep} />
@@ -149,8 +155,7 @@ function WorldCard({
                   alt="AyaTech"
                   width={1000}
                   height={450}
-                  priority
-                  unoptimized
+                  sizes={LOGO_SIZES}
                   className={styles.ayatechLogoImage}
                 />
                 <span className={styles.ayatechLightSweep} />

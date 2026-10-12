@@ -181,10 +181,15 @@
 .root[data-mode='cinematic'] .stage {
   position: sticky;
   top: 0;
-  /* lvh, so the stage still fills the screen when a phone's browser bars
-     slide away; the UI inside keeps to the small viewport (see .ui). */
+  /* dvh: the screen as it stands. A phone's browser bars take a strip off
+     it, and a stage as tall as the screen without them (lvh, as this was)
+     has its foot — the scene's, and whatever is anchored there — behind
+     them. On this page they stay up, too: a finger scrolls it through the
+     driver (layout/SmoothScroll.tsx), and the bars only slide away for the
+     browser's own scrolling. If they do go, the stage grows with the
+     screen; the UI inside keeps to the small viewport either way (.ui). */
   height: 100vh;
-  height: 100lvh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--color-page);
 }
@@ -1958,6 +1963,10 @@
   position: absolute;
   right: 1.25rem;
   bottom: 1.25rem;
+  /* Off the foot of the small viewport, like the rest of the UI (.ui), not
+     the stage's: the same place whether a phone's browser bars are up or
+     away, and clear of them and of the home indicator both ways. */
+  bottom: calc(100dvh - 100svh + max(1.25rem, env(safe-area-inset-bottom, 0px) + 0.5rem));
   z-index: 1;
   display: inline-flex;
 }

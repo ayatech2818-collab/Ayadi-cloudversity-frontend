@@ -257,13 +257,16 @@ function CinematicJourney() {
         </ol>
       </div>
 
+      {/* As tall as the screen as it stands (dvh). On a phone the browser's
+          bars take a strip off it, and at 100vh — the screen without them —
+          the foot of the stage, with its progress rail, sat behind them. */}
       <motion.div
         aria-hidden="true"
         style={{ backgroundColor: stageBg }}
         onPointerEnter={handlePointerEnter}
         onPointerMove={handlePointerMove}
         onPointerLeave={handlePointerLeave}
-        className="sticky top-0 isolate h-screen overflow-hidden"
+        className="sticky top-0 isolate h-screen overflow-hidden supports-[height:100dvh]:h-dvh"
       >
         {/* ---------------- DARK BACKDROP ---------------- */}
         <motion.div style={{ opacity: darkDecor }} className="pointer-events-none absolute inset-0 -z-10">

@@ -72,7 +72,7 @@ const courses: Course[] = [
   },
 ];
 
-const AUTOPLAY_MS = 5000;
+const AUTOPLAY_MS = 2500; 
 
 const containerVariants: Variants = {
   hidden: {},
@@ -108,6 +108,9 @@ export default function FeaturedCourses() {
      only re-render this section every few seconds — in the middle of
      whatever the visitor is actually scrolling through. */
   const sectionRef = useRef<HTMLElement>(null);
+
+  const touchStartX = useRef<number | null>(null);
+
   const inView = useInView(sectionRef, { amount: 0.1 });
 
   const maxIndex = Math.max(0, courses.length - perView);
@@ -272,7 +275,7 @@ export default function FeaturedCourses() {
               <span className="text-[#182653]/60">{String(maxIndex + 1).padStart(2, '0')}</span>
             </span>
 
-            <div className="flex items-center gap-3 max-md:gap-2">
+            <div className="hidden items-center gap-3 md:flex max-md:gap-2">
               <button
                 type="button"
                 onClick={previous}
@@ -345,8 +348,31 @@ export default function FeaturedCourses() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           role="group"
           aria-roledescription="carousel"
+          onTouchStart={(event) => {
+          touchStartX.current = event.changedTouches[0]?.clientX ?? null;
+                setPaused(true);
+              }}
+              onTouchEnd={(event) => {
+                const startX = touchStartX.current;
+                const endX = event.changedTouches[0]?.clientX;
+
+                if (startX !== null && endX !== undefined) {
+                  const difference = startX - endX;
+
+                  if (Math.abs(difference) > 40) {
+                    if (difference > 0) {
+                      next();
+                    } else {
+                      previous();
+                    }
+                  }
+                }
+
+                touchStartX.current = null;
+                setPaused(false);
+              }}
           aria-label="Featured courses"
-          className="-mx-2.5 overflow-hidden max-md:-mx-1.5"
+          className="-mx-2.5 touch-pan-y overflow-hidden max-md:-mx-1.5"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onFocusCapture={() => setPaused(true)}

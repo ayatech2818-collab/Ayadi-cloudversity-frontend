@@ -1,3 +1,4 @@
+
 import { Mail, MapPin, Phone, type LucideIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -45,9 +46,21 @@ function LinkedInIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 const socialLinks = [
-  { name: 'Instagram', href: 'https://instagram.com/ayadicloudversity', icon: InstagramIcon },
-  { name: 'YouTube', href: 'https://youtube.com/@ayadicloudversity', icon: YouTubeIcon },
-  { name: 'LinkedIn', href: 'https://linkedin.com/company/ayadicloudversity', icon: LinkedInIcon },
+  {
+    name: 'Instagram',
+    href: 'https://instagram.com/ayadicloudversity',
+    icon: InstagramIcon,
+  },
+  {
+    name: 'YouTube',
+    href: 'https://youtube.com/@ayadicloudversity',
+    icon: YouTubeIcon,
+  },
+  {
+    name: 'LinkedIn',
+    href: 'https://linkedin.com/company/ayadicloudversity',
+    icon: LinkedInIcon,
+  },
 ];
 
 const exploreLinks = [
@@ -59,8 +72,7 @@ const exploreLinks = [
   { label: 'Contact Us', href: '/contact' },
 ];
 
-/* Read from the catalogue's own list, so the names here cannot drift from the
-   ones on the Courses page. Each link opens that page filtered. */
+/* Read categories from the shared course catalogue. */
 const categoryLinks = courseCategories.map((category) => ({
   label: category.name,
   href: `/courses?category=${category.slug}`,
@@ -68,10 +80,6 @@ const categoryLinks = courseCategories.map((category) => ({
 
 /* ==================================================
    FOOTER
-
-   A server component — no hooks, no client JS. The animated call to action
-   that used to live here is now `GetStartedCta`, rendered by the page above
-   this footer. `pt` below reserves room for that card's overlap.
 ================================================== */
 
 export default function Footer() {
@@ -79,15 +87,13 @@ export default function Footer() {
     <footer
       aria-labelledby="footer-heading"
       className="
-        relative
-        overflow-hidden
+        relative overflow-hidden
         bg-linear-to-b
         from-[#052a22]
         via-[#04231c]
         to-[#031813]
-        pt-40
-        sm:pt-44
-        lg:pt-56
+        pt-40 sm:pt-44 lg:pt-56
+        mt-[50px] sm:mt-0
       "
     >
       <h2 id="footer-heading" className="sr-only">
@@ -101,11 +107,21 @@ export default function Footer() {
         <div className="absolute -left-40 bottom-0 size-[420px] rounded-full bg-lime-300/[0.07] blur-3xl" />
       </div>
 
-      <div className="relative px-6 pb-10 md:px-12 lg:px-16 mt-24">
+      <div className="relative px-4 pb-8 sm:mt-24 sm:px-6 sm:pb-10 md:px-12 lg:px-16">
         <div className="mx-auto max-w-[1400px]">
-          <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_0.8fr_1fr_1.1fr] lg:gap-16">
+
+          {/* Mobile: brand full width, then three compact columns.
+              Desktop: original four-column layout. */}
+          <div
+            className="
+              grid grid-cols-3
+              gap-x-3 gap-y-7
+              sm:grid-cols-2 sm:gap-12
+              lg:grid-cols-[1.4fr_0.8fr_1fr_1.1fr] lg:gap-16
+            "
+          >
             {/* ---------- BRAND ---------- */}
-            <div className="sm:col-span-2 lg:col-span-1">
+            <div className="col-span-3 min-w-0 sm:col-span-2 lg:col-span-1">
               <Link
                 href="/"
                 aria-label="Ayadi Cloudversity — home"
@@ -116,16 +132,17 @@ export default function Footer() {
                   alt="Ayadi Cloudversity"
                   width={200}
                   height={109}
-                  className="h-12 w-auto object-contain sm:h-14"
+                  className="h-9 w-auto object-contain sm:h-14"
                 />
               </Link>
 
-              <p className="mt-6 max-w-[330px] text-sm leading-relaxed text-emerald-50/65">
-                We are passionate educators committed to delivering high-quality learning, workspace readiness, and
-                lifelong growth for all.
+              <p className="mt-3 max-w-[330px] text-xs leading-relaxed text-emerald-50/65 sm:mt-6 sm:text-sm">
+                We are passionate educators committed to delivering
+                high-quality learning, workspace readiness, and lifelong
+                growth for all.
               </p>
 
-              <div className="mt-8 flex items-center gap-3">
+              <div className="mt-4 flex items-center gap-2.5 sm:mt-8 sm:gap-3">
                 {socialLinks.map((social) => {
                   const Icon = social.icon;
 
@@ -137,28 +154,18 @@ export default function Footer() {
                       rel="noopener noreferrer"
                       aria-label={`Ayadi Cloudversity on ${social.name}`}
                       className="
-                        flex
-                        size-10
-                        items-center
-                        justify-center
-                        rounded-full
-                        bg-white/[0.07]
-                        text-emerald-50
-                        ring-1
-                        ring-inset
-                        ring-white/15
-                        transition-all
-                        duration-300
-                        hover:-translate-y-0.5
-                        hover:bg-lime-300
-                        hover:text-emerald-950
-                        hover:ring-lime-300
-                        focus-visible:outline-2
-                        focus-visible:outline-offset-4
+                        flex size-8 shrink-0 items-center justify-center
+                        rounded-full bg-white/[0.07] text-emerald-50
+                        ring-1 ring-inset ring-white/15
+                        transition-all duration-300
+                        hover:-translate-y-0.5 hover:bg-lime-300
+                        hover:text-emerald-950 hover:ring-lime-300
+                        focus-visible:outline-2 focus-visible:outline-offset-4
                         focus-visible:outline-lime-300
+                        sm:size-10
                       "
                     >
-                      <Icon className="size-4" />
+                      <Icon className="size-3.5 sm:size-4" />
                     </a>
                   );
                 })}
@@ -166,10 +173,15 @@ export default function Footer() {
             </div>
 
             {/* ---------- EXPLORE ---------- */}
-            <nav aria-labelledby="footer-explore">
-              <FooterHeading id="footer-explore">Explore</FooterHeading>
+            <nav
+              aria-labelledby="footer-explore"
+              className="min-w-0"
+            >
+              <FooterHeading id="footer-explore">
+                Explore
+              </FooterHeading>
 
-              <ul className="mt-6 space-y-3.5">
+              <ul className="mt-3 space-y-2 sm:mt-6 sm:space-y-3.5">
                 {exploreLinks.map((link) => (
                   <FooterLink key={link.href} href={link.href}>
                     {link.label}
@@ -179,10 +191,15 @@ export default function Footer() {
             </nav>
 
             {/* ---------- CATEGORIES ---------- */}
-            <nav aria-labelledby="footer-categories">
-              <FooterHeading id="footer-categories">Course Categories</FooterHeading>
+            <nav
+              aria-labelledby="footer-categories"
+              className="min-w-0"
+            >
+              <FooterHeading id="footer-categories">
+                Course Categories
+              </FooterHeading>
 
-              <ul className="mt-6 space-y-3.5">
+              <ul className="mt-3 space-y-2 sm:mt-6 sm:space-y-3.5">
                 {categoryLinks.map((link) => (
                   <FooterLink key={link.href} href={link.href}>
                     {link.label}
@@ -192,15 +209,24 @@ export default function Footer() {
             </nav>
 
             {/* ---------- CONTACT ---------- */}
-            <div>
-              <FooterHeading id="footer-contact">Contact</FooterHeading>
+            <div className="min-w-0">
+              <FooterHeading id="footer-contact">
+                Contact
+              </FooterHeading>
 
-              <address className="mt-6 space-y-4 not-italic">
-                <ContactItem icon={MapPin}>Orbits Complex, Jafarkhan Colony Road, Calicut, Kerala, India</ContactItem>
-                <ContactItem icon={MapPin}>Ayadi, Shams Free Zone, Sharjah Media City, Sharjah, UAE</ContactItem>
+              <address className="mt-3 space-y-3 not-italic sm:mt-6 sm:space-y-4">
+                <ContactItem icon={MapPin}>
+                  Orbits Complex, Jafarkhan Colony Road, Calicut, Kerala, India
+                </ContactItem>
+
+                <ContactItem icon={MapPin}>
+                  Ayadi, Shams Free Zone, Sharjah Media City, Sharjah, UAE
+                </ContactItem>
+
                 <ContactItem icon={Phone} href="tel:+919400000000">
                   +91 94000 00000
                 </ContactItem>
+
                 <ContactItem icon={Mail} href="mailto:hello@ayadi.cloud">
                   hello@ayadi.cloud
                 </ContactItem>
@@ -209,12 +235,24 @@ export default function Footer() {
           </div>
 
           {/* ---------- BOTTOM BAR ---------- */}
-          <div aria-hidden="true" className="mt-14 h-px bg-linear-to-r from-transparent via-white/15 to-transparent" />
+          <div
+            aria-hidden="true"
+            className="mt-8 h-px bg-linear-to-r from-transparent via-white/15 to-transparent sm:mt-14"
+          />
 
-          <div className="mt-6 flex flex-col gap-4 text-xs text-emerald-50/55 md:flex-row md:items-center md:justify-between">
-            <p>© {new Date().getFullYear()} Ayadi Cloudversity. All rights reserved.</p>
+          <div
+            className="
+              mt-4 flex flex-col gap-3
+              text-[10px] text-emerald-50/55
+              sm:mt-6 sm:gap-4 sm:text-xs
+              md:flex-row md:items-center md:justify-between
+            "
+          >
+            <p>
+              © {new Date().getFullYear()} Ayadi Cloudversity. All rights reserved.
+            </p>
 
-            <div className="flex flex-wrap gap-6">
+            <div className="flex flex-wrap gap-x-4 gap-y-2 sm:gap-6">
               <Link
                 href="/privacy-policy"
                 className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300"
@@ -237,33 +275,50 @@ export default function Footer() {
 }
 
 /* ==================================================
-   PIECES
+   REUSABLE PIECES
 ================================================== */
 
-function FooterHeading({ id, children }: { id: string; children: ReactNode }) {
+function FooterHeading({
+  id,
+  children,
+}: {
+  id: string;
+  children: ReactNode;
+}) {
   return (
-    <h3 id={id} className="text-[11px] font-bold uppercase tracking-[0.2em] text-lime-300">
+    <h3
+      id={id}
+      className="
+        break-words
+        text-[9px] font-bold uppercase tracking-[0.08em]
+        text-lime-300
+        sm:text-[11px] sm:tracking-[0.2em]
+      "
+    >
       {children}
     </h3>
   );
 }
 
-function FooterLink({ href, children }: { href: string; children: ReactNode }) {
+function FooterLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
   return (
-    <li>
+    <li className="min-w-0">
       <Link
         href={href}
         className="
-          inline-block
-          text-sm
-          text-emerald-50/70
-          transition-all
-          duration-200
-          hover:translate-x-1
-          hover:text-white
-          focus-visible:outline-2
-          focus-visible:outline-offset-2
+          inline-block max-w-full break-words
+          text-xs leading-4 text-emerald-50/70
+          transition-all duration-200
+          hover:translate-x-1 hover:text-white
+          focus-visible:outline-2 focus-visible:outline-offset-2
           focus-visible:outline-lime-300
+          sm:text-sm sm:leading-normal
         "
       >
         {children}
@@ -272,30 +327,39 @@ function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
-function ContactItem({ icon: Icon, href, children }: { icon: LucideIcon; href?: string; children: ReactNode }) {
+function ContactItem({
+  icon: Icon,
+  href,
+  children,
+}: {
+  icon: LucideIcon;
+  href?: string;
+  children: ReactNode;
+}) {
+  const contentClass = `
+    min-w-0 break-words
+    text-[10px] leading-4 text-emerald-50/70
+    transition-colors hover:text-white
+    focus-visible:outline-2 focus-visible:outline-offset-2
+    focus-visible:outline-lime-300
+    sm:text-sm sm:leading-5
+  `;
+
   return (
-    <div className="flex items-start gap-3">
-      <Icon aria-hidden="true" size={17} strokeWidth={1.75} className="mt-0.5 shrink-0 text-lime-300" />
+    <div className="flex min-w-0 items-start gap-1.5 sm:gap-3">
+      <Icon
+        aria-hidden="true"
+        size={14}
+        strokeWidth={1.75}
+        className="mt-0.5 shrink-0 text-lime-300 sm:size-[17px]"
+      />
 
       {href ? (
-        <a
-          href={href}
-          className="
-            max-w-[300px]
-            text-sm
-            leading-5
-            text-emerald-50/70
-            transition-colors
-            hover:text-white
-            focus-visible:outline-2
-            focus-visible:outline-offset-2
-            focus-visible:outline-lime-300
-          "
-        >
+        <a href={href} className={contentClass}>
           {children}
         </a>
       ) : (
-        <p className="max-w-[300px] text-sm leading-5 text-emerald-50/70">{children}</p>
+        <p className={contentClass}>{children}</p>
       )}
     </div>
   );

@@ -53,10 +53,30 @@ import 'lenis/dist/lenis.css';
  *   and a locked page — a modal is open — is left alone.
  *
  * Code that moves the page goes through lib/smooth-scroll.ts.
+ *
+ * One thing is settled here for touch as well: how a change of page gets to
+ * its top (see TOUCH, below).
  */
 
 /** Where the wheel is ours: motion welcome, and a mouse or a touchpad to hand. */
 const WHEEL = '(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)';
+
+/*
+ * Where a finger scrolls the page: a change of page arrives at its top at once.
+ *
+ * globals.css asks for smooth scrolling, and since Next 16 that covers the
+ * scroll to the top after a route change too. So the new page was put on
+ * screen wherever the old one had been scrolled to and then run the whole way
+ * up — measured, 2600px down and some 75 frames getting back — every section
+ * of it drawn for the first time in passing, while its data was still on the
+ * way in. Opened by its address, the same page starts at its top and has none
+ * of that to do.
+ *
+ * The attribute is Next's own switch for making that one scroll at once
+ * (upgrading/version-16, "Scroll Behavior Override"). Links within a page
+ * glide as before.
+ */
+const TOUCH = '(hover: none), (pointer: coarse)';
 
 /* ---------- how closely the page follows the wheel ----------
    The share of the distance still to go that the page covers in a 60th of a
@@ -122,6 +142,15 @@ export function SmoothScroll() {
         bindScroll(null);
         gsap.ticker.remove(step);
         lenis.destroy();
+      };
+    });
+
+    media.add(TOUCH, () => {
+      const root = document.documentElement;
+      root.dataset.scrollBehavior = 'smooth';
+
+      return () => {
+        delete root.dataset.scrollBehavior;
       };
     });
 

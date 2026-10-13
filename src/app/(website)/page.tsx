@@ -6,7 +6,6 @@ import HowItWorks from "@/components/website/sections/HowItWorks";
 import CEOMessage from '@/components/website/sections/CEOMessage';
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
 import { PauseOffscreen } from '@/components/website/layout/PauseOffscreen';
-import { ScrollProbe } from '@/components/website/layout/ScrollProbe';
 
 export default function WebsiteHomePage() {
   return (
@@ -21,8 +20,6 @@ export default function WebsiteHomePage() {
       <FeaturedCourses />
       {/* Overlaps the footer below it — see the note in GetStartedCta.tsx */}
       <GetStartedCta />
-      {/* Temporary, and silent without ?probe — see ScrollProbe.tsx. */}
-      <ScrollProbe />
     </>
   );
 }

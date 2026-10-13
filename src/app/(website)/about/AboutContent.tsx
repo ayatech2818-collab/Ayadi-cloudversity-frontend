@@ -107,7 +107,7 @@ export default function AboutContent() {
       {/* =========================================================
           HERO
       ========================================================= */}
-      <section className="relative isolate overflow-hidden px-5 pb-20 pt-32 sm:px-8 sm:pb-24 sm:pt-36 lg:px-16 lg:pb-28 lg:pt-44">
+      <section className="relative isolate overflow-hidden px-5 pb-10 pt-32 sm:px-8 sm:pb-24 sm:pt-36 lg:px-16 lg:pb-28 lg:pt-44">
         {/* Two static washes. Static on purpose — an animated 130px blur is
             the most expensive thing a page can repaint. */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
@@ -120,9 +120,9 @@ export default function AboutContent() {
             <Eyebrow>About Ayadi Cloudversity</Eyebrow>
           </motion.div>
 
-          <div className="mt-8 grid gap-12 lg:grid-cols-[1.25fr_0.75fr] lg:items-end lg:gap-16">
+          <div className="mt-6 grid grid-cols-[1.15fr_0.85fr] items-start gap-4 sm:mt-8 sm:gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end lg:gap-16">
             <div>
-              <h1 className="text-[2.5rem] font-semibold leading-[1.0] tracking-[-0.045em] text-text sm:text-6xl lg:text-[4.4rem]">
+              <h1 className="text-[1.65rem] font-semibold leading-[1.05] tracking-[-0.045em] text-text sm:text-5xl lg:text-[4.4rem]">
                 <span className="block overflow-hidden pb-[0.08em]">
                   <motion.span variants={lineUp} className="block">
                     Education that
@@ -146,15 +146,20 @@ export default function AboutContent() {
                 </span>
               </h1>
 
-              <motion.p variants={fadeUp} className="mt-8 max-w-xl text-lg leading-8 text-muted sm:text-xl">
-                At Ayadi Cloudversity, education goes beyond facts — it sparks curiosity, builds character, and shapes
-                futures.
+              <motion.p
+                variants={fadeUp}
+                className="mt-4 max-w-xl text-xs leading-5 text-muted sm:mt-6 sm:text-lg sm:leading-7 lg:mt-8 lg:text-xl lg:leading-8"
+              >
+                At Ayadi Cloudversity, education goes beyond facts — it sparks curiosity, builds character, and shapes futures.
               </motion.p>
 
-              <motion.div variants={fadeUp} className="mt-9 flex flex-wrap items-center gap-3">
+              <motion.div
+                variants={fadeUp}
+                className="mt-5 flex flex-col items-stretch gap-2 sm:mt-7 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 lg:mt-9"
+              >
                 <a
                   href="#mission"
-                  className="group inline-flex items-center gap-2.5 rounded-full bg-accent-gradient px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors duration-300 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                  className="group inline-flex items-center justify-center gap-1.5 rounded-full bg-accent-gradient px-3 py-2.5 text-[10px] font-bold text-white shadow-lg shadow-primary/20 transition-colors duration-300 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:gap-2.5 sm:px-5 sm:py-3 sm:text-sm lg:px-6 lg:py-3.5"
                 >
                   Discover our mission
                   <ArrowUpRight
@@ -166,7 +171,7 @@ export default function AboutContent() {
 
                 <a
                   href="#leadership"
-                  className="inline-flex items-center rounded-full px-5 py-3.5 text-sm font-bold text-text ring-1 ring-inset ring-border transition-colors duration-300 hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                  className="inline-flex items-center justify-center rounded-full px-2 py-2.5 text-[10px] font-bold text-text ring-1 ring-inset ring-border transition-colors duration-300 hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:px-4 sm:py-3 sm:text-sm lg:px-5 lg:py-3.5"
                 >
                   Meet our CEO
                 </a>
@@ -174,7 +179,7 @@ export default function AboutContent() {
             </div>
 
             {/* Pathway index — the page's only "figure", kept as type. */}
-            <motion.div variants={stagger} className="lg:pb-2">
+            <motion.div variants={stagger} className="min-w-0 lg:pb-2">
               <motion.div variants={fadeUp} aria-hidden="true" className="h-px bg-border" />
 
               <ul>
@@ -182,14 +187,14 @@ export default function AboutContent() {
                   <motion.li key={pathway.index} variants={fadeUp}>
                     {index > 0 ? <div aria-hidden="true" className="h-px bg-border" /> : null}
 
-                    <div className="flex items-start gap-5 py-4">
-                      <span className="mt-0.5 font-mono text-[11px] font-bold tracking-[0.18em] text-primary">
+                    <div className="flex items-start gap-2.5 py-3 sm:gap-4 sm:py-4 lg:gap-5">
+                      <span className="mt-0.5 shrink-0 font-mono text-[9px] font-bold tracking-[0.12em] text-primary sm:text-[11px] sm:tracking-[0.18em]">
                         {pathway.index}
                       </span>
 
                       <span>
-                        <span className="block text-sm font-bold text-text">{pathway.label}</span>
-                        <span className="mt-1 block text-sm leading-6 text-muted">{pathway.detail}</span>
+                        <span className="block text-[10px] font-bold leading-4 text-text sm:text-sm">{pathway.label}</span>
+                        <span className="mt-1 block text-[9px] leading-4 text-muted sm:text-xs sm:leading-5 lg:text-sm lg:leading-6">{pathway.detail}</span>
                       </span>
                     </div>
                   </motion.li>
@@ -203,146 +208,170 @@ export default function AboutContent() {
       {/* =========================================================
           MISSION
       ========================================================= */}
-      <section id="mission" className="scroll-mt-28 bg-surface px-5 py-24 sm:px-8 lg:px-16 lg:py-32">
-        <div className="mx-auto grid max-w-[1180px] gap-10 lg:grid-cols-[0.42fr_1fr] lg:gap-20">
-          <motion.div
-            variants={stagger}
-            initial={start}
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.4 }}
-            className="lg:sticky lg:top-32 lg:self-start"
-          >
-            <motion.div variants={fadeUp}>
-              <Eyebrow>Our mission</Eyebrow>
+      
+        <section
+          id="mission"
+          className="scroll-mt-20 bg-surface px-4 py-10 sm:scroll-mt-28 sm:px-8 sm:py-24 lg:px-16 lg:py-32"
+        >
+          <div className="mx-auto grid max-w-[1180px] grid-cols-[0.9fr_1.1fr] items-start gap-3 sm:gap-8 lg:grid-cols-[0.42fr_1fr] lg:gap-20">
+            <motion.div
+              variants={stagger}
+              initial={start}
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.4 }}
+              className="min-w-0 lg:sticky lg:top-32 lg:self-start"
+            >
+              <motion.div variants={fadeUp}>
+                <Eyebrow>Our mission</Eyebrow>
+              </motion.div>
+
+              <motion.h2
+                variants={fadeUp}
+                className="mt-3 text-lg font-semibold leading-[1.1] tracking-[-0.035em] text-text sm:mt-5 sm:text-4xl lg:text-4xl"
+              >
+                Learning should inspire people to become more.
+              </motion.h2>
             </motion.div>
 
-            <motion.h2
-              variants={fadeUp}
-              className="mt-5 text-3xl font-semibold leading-[1.1] tracking-[-0.035em] text-text sm:text-4xl"
-            >
-              Learning should inspire people to become more.
-            </motion.h2>
-          </motion.div>
-
-          <div>
-            <ScrollReveal text="We are passionate educators driven by a shared mission to provide exceptionally high-quality learning experiences for every individual." />
-
-         
+            <div className="min-w-0">
+              <div className="text-sm leading-6 sm:text-xl sm:leading-8 lg:text-2xl">
+                <ScrollReveal text="We are passionate educators driven by a shared mission to provide exceptionally high-quality learning experiences for every individual." />
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* =========================================================
           VALUES
       ========================================================= */}
-      <section className="px-5 py-24 sm:px-8 lg:px-16 lg:py-32">
-        <div className="mx-auto max-w-[1180px]">
-          <motion.div
-            variants={stagger}
-            initial={start}
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="max-w-2xl"
-          >
-            <motion.div variants={fadeUp}>
-              <Eyebrow>What we value</Eyebrow>
+
+        <section className="px-4 py-12 sm:px-8 sm:py-24 lg:px-16 lg:py-32">
+          <div className="mx-auto max-w-[1180px]">
+            <motion.div
+              variants={stagger}
+              initial={start}
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="max-w-2xl"
+            >
+              <motion.div variants={fadeUp}>
+                <Eyebrow>What we value</Eyebrow>
+              </motion.div>
+
+              <motion.h2
+                variants={fadeUp}
+                className="mt-3 text-2xl font-semibold leading-[1.1] tracking-[-0.035em] text-text sm:mt-5 sm:text-4xl"
+              >
+                Building learners for the real world.
+              </motion.h2>
             </motion.div>
 
-            <motion.h2
-              variants={fadeUp}
-              className="mt-5 text-3xl font-semibold leading-[1.1] tracking-[-0.035em] text-text sm:text-4xl"
+            <motion.ul
+              variants={stagger}
+              initial={start}
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.15 }}
+              className="mt-8 grid grid-cols-1 gap-3 sm:mt-14 sm:grid-cols-2 sm:gap-4 md:grid-cols-3"
             >
-              Building learners for the real world.
-            </motion.h2>
-          </motion.div>
+              {values.map((value, index) => {
+                const Icon = value.icon;
 
-          <motion.ul
-            variants={stagger}
-            initial={start}
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
-            className="mt-14 grid gap-4 md:grid-cols-3"
-          >
-            {values.map((value, index) => {
-              const Icon = value.icon;
+                return (
+                  <motion.li key={value.title} variants={fadeUp} className="min-w-0">
+                    <div
+                      onPointerMove={handleSpotlight}
+                      className={`${CARD_CHROME} h-full p-4 sm:p-7`}
+                    >
+                      <CardDecor />
 
-              return (
-                // Entrance animation lives on the <li>; hover transitions live on the
-                // inner card so CSS transitions never fight framer-motion's transforms.
-                <motion.li key={value.title} variants={fadeUp}>
-                  <div onPointerMove={handleSpotlight} className={`${CARD_CHROME} p-7`}>
-                    <CardDecor />
+                      <div className="flex items-start justify-between">
+                        <div className="scale-90 origin-top-left sm:scale-100">
+                          <IconTile icon={Icon} size="lg" delay={index * 0.7} />
+                        </div>
 
-                    <div className="flex items-start justify-between">
-                      <IconTile icon={Icon} size="lg" delay={index * 0.7} />
+                        <span className="mt-1 font-mono text-[10px] font-bold tracking-[0.15em] text-muted/60 transition-colors duration-500 group-hover:text-primary sm:text-[11px] sm:tracking-[0.18em]">
+                          0{index + 1}
+                        </span>
+                      </div>
 
-                      <span className="mt-1 font-mono text-[11px] font-bold tracking-[0.18em] text-muted/60 transition-colors duration-500 group-hover:text-primary">
-                        0{index + 1}
-                      </span>
+                      <h3 className="mt-4 text-base font-bold leading-5 text-text sm:mt-6 sm:text-lg sm:leading-normal">
+                        {value.title}
+                      </h3>
+
+                      <p className="mt-2 text-xs leading-5 text-muted sm:mt-2.5 sm:text-sm sm:leading-7">
+                        {value.text}
+                      </p>
+
+                      <span
+                        aria-hidden="true"
+                        className="mt-4 block h-[3px] w-8 rounded-full bg-linear-to-r from-primary to-brand-start transition-[width] duration-500 ease-out group-hover:w-14 sm:mt-6 sm:w-10 sm:group-hover:w-20"
+                      />
                     </div>
+                  </motion.li>
+                );
+              })}
+            </motion.ul>
 
-                    <h3 className="mt-6 text-lg font-bold text-text">{value.title}</h3>
+            <motion.blockquote
+              variants={fadeUp}
+              initial={start}
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="mt-3 rounded-xl bg-surface p-5 ring-1 ring-inset ring-border sm:mt-4 sm:rounded-2xl sm:p-10"
+            >
+              <Quote
+                aria-hidden="true"
+                size={20}
+                className="text-primary sm:h-[22px] sm:w-[22px]"
+              />
 
-                    <p className="mt-2.5 text-sm leading-7 text-muted">{value.text}</p>
-
-                    <span
-                      aria-hidden="true"
-                      className="mt-6 block h-[3px] w-10 rounded-full bg-linear-to-r from-primary to-brand-start transition-[width] duration-500 ease-out group-hover:w-20"
-                    />
-                  </div>
-                </motion.li>
-              );
-            })}
-          </motion.ul>
-
-          <motion.blockquote
-            variants={fadeUp}
-            initial={start}
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mt-4 rounded-2xl bg-surface p-8 ring-1 ring-inset ring-border sm:p-10"
-          >
-            <Quote aria-hidden="true" size={22} className="text-primary" />
-
-            <p className="mt-5 max-w-4xl text-xl font-medium leading-9 text-accent-soft sm:text-2xl">
-              We believe that when curiosity meets direction, students unlock their fullest potential — and we are
-              dedicated to guiding them every step of the way.
-            </p>
-          </motion.blockquote>
-        </div>
-      </section>
+              <p className="mt-3 text-base font-medium leading-7 text-accent-soft sm:mt-5 sm:max-w-4xl sm:text-2xl sm:leading-9">
+                We believe that when curiosity meets direction, students unlock their fullest potential — and we are
+                dedicated to guiding them every step of the way.
+              </p>
+            </motion.blockquote>
+          </div>
+        </section>
 
       {/* =========================================================
           STATS
       ========================================================= */}
-      <section className="px-5 pb-24 sm:px-8 lg:px-16 lg:pb-32">
+
+      <section className="px-4 pb-12 sm:px-8 sm:pb-24 lg:px-16 lg:pb-32">
         <div className="mx-auto max-w-[1180px]">
           <motion.ul
             variants={stagger}
             initial={start}
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
-            className="grid gap-4 sm:grid-cols-3"
+            className="grid grid-cols-3 gap-2 sm:gap-4"
           >
             {stats.map((stat, index) => {
               const Icon = stat.icon;
 
               return (
-                <motion.li key={stat.label} variants={fadeUp}>
-                  <div onPointerMove={handleSpotlight} className={`${CARD_CHROME} p-8 sm:p-9`}>
+                <motion.li key={stat.label} variants={fadeUp} className="min-w-0">
+                  <div
+                    onPointerMove={handleSpotlight}
+                    className={`${CARD_CHROME} h-full p-2.5 sm:p-9`}
+                  >
                     <CardDecor />
 
-                    <IconTile icon={Icon} size="md" delay={index * 0.7} />
+                    <div className="origin-top-left scale-75 sm:scale-100">
+                      <IconTile icon={Icon} size="md" delay={index * 0.7} />
+                    </div>
 
-                    <p className="mt-7 text-4xl font-semibold tracking-[-0.03em] text-text sm:text-5xl">
+                    <p className="mt-3 text-xl font-semibold tracking-[-0.03em] text-text sm:mt-7 sm:text-5xl">
                       <CountUp to={stat.to} suffix={stat.suffix} />
                     </p>
 
-                    <p className="mt-2 text-sm font-medium text-muted">{stat.label}</p>
+                    <p className="mt-1 break-words text-[10px] font-medium leading-4 text-muted sm:mt-2 sm:text-sm sm:leading-normal">
+                      {stat.label}
+                    </p>
 
                     <span
                       aria-hidden="true"
-                      className="mt-6 block h-[3px] w-10 rounded-full bg-linear-to-r from-primary to-brand-start transition-[width] duration-500 ease-out group-hover:w-20"
+                      className="mt-3 block h-[2px] w-5 rounded-full bg-linear-to-r from-primary to-brand-start transition-[width] duration-500 ease-out group-hover:w-10 sm:mt-6 sm:h-[3px] sm:w-10 sm:group-hover:w-20"
                     />
                   </div>
                 </motion.li>
@@ -352,10 +381,14 @@ export default function AboutContent() {
         </div>
       </section>
 
+
       {/* =========================================================
           LEADERSHIP
       ========================================================= */}
-      <section id="leadership" className="scroll-mt-28 bg-surface px-5 py-24 sm:px-8 lg:px-16 lg:py-32">
+      <section
+        id="leadership"
+        className="scroll-mt-20 bg-surface px-4 py-10 sm:scroll-mt-28 sm:px-8 sm:py-24 lg:px-16 lg:py-32"
+      >
         <div className="mx-auto max-w-[1180px]">
           <motion.div
             variants={stagger}
@@ -370,30 +403,43 @@ export default function AboutContent() {
 
             <motion.h2
               variants={fadeUp}
-              className="mt-5 text-3xl font-semibold leading-[1.1] tracking-[-0.035em] text-text sm:text-4xl"
+              className="mt-3 text-2xl font-semibold leading-[1.1] tracking-[-0.035em] text-text sm:mt-5 sm:text-4xl"
             >
               A message from our CEO
             </motion.h2>
           </motion.div>
 
-          <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_0.85fr] lg:gap-14">
-            <motion.div variants={fadeUp} initial={start} whileInView="visible" viewport={{ once: true, amount: 0.15 }}>
-              <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-sm font-bold text-primary">
+          <div className="mt-6 grid grid-cols-2 items-start gap-3 sm:mt-12 sm:gap-8 lg:grid-cols-[1fr_0.85fr] lg:gap-14">
+            <motion.div
+              variants={fadeUp}
+              initial={start}
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.15 }}
+              className="min-w-0"
+            >
+              <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary sm:size-12 sm:rounded-xl sm:text-sm">
                 AH
               </span>
 
-              <blockquote className="mt-7 text-2xl font-medium leading-9 tracking-[-0.02em] text-text">
+              <blockquote className="mt-3 text-sm font-medium leading-5 tracking-[-0.02em] text-text sm:mt-7 sm:text-2xl sm:leading-9">
                 &ldquo;At Ayadi, my vision has always been to create a learning environment where every student feels
                 supported, inspired, and truly empowered to grow.&rdquo;
               </blockquote>
 
-              <p className="mt-7 text-sm font-bold text-text">Dr. Ameer Hassan</p>
-              <p className="mt-1 text-sm text-primary">Chief Executive Officer</p>
+              <p className="mt-4 text-xs font-bold text-text sm:mt-7 sm:text-sm">
+                Dr. Ameer Hassan
+              </p>
 
-              <div aria-hidden="true" className="mt-8 h-px bg-border" />
+              <p className="mt-1 text-[10px] leading-4 text-primary sm:text-sm sm:leading-normal">
+                Chief Executive Officer
+              </p>
+
+              <div aria-hidden="true" className="mt-4 h-px bg-border sm:mt-8" />
             </motion.div>
 
-            <LeadershipVideo start={start} />
+            <div className="min-w-0">
+              <LeadershipVideo start={start} />
+            </div>
           </div>
         </div>
       </section>
@@ -401,10 +447,10 @@ export default function AboutContent() {
       {/* =========================================================
           CLOSING
       ========================================================= */}
-      <section className="relative overflow-hidden px-5 pb-82 pt-24 sm:px-8 lg:px-16 lg:pb-74 lg:pt-32 ">
+      <section className="relative overflow-hidden px-4 pb-56 pt-12 sm:px-8 sm:pb-82 sm:pt-24 lg:px-16 lg:pb-74 lg:pt-32">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/3 -z-10 size-[620px] -translate-x-1/2 rounded-full bg-primary/[0.06] blur-[130px]"
+          className="pointer-events-none absolute left-1/2 top-1/3 -z-10 size-[300px] -translate-x-1/2 rounded-full bg-primary/[0.06] blur-[80px] sm:size-[620px] sm:blur-[130px]"
         />
 
         <motion.div
@@ -420,27 +466,39 @@ export default function AboutContent() {
 
           <motion.h2
             variants={fadeUp}
-            className="mt-6 text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-text sm:text-5xl lg:text-6xl"
+            className="mt-4 text-2xl font-semibold leading-[1.1] tracking-[-0.04em] text-text sm:mt-6 sm:text-5xl lg:text-6xl"
           >
             Learn. Grow. <span className="text-primary">Shape the future.</span>
           </motion.h2>
 
-          <motion.p variants={fadeUp} className="mx-auto mt-6 max-w-xl text-base leading-8 text-muted sm:text-lg">
+          <motion.p
+            variants={fadeUp}
+            className="mx-auto mt-4 max-w-xl text-sm leading-6 text-muted sm:mt-6 sm:text-lg sm:leading-8"
+          >
             We are building a learning community where every individual has the opportunity to discover their potential
             and create meaningful impact.
           </motion.p>
 
           <motion.ul
             variants={fadeUp}
-            className="mx-auto mt-12 flex max-w-xl flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-12"
+            className="mx-auto mt-7 grid max-w-xl grid-cols-2 items-start gap-3 text-left sm:mt-12 sm:flex sm:justify-center sm:gap-12"
           >
             {locations.map((location) => (
-              <li key={location.city} className="flex items-start gap-2.5 text-left">
-                <MapPin aria-hidden="true" size={16} className="mt-0.5 shrink-0 text-primary" />
+              <li key={location.city} className="flex min-w-0 items-start gap-1.5 sm:gap-2.5">
+                <MapPin
+                  aria-hidden="true"
+                  size={14}
+                  className="mt-0.5 shrink-0 text-primary sm:h-4 sm:w-4"
+                />
 
-                <span>
-                  <span className="block text-sm font-bold text-text">{location.city}</span>
-                  <span className="mt-0.5 block text-xs leading-5 text-muted">{location.detail}</span>
+                <span className="min-w-0">
+                  <span className="block text-xs font-bold text-text sm:text-sm">
+                    {location.city}
+                  </span>
+
+                  <span className="mt-0.5 block text-[10px] leading-4 text-muted sm:text-xs sm:leading-5">
+                    {location.detail}
+                  </span>
                 </span>
               </li>
             ))}
@@ -472,6 +530,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
  * viewport. One scroll listener drives every word, and each word animates
  * opacity only, so the whole effect stays on the compositor.
  */
+
 function ScrollReveal({ text }: { text: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
   const reduceMotion = useReducedMotion();
@@ -486,7 +545,7 @@ function ScrollReveal({ text }: { text: string }) {
   return (
     <p
       ref={ref}
-      className="text-2xl font-medium leading-[1.45] tracking-[-0.02em] text-accent-soft sm:text-[1.75rem] sm:leading-[1.4]"
+      className="text-sm font-medium leading-[1.5] tracking-[-0.02em] text-accent-soft sm:text-[1.75rem] sm:leading-[1.4] lg:text-2xl lg:leading-[1.45]"
     >
       {reduceMotion
         ? text

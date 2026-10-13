@@ -48,5 +48,19 @@ export function JourneyImage({
     );
   }
 
-  return <Image src={src} alt={alt} fill sizes={sizes} onError={() => setFailed(true)} className="object-cover" />;
+  /* Eager: the collage is hidden until the scroll reaches its act, and a lazy
+     image in it is only fetched — and then decoded — as it arrives, which on a
+     phone lands in the middle of the cards flying in. Fetched with the
+     journey instead, the five photos are there before they are wanted. */
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizes}
+      loading="eager"
+      onError={() => setFailed(true)}
+      className="object-cover"
+    />
+  );
 }

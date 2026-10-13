@@ -1,47 +1,33 @@
 'use client';
 
-import { cancelFrame, frame } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useEffect, useRef, useState } from 'react';
 
 /*
- * TEMPORARY — a readout for what only an iPhone shows and no desktop or
- * emulator reproduces. Now: a page that freezes or is left half drawn after a
- * change of page from the bottom navigation (More → Blog / Media). Delete this
- * file and its one line in (website)/layout.tsx once that is settled.
+ * TEMPORARY — a readout for chasing what only an iPhone shows and no desktop
+ * or emulator reproduces: first the Home journey sticking on the way back up
+ * (settled), now the Choose-your-world logos not drawing. Delete this file
+ * and its one line in (website)/page.tsx once that is settled too.
  *
- * Does nothing until a page of the site is opened with ?probe on its address.
- * From then on it stays up in that tab, across changes of page, until a page
- * is opened with ?probe=off. It shows, live, the things that can each be the
- * cause, and notes down every time one of them goes wrong — so a screenshot
- * taken while the page is stuck says which:
+ * Does nothing unless the address ends in ?probe. Then it shows, live, the
+ * things that can each be the cause, and notes down every time one of them
+ * goes wrong — so a screenshot taken while the journey is stuck says which:
  *
- *   LOAD             the tab loaded a page afresh — after a NAV, and with
- *                    nobody having reloaded it, the browser threw the page away
- *   NAV              a change of page, and how far down the old one was
- *   SWEEP            the new page was scrolled up to its top, and for how long
- *   NOT AT TOP       …and never got there
- *   STALL            the page's script did not run for a while
- *   MOTION DEAD      frames are running but the animation library's loop is not
- *   BACKDROP STUCK   More is closed and its backdrop is still over the page
- *   HERO STUCK       the new page's heading never finished coming in
- *   STILL LOADING    the new page's placeholders are still up
- *   ERROR            something threw
- *   RESIZE           the browser's bars came or went
+ *   NO SCROLL EVENT   the page moved but the browser did not say so
+ *   TIMELINE STUCK    it said so, and the journey's timeline did not follow
+ *   STAGE OFF PIN     the journey's stage is not where `sticky` should hold it
+ *   STALL             the page's script did not run for a while
+ *   RESIZE            the browser's bars came or went
+ *   REFRESH           ScrollTrigger re-measured the page
+ *   WEBGL LOST        the hero's canvas lost its context
  *
- * If the page looks stuck and none of these is noted, the script is right and
- * the browser is not drawing it — which is its own answer.
+ * If the journey looks stuck and none of these is noted, the script is right
+ * and the browser is not drawing it — which is its own answer.
  */
 
-const FLAG = 'ayadi-probe';
-const LOG = 'ayadi-probe-log';
-const KEEP = 10;
-
-/** mm:ss on the wall clock: the notes outlive a reload, so they need a time
-    that does too. */
-const clock = () => new Date().toTimeString().slice(3, 8);
-
-const describe = (element: Element | null) =>
-  element ? `${element.tagName.toLowerCase()}${element.getAttribute('aria-label') ? ` "${element.getAttribute('aria-label')}"` : ''}` : 'nothing';
+const KEEP = 9;
+const NAV = 84;
 
 export function ScrollProbe() {
   const [on, setOn] = useState(false);
@@ -49,96 +35,72 @@ export function ScrollProbe() {
 
   useEffect(() => {
     /* After hydration, so the server's markup is never contradicted. */
-    const id = requestAnimationFrame(() => {
-      const asked = new URLSearchParams(window.location.search).get('probe');
-      try {
-        if (asked === 'off') sessionStorage.removeItem(FLAG);
-        else if (asked !== null) sessionStorage.setItem(FLAG, 'on');
-        setOn(sessionStorage.getItem(FLAG) === 'on');
-      } catch {
-        /* No storage (a private tab can refuse it): this page only, then. */
-        setOn(asked !== null && asked !== 'off');
-      }
-    });
+    const id = requestAnimationFrame(() => setOn(new URLSearchParams(window.location.search).has('probe')));
     return () => cancelAnimationFrame(id);
   }, []);
 
   useEffect(() => {
     if (!on) return;
 
-    let notes: string[] = [];
-    try {
-      notes = JSON.parse(sessionStorage.getItem(LOG) ?? '[]') as string[];
-    } catch {
-      /* Starts empty. */
-    }
+    const began = performance.now();
+    const notes: string[] = [];
     const lastNoted = new Map<string, number>();
     /** Notes `text` under `kind`, at most once a second per kind. */
     const note = (kind: string, text = '') => {
       const now = performance.now();
       if (now - (lastNoted.get(kind) ?? -Infinity) < 1000) return;
       lastNoted.set(kind, now);
-      notes.push(`${clock()} ${kind} ${text}`.trim());
+      notes.push(`${((now - began) / 1000).toFixed(1)}s ${kind} ${text}`.trim());
       if (notes.length > KEEP) notes.shift();
-      try {
-        sessionStorage.setItem(LOG, JSON.stringify(notes));
-      } catch {
-        /* Kept in memory only. */
-      }
     };
 
-    let path = window.location.pathname;
-    note('LOAD', path);
-
     let eventAt = performance.now();
-    let touchAt = -Infinity;
+    let eventY = window.scrollY;
+    let resizes = 0;
+    let refreshes = 0;
     let inner = window.innerHeight;
-    /* Since the last change of page (or the load): when, how far down the old
-       page was, and what has been said about the new one. */
-    let since = performance.now();
-    let from = 0;
-    let atTop = true;
-    let said = { top: false, hero: false, loading: false };
-    let backdropSince = 0;
-    let motionAt = performance.now();
+    let webgl = 'ok';
 
     const onScroll = () => {
       eventAt = performance.now();
-    };
-    const onTouch = () => {
-      touchAt = performance.now();
+      eventY = window.scrollY;
     };
     const onResize = () => {
+      resizes += 1;
       if (window.innerHeight !== inner) note('RESIZE', `${inner}→${window.innerHeight}`);
       inner = window.innerHeight;
     };
-    const onError = (event: ErrorEvent) => note('ERROR', String(event.message).slice(0, 70));
-    const onRejection = (event: PromiseRejectionEvent) => {
-      const reason: unknown = event.reason;
-      note('ERROR', String(reason instanceof Error ? reason.message : reason).slice(0, 70));
+    const onRefresh = () => {
+      refreshes += 1;
+      note('REFRESH');
     };
-    /* On the animation library's own loop: it stops with it. */
-    const beat = () => {
-      motionAt = performance.now();
+    const onLost = () => {
+      webgl = 'LOST';
+      note('WEBGL LOST');
     };
+    const onRestored = () => {
+      webgl = 'restored';
+      note('WEBGL', 'restored');
+    };
+    const onError = (event: ErrorEvent) => note('ERROR', String(event.message).slice(0, 60));
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('touchstart', onTouch, { passive: true });
     window.addEventListener('resize', onResize, { passive: true });
     window.addEventListener('error', onError);
-    window.addEventListener('unhandledrejection', onRejection);
-    frame.update(beat, true);
+    ScrollTrigger.addEventListener('refresh', onRefresh);
 
+    let canvas: HTMLCanvasElement | null = null;
     let last = performance.now();
     let lastY = window.scrollY;
     let direction = '·';
+    let got = Number.NaN;
+    let gotAt = last;
     let worst = 0;
     let worstAt = last;
     let frames = 0;
-    let slow = '';
     let raf = 0;
 
-    const tick = (now: number) => {
+    const frame = (now: number) => {
       const gap = now - last;
       last = now;
       if (gap > 250) note('STALL', `${Math.round(gap)}ms`);
@@ -146,87 +108,80 @@ export function ScrollProbe() {
         worst = gap;
         worstAt = now;
       }
-      if (gap < 100 && now - motionAt > 1000) note('MOTION DEAD', `${Math.round(now - motionAt)}ms`);
 
       const y = window.scrollY;
       if (y !== lastY) direction = y > lastY ? '↓' : '↑';
+      if (Math.abs(y - eventY) > 40 && now - eventAt > 300) {
+        note('NO SCROLL EVENT', `${Math.round(now - eventAt)}ms, y moved ${Math.round(y - eventY)} ${direction}`);
+      }
       lastY = y;
 
-      if (window.location.pathname !== path) {
-        note('NAV', `${path} → ${window.location.pathname} at y ${Math.round(y)}`);
-        path = window.location.pathname;
-        since = now;
-        from = y;
-        atTop = y === 0;
-        said = { top: false, hero: false, loading: false };
-      }
-      const age = now - since;
-
-      if (!atTop && y === 0) {
-        atTop = true;
-        note('SWEEP', `${Math.round(from)}→0 in ${Math.round(age)}ms`);
-      }
-      if (!atTop && !said.top && age > 3000 && touchAt < since) {
-        said.top = true;
-        note('NOT AT TOP', `y ${Math.round(y)}, 3s on`);
+      if (!canvas) {
+        canvas = document.querySelector<HTMLCanvasElement>('section[data-mode] canvas');
+        canvas?.addEventListener('webglcontextlost', onLost);
+        canvas?.addEventListener('webglcontextrestored', onRestored);
       }
 
-      /* The rest reads the page's layout, so not on every frame. */
+      /* The journey: where its timeline should be for this scroll position,
+         where it is (its progress bar runs evenly with it), and where its
+         stage is on screen. */
+      let journey = 'journey not mounted';
+      const section = document.querySelector<HTMLElement>('section[data-mode] + div section');
+      const stage = section?.firstElementChild as HTMLElement | null | undefined;
+      const bar = section?.querySelector<HTMLElement>('[data-bar]');
+      if (section && stage && bar) {
+        const top = section.getBoundingClientRect().top + y;
+        const start = top - NAV;
+        const end = top + section.offsetHeight - (NAV + stage.offsetHeight);
+        const want = Math.min(1, Math.max(0, (y - start) / (end - start)));
+        const now1 = Number(gsap.getProperty(bar, 'scaleX'));
+        if (now1 !== got) {
+          got = now1;
+          gotAt = now;
+        }
+        const pin = Math.round(stage.getBoundingClientRect().top);
+        const inside = want > 0.002 && want < 0.998;
+        if (inside && Math.abs(pin - NAV) > 3) note('STAGE OFF PIN', `top ${pin} ${direction}`);
+        if (Math.abs(want - got) > 0.03 && now - gotAt > 500) {
+          note('TIMELINE STUCK', `want ${want.toFixed(3)} got ${got.toFixed(3)} ${Math.round(now - gotAt)}ms ${direction}`);
+        }
+        journey = `journey want ${want.toFixed(3)} got ${got.toFixed(3)} pin ${pin}`;
+      }
+
+      /* The Choose-your-world logos: fetched? how big? where? */
+      const logos = [...document.querySelectorAll<HTMLImageElement>('section[data-mode] [data-world] img')]
+        .map((img) => {
+          const box = img.getBoundingClientRect();
+          const shown = getComputedStyle(img).visibility === 'visible';
+          return `${img.complete && img.naturalWidth ? 'loaded ' + img.naturalWidth : 'NOT LOADED'} box ${Math.round(box.width)}x${Math.round(box.height)}@${Math.round(box.left)},${Math.round(box.top)}${shown ? '' : ' hidden'}`;
+        })
+        .join(' | ');
+
       frames += 1;
-      if (frames % 6 === 0) {
-        const more = document.querySelector('[aria-label="More navigation options"]');
-        const open = more?.getAttribute('aria-expanded') === 'true';
-        const backdrop = document.querySelector('[aria-label="Close More menu"]');
-        if (backdrop && !open) {
-          if (!backdropSince) backdropSince = now;
-          if (now - backdropSince > 1500) note('BACKDROP STUCK', `${Math.round(now - backdropSince)}ms`);
-        } else {
-          backdropSince = 0;
-        }
-
-        /* The heading's lines slide up from under a mask as the page opens. */
-        const line = document.querySelector('main h1 span span');
-        const shift = line ? new DOMMatrixReadOnly(getComputedStyle(line).transform).m42 : 0;
-        if (shift > 2 && !said.hero && age > 2500) {
-          said.hero = true;
-          note('HERO STUCK', `${Math.round(shift)}px down, ${Math.round(age)}ms on`);
-        }
-
-        const loading = document.querySelectorAll('main .animate-pulse').length;
-        if (loading && !said.loading && age > 8000) {
-          said.loading = true;
-          note('STILL LOADING', `${loading} placeholders, 8s on`);
-        }
-
-        const hit = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
-        slow = [
-          `more ${open ? 'open' : 'closed'}  backdrop ${backdrop ? 'on' : 'off'}  under finger ${describe(hit)}`,
-          `heading ${line ? (shift > 2 ? `${Math.round(shift)}px down` : 'in') : 'none'}  loading ${loading}`,
+      if (panel.current && frames % 6 === 0) {
+        panel.current.textContent = [
+          `y ${Math.round(y)} ${direction}  inner ${window.innerHeight}  dpr ${window.devicePixelRatio}`,
+          journey,
+          `worst frame ${Math.round(worst)}ms  scroll event ${Math.round(now - eventAt)}ms ago`,
+          `refresh ${refreshes}  resize ${resizes}  webgl ${webgl}`,
+          `logos ${logos || 'none'}`,
+          '— noted —',
+          ...(notes.length ? notes : ['nothing yet']),
         ].join('\n');
-
-        if (panel.current) {
-          panel.current.textContent = [
-            `${path}  y ${Math.round(y)} ${direction}  inner ${window.innerHeight}  page ${document.documentElement.scrollHeight}`,
-            `worst frame ${Math.round(worst)}ms  scroll event ${Math.round(now - eventAt)}ms ago  motion ${now - motionAt > 1000 ? 'DEAD' : 'ok'}`,
-            slow,
-            '— noted —',
-            ...notes,
-          ].join('\n');
-        }
       }
 
-      raf = requestAnimationFrame(tick);
+      raf = requestAnimationFrame(frame);
     };
-    raf = requestAnimationFrame(tick);
+    raf = requestAnimationFrame(frame);
 
     return () => {
       cancelAnimationFrame(raf);
-      cancelFrame(beat);
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('touchstart', onTouch);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('error', onError);
-      window.removeEventListener('unhandledrejection', onRejection);
+      ScrollTrigger.removeEventListener('refresh', onRefresh);
+      canvas?.removeEventListener('webglcontextlost', onLost);
+      canvas?.removeEventListener('webglcontextrestored', onRestored);
     };
   }, [on]);
 

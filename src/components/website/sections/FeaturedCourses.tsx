@@ -155,7 +155,7 @@ export default function FeaturedCourses() {
   aria-labelledby="featured-courses-title"
   style={{
   background:
-    "linear-gradient(to bottom, #e7f8ef 0%, #e7f8ef 18%, #dff5e9 32%, #b8e5cf 45%, #5fae86 60%, #21805f 76%, #0b5a45 90%, #064c3b 100%)",
+  "linear-gradient(to bottom, #e7f8ef 0%, #e7f8ef 18%, #e4f5eb 32%, #d4eadc 45%, #a8d3ba 60%, #78b893 72%, #a0cdb0 82%, #cce5d4 92%, #e7f8ef 100%)",
 }}
   className="
     relative
@@ -401,68 +401,99 @@ export default function FeaturedCourses() {
           </motion.div>
         </motion.div>
 
-        {/* BOTTOM */}
+       {/* BOTTOM */}
         <div className="mt-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          {/* PROGRESS */}
-          <div className="flex items-center gap-2">
-            {Array.from({ length: maxIndex + 1 }).map((_, index) => {
-              const isActive = activeIndex === index;
+         
+          {/* PREMIUM AUTOPLAY PROGRESS */}
+          <div
+            className="flex items-center gap-3 sm:gap-4"
+            role="group"
+            aria-label={`Slide ${activeIndex + 1} of ${maxIndex + 1}`}
+          >
+            {/* Animated progress segments */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {Array.from({ length: maxIndex + 1 }).map((_, index) => {
+                const isActive = activeIndex === index;
+                const isPast = index < activeIndex;
 
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => setCurrent(index)}
-                  aria-label={`Go to slide ${index + 1}`}
-                  aria-current={isActive}
-                  className="group/dot py-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-300"
-                >
-                  <motion.span
-                    animate={{ width: isActive ? 44 : 14 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className={`block h-1.5 rounded-full transition-colors duration-300 ${
-                      isActive
-                        ? 'bg-[#b8f94a]'
-                        : 'bg-white/35 group-hover/dot:bg-white/55'
-                    }`}
-                  />
-                </button>
-              );
-            })}
+                return (
+                  <div
+                    key={index}
+                    className={`
+                      relative h-1.5 w-7 overflow-hidden rounded-full
+                      sm:w-9
+                      ${
+                        isPast
+                          ? 'bg-[#b8f94a]/60'
+                          : 'bg-white/20'
+                      }
+                    `}
+                  >
+                    <motion.div
+                      key={`fill-${activeIndex}-${index}`}
+                      initial={{ scaleX: 0 }}
+                      animate={{
+                        scaleX: isActive ? 1 : isPast ? 1 : 0,
+                      }}
+                      transition={{
+                        duration: isActive ? AUTOPLAY_MS / 1000 : 0.35,
+                        ease: isActive ? 'linear' : [0.22, 1, 0.36, 1],
+                      }}
+                      style={{ transformOrigin: 'left center' }}
+                      className={`
+                        absolute inset-0 rounded-full
+                        ${
+                          isActive
+                            ? 'bg-linear-to-r from-emerald-400 via-lime-300 to-[#b8f94a] shadow-[0_0_10px_rgba(184,249,74,0.45)]'
+                            : 'bg-[#b8f94a]'
+                        }
+                      `}
+                    >
+                      {/* Moving light streak on active segment */}
+                      {isActive && (
+                        <motion.span
+                          initial={{ x: '-100%' }}
+                          animate={{ x: '350%' }}
+                          transition={{
+                            duration: 1.1,
+                            repeat: Infinity,
+                            ease: 'linear',
+                          }}
+                          className="absolute inset-y-0 left-0 w-1/3 bg-linear-to-r from-transparent via-white/70 to-transparent"
+                        />
+                      )}
+                    </motion.div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Animated slide counter */}
+            <div className="flex shrink-0 items-baseline gap-1 font-mono text-xs tabular-nums">
+              <motion.span
+                key={activeIndex}
+                initial={{ opacity: 0, y: 5, filter: 'blur(3px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="font-bold text-accent"
+                aria-live="polite"
+              >
+                {String(activeIndex + 1).padStart(2, '0')}
+              </motion.span>
+
+              <span className="text-black/35">/</span>
+
+              <span className="text-white/55">
+                {String(maxIndex + 1).padStart(2, '0')}
+              </span>
+            </div>
           </div>
+
 
           {/* VIEW ALL */}
           <a
             href="/courses"
-            className="
-              group/all
-              inline-flex
-              items-center
-              gap-2
-              rounded-full
-              bg-white/10
-              px-5
-              py-2.5
-              text-sm
-              font-bold
-              text-white
-              ring-1
-              ring-inset
-              ring-white/20
-              backdrop-blur-sm
-              transition
-              duration-300
-              hover:bg-brand-gradient
-              hover:text-white
-              hover:ring-[#62e62b]
-              focus-visible:outline-2
-              focus-visible:outline-offset-4
-              focus-visible:outline-lime-300
-              max-md:px-4
-              max-md:py-2
-              max-md:text-xs
-            "
-          >
+                  className="group/all inline-flex items-center gap-2 rounded-full bg-accent-gradient px-5 py-2.5 text-sm font-bold text-white ring-1 ring-inset ring-emerald-300/30 backdrop-blur-sm transition duration-300 hover:ring-emerald-400/70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-300 max-md:px-4 max-md:py-2 max-md:text-xs"          >
             View All Courses
             <ArrowRight
               aria-hidden="true"

@@ -384,16 +384,19 @@ export function Navbar() {
               />
 
               <motion.div
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  exit={{ opacity: 0, y: 8 }}
-  transition={{ duration: 0.18 }}
-  className="
-    absolute bottom-[calc(100%+14px)] right-1 z-50 w-48
-    rounded-2xl border border-white/80
-    bg-white/95 p-2 shadow-lg
-  "
->
+                initial={{ opacity: 0, y: 12, scale: 0.94 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 360, damping: 28 }}
+                className="
+                  absolute bottom-[calc(100%+14px)] right-4 w-48
+                  overflow-hidden rounded-[24px] border border-white/60
+                  bg-white/70 p-2
+                  shadow-[0_12px_40px_rgba(4,76,59,0.20)]
+                  backdrop-blur-2xl
+                  supports-[backdrop-filter]:bg-white/60
+                "
+              >
                 <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
 
                 {[
@@ -407,7 +410,7 @@ export function Navbar() {
                     <Link
                       key={href}
                       href={href}
-                      onClick={() => setIsMoreOpen(false)}
+                      // onClick={() => setIsMoreOpen(false)}
                       aria-current={active ? 'page' : undefined}
                       className={`
                         flex items-center gap-3 rounded-2xl px-3 py-3

@@ -381,6 +381,14 @@ export function AyadiHero() {
       if (inWorld) element.dataset.on = '';
       else delete element.dataset.on;
     }
+
+    /* And the stage's own loops — a card's float, the shimmer on it — stop
+       while there is nobody to see them: once the section is off screen, or
+       the world has taken it, by when everything of the hero's is hidden.
+       Only on the stage: the still layout is not watched (`hero` is never
+       set there), and its cards are simply on the page. See [data-offscreen]
+       in globals.css. */
+    rootRef.current?.toggleAttribute('data-offscreen', mode === 'cinematic' && (!hero || inWorld));
   }, [mode]);
 
   /* Switching worlds while you are inside one drops you at the start of the

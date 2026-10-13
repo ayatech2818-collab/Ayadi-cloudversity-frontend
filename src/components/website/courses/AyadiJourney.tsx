@@ -48,6 +48,20 @@ const TOTAL = GRID_SPOT_OUT + 1.9;
    re-check it if the grid ever loses a column. */
 const TILE_SHOWCASE = 1.85;
 
+/* A tile's comet laps its border on a CSS keyframe — along a path, which no
+   browser moves off the main thread — and there are three dots to a comet and
+   six comets. Left running, those eighteen cost a style pass and a repaint
+   every frame for as long as the journey is mounted, seen or not: measured,
+   they alone kept a phone-speed main thread fully busy with the page at
+   rest, which is time the scrubbed timeline does not then get — the page
+   goes on scrolling (the browser does that itself) and the acts stand still.
+   So a comet's dots only run while its tile holds the light: this property
+   is written on the comet as it shows and goes (lapComets), and the dots
+   read it. Without the timeline (the flow layout) a comet is never shown,
+   and never runs. */
+const COMET = '--comet';
+const COMET_STATE = `var(${COMET}, paused)`;
+
 /* Where every tile ends up: its own slot in the grid, untransformed. autoAlpha
    rather than opacity so this one tween also brings it out of hidden. */
 const TILE_EVEN = { filter: 'blur(0px)', autoAlpha: 1, x: 0, y: 0, scale: 1, zIndex: 1 };
@@ -368,8 +382,24 @@ export function AyadiJourney({
           gsap.set([rail, q('[data-mark-layer]')], { autoAlpha: 1 });
           gsap.set(bar, { scaleX: 0, transformOrigin: 'left center' });
 
+          /* A comet's lap runs only while the comet can be seen (COMET). Read
+             off its opacity each time the timeline moves, rather than written
+             by the timeline at set moments: so it is right whichever way the
+             scroll gets there, and after a refresh has taken the timeline
+             apart and put it back. */
+          const lapping = comets.map(() => false);
+          const lapComets = () => {
+            comets.forEach((comet, index) => {
+              const shown = Number((comet as HTMLElement).style.opacity) > 0;
+              if (shown === lapping[index]) return;
+              lapping[index] = shown;
+              (comet as HTMLElement).style.setProperty(COMET, shown ? 'running' : 'paused');
+            });
+          };
+
           const timeline = gsap.timeline({
             defaults: { ease: 'power2.inOut' },
+            onUpdate: lapComets,
             scrollTrigger: wide
               ? {
                   trigger: sectionEl,
@@ -637,13 +667,13 @@ export function AyadiJourney({
           /* Sets the timeline's length, and doubles as the progress read-out. */
           timeline.to(bar, { scaleX: 1, duration: TOTAL, ease: 'none' }, 0);
 
-          if (wide) return;
-
-          /* The two CSS properties written by hand on a phone — GSAP reverts
-             only what it set itself. */
+          /* The CSS properties written by hand — GSAP reverts only what it
+             set itself. The last two are a phone's (`fitted` is empty on a
+             wide stage, and its cards' tilt is a class). */
           return () => {
+            for (const comet of comets) (comet as HTMLElement).style.removeProperty(COMET);
             for (const body of fitted) body.style.scale = '';
-            for (const card of cards) card.style.rotate = '';
+            if (!wide) for (const card of cards) card.style.rotate = '';
           };
         },
       );
@@ -925,14 +955,17 @@ export function AyadiJourney({
                       >
                         <span data-tile-comet className="absolute inset-0 opacity-0">
                           <span
-                            style={{ animationDelay: '-2.96s' }}
+                            style={{ animationDelay: '-2.96s', animationPlayState: COMET_STATE }}
                             className="absolute left-0 top-0 size-1.5 rounded-full bg-primary/45 blur-[2px] [offset-path:inset(0_round_1rem)] [offset-rotate:0deg] motion-safe:animate-[spark-travel_3.2s_linear_infinite]"
                           />
                           <span
-                            style={{ animationDelay: '-3.08s' }}
+                            style={{ animationDelay: '-3.08s', animationPlayState: COMET_STATE }}
                             className="absolute left-0 top-0 size-1 rounded-full bg-primary/70 blur-[1px] [offset-path:inset(0_round_1rem)] [offset-rotate:0deg] motion-safe:animate-[spark-travel_3.2s_linear_infinite]"
                           />
-                          <span className="absolute left-0 top-0 size-2.5 rounded-full bg-primary shadow-[0_0_14px_5px_rgba(21,128,61,0.55)] [offset-path:inset(0_round_1rem)] [offset-rotate:0deg] motion-safe:animate-[spark-travel_3.2s_linear_infinite]" />
+                          <span
+                            style={{ animationPlayState: COMET_STATE }}
+                            className="absolute left-0 top-0 size-2.5 rounded-full bg-primary shadow-[0_0_14px_5px_rgba(21,128,61,0.55)] [offset-path:inset(0_round_1rem)] [offset-rotate:0deg] motion-safe:animate-[spark-travel_3.2s_linear_infinite]"
+                          />
                         </span>
                       </span>
 

@@ -153,6 +153,28 @@ body {
 }
 
 /*
+ * Nothing loops where nobody is looking.
+ *
+ * A decorative animation runs whether it can be seen or not, and each one
+ * costs the main thread a little every frame. On the home page that was
+ * some fifty loops at any moment with one of them in view — measured, about
+ * half of what the main thread did per frame while the Ayadi journey had the
+ * screen. On a phone that is time its scroll-driven timeline does not get:
+ * the page goes on scrolling, which the browser does itself, and the journey
+ * stands still.
+ *
+ * So whatever is marked off screen is paused — where it is, to carry on from
+ * there. PauseOffscreen (website/layout) marks a page's blocks; the Home
+ * hero marks itself (AyadiHero.tsx, sync).
+ */
+[data-offscreen],
+[data-offscreen] *,
+[data-offscreen] *::before,
+[data-offscreen] *::after {
+  animation-play-state: paused !important;
+}
+
+/*
  * Used by the How It Works journey cards.
  * Both animate transforms only (offset-distance resolves to a translation),
  * so they stay off the paint path. Applied with `motion-safe:` variants.

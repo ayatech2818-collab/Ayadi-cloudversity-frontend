@@ -5,11 +5,14 @@ import  FeaturedCourses from '@/components/website/sections/FeaturedCourses';
 import HowItWorks from "@/components/website/sections/HowItWorks";
 import CEOMessage from '@/components/website/sections/CEOMessage';
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
+import { PauseOffscreen } from '@/components/website/layout/PauseOffscreen';
 
 export default function WebsiteHomePage() {
   return (
     <>
       <Hero />
+      {/* Everything below stops animating while it is off screen. */}
+      <PauseOffscreen />
       {/* <WhyChooseAyadi /> */}
       <LearningPathways />
       <CEOMessage />

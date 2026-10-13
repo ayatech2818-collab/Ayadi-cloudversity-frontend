@@ -100,6 +100,20 @@ const COLLAGE_BOX = 'sm:aspect-[16/10] sm:w-[min(100%,86svh)]';
    less still in a smaller box, so the cluster holds together. */
 const PHONE_TRAVEL = 440;
 const PHONE_BOX = { aspectRatio: '5 / 6', width: 'min(100%, calc((100svh - 160px) / 1.2))' };
+
+/* The soft lights behind the acts — a wash in act one, four behind the
+   collage — are plain shapes under a very large CSS blur. Safari only blurs
+   on the GPU what has a compositing layer of its own, and a filter does not
+   earn an element one (FilterTrigger is not among WebKit's compositing
+   triggers): left alone, each of these is blurred on the CPU, into its act's
+   own picture, every time that picture is drawn again — and an act's is drawn
+   again whenever the act comes back from hidden. At a phone's three pixels to
+   one that is a region some thousands of pixels square, and long enough to
+   stop the timeline where it stands: arriving at the collage on the way down,
+   and — where it was reported, on an iPhone — coming back to it from the
+   first subject on the way up. `will-change` gives each a layer, and the blur
+   goes to the GPU. On a phone's stage only; nothing else is asked to change. */
+const SOFT = 'max-md:will-change-transform';
 const PHONE_SCRIPT = { left: '64%', top: '6%', width: '34%' };
 const PHONE_DRIFT = 0.5;
 /** The box width the phone places and that drift were laid out at, px. */
@@ -292,9 +306,28 @@ export function AyadiJourney({
           } else {
             /* A phone: the section is the stage plus the scroll the sequence
                owns, and the stage sticks under the navbar for the length of
-               it. Nothing is pinned by script. */
-            gsap.set(sectionEl, { height: `calc(${100 + PHONE_TRAVEL}svh - 84px)` });
-            gsap.set(stageEl, { position: 'sticky', top: 84, height: 'calc(100svh - 84px)', overflow: 'hidden' });
+               it. Nothing is pinned by script.
+
+               The stage is as tall as the screen is at that moment (dvh), so
+               it reaches the foot of the screen whether the browser's bars
+               are up or away. The scroll the sequence owns is still counted
+               in small viewports, and the section is the two added together:
+               it grows and shrinks with the stage, so the distance the stage
+               stays stuck for — which is what the trigger below measures —
+               is the same whatever the bars are doing. */
+            const screen = typeof CSS !== 'undefined' && CSS.supports('height', '100dvh') ? '100dvh' : '100svh';
+            gsap.set(sectionEl, { height: `calc(${screen} + ${PHONE_TRAVEL}svh - 84px)` });
+            gsap.set(stageEl, { position: 'sticky', top: 84, height: `calc(${screen} - 84px)`, overflow: 'hidden' });
+
+            /* On the Home page the stage is the page's colour too, not
+               see-through. iOS paints the strip behind its own toolbar in the
+               background colour of whatever is stuck to that edge of the
+               screen; this stage had none to give, and on an iPhone the strip
+               stayed as dark as the hero's night sky had left it — the
+               journey looked cut off above a dark band. (With a card round it
+               the stage stays clear: what is behind it there is not ours to
+               assume.) */
+            if (bare) gsap.set(stageEl, { backgroundColor: getComputedStyle(document.body).backgroundColor });
 
             /* And the acts follow the page every frame, not only when the
                browser says it has scrolled. ScrollTrigger moves a timeline
@@ -359,14 +392,27 @@ export function AyadiJourney({
              them; where that is more than a short screen's stage holds, the
              block is scaled down whole. CSS `scale`, so it sits under whatever
              GSAP does to the same element, and measured from layout heights,
-             which no transform changes. Again on every refresh. */
+             which no transform changes. Again on every refresh.
+
+             Fitted to the stage at its shortest — the browser's bars up —
+             whatever it is when this runs: fitted to a taller one, an act
+             would be cut each time the bars came back. */
           const fitted = wide ? [] : (q('[data-hero-body], [data-grid-body]') as HTMLElement[]);
           const fit = () => {
+            if (!fitted.length) return;
+
+            /* How much taller the stage is now than it ever gets short. */
+            const ruler = document.createElement('div');
+            ruler.style.cssText = 'position:absolute;visibility:hidden;width:0;height:calc(100svh - 84px)';
+            stageEl.appendChild(ruler);
+            const spare = Math.max(0, stageEl.offsetHeight - ruler.offsetHeight);
+            ruler.remove();
+
             for (const body of fitted) {
               const act = body.parentElement;
               if (!act) continue;
               const padding = getComputedStyle(act);
-              const room = act.clientHeight - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom);
+              const room = act.clientHeight - spare - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom);
               const needed = body.offsetHeight;
               body.style.scale = needed > room && needed > 0 && room > 0 ? (room / needed).toFixed(3) : '';
             }
@@ -752,7 +798,7 @@ export function AyadiJourney({
             <span
               data-drift="wash"
               aria-hidden="true"
-              className={`pointer-events-none absolute -right-40 -top-40 -z-10 size-[620px] rounded-full blur-[140px] ${brand.theme.glow}`}
+              className={`pointer-events-none absolute -right-40 -top-40 -z-10 size-[620px] rounded-full blur-[140px] ${SOFT} ${brand.theme.glow}`}
             />
 
             {/* The watermark, back where it was but now a layer rather than
@@ -853,10 +899,10 @@ export function AyadiJourney({
               <div data-collage-area className="relative isolate [perspective:1400px]">
                 {/* Light behind the glass */}
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-                  <div className="absolute left-1/2 top-1/2 size-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white blur-3xl" />
-                  <div className="absolute left-[10%] top-[14%] size-[44%] rounded-full bg-primary/25 blur-[90px]" />
-                  <div className="absolute bottom-[8%] right-[6%] size-[46%] rounded-full bg-brand-end/25 blur-[100px]" />
-                  <div className="absolute left-[38%] top-[52%] size-[34%] rounded-full bg-accent/12 blur-[90px]" />
+                  <div className={`absolute left-1/2 top-1/2 size-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white blur-3xl ${SOFT}`} />
+                  <div className={`absolute left-[10%] top-[14%] size-[44%] rounded-full bg-primary/25 blur-[90px] ${SOFT}`} />
+                  <div className={`absolute bottom-[8%] right-[6%] size-[46%] rounded-full bg-brand-end/25 blur-[100px] ${SOFT}`} />
+                  <div className={`absolute left-[38%] top-[52%] size-[34%] rounded-full bg-accent/12 blur-[90px] ${SOFT}`} />
                 </div>
 
                 {/* Outer plane takes the pointer tilt, inner takes the scroll

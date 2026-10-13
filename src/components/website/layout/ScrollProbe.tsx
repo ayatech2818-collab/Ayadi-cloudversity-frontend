@@ -5,9 +5,10 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useEffect, useRef, useState } from 'react';
 
 /*
- * TEMPORARY — a readout for chasing the Home journey's "stuck scrolling back
- * up on an iPhone", which no desktop or emulator reproduces. Delete this file
- * and its one line in (website)/page.tsx once that is settled.
+ * TEMPORARY — a readout for chasing what only an iPhone shows and no desktop
+ * or emulator reproduces: first the Home journey sticking on the way back up
+ * (settled), now the Choose-your-world logos not drawing. Delete this file
+ * and its one line in (website)/page.tsx once that is settled too.
  *
  * Does nothing unless the address ends in ?probe. Then it shows, live, the
  * things that can each be the cause, and notes down every time one of them
@@ -147,6 +148,15 @@ export function ScrollProbe() {
         journey = `journey want ${want.toFixed(3)} got ${got.toFixed(3)} pin ${pin}`;
       }
 
+      /* The Choose-your-world logos: fetched? how big? where? */
+      const logos = [...document.querySelectorAll<HTMLImageElement>('section[data-mode] [data-world] img')]
+        .map((img) => {
+          const box = img.getBoundingClientRect();
+          const shown = getComputedStyle(img).visibility === 'visible';
+          return `${img.complete && img.naturalWidth ? 'loaded ' + img.naturalWidth : 'NOT LOADED'} box ${Math.round(box.width)}x${Math.round(box.height)}@${Math.round(box.left)},${Math.round(box.top)}${shown ? '' : ' hidden'}`;
+        })
+        .join(' | ');
+
       frames += 1;
       if (panel.current && frames % 6 === 0) {
         panel.current.textContent = [
@@ -154,6 +164,7 @@ export function ScrollProbe() {
           journey,
           `worst frame ${Math.round(worst)}ms  scroll event ${Math.round(now - eventAt)}ms ago`,
           `refresh ${refreshes}  resize ${resizes}  webgl ${webgl}`,
+          `logos ${logos || 'none'}`,
           '— noted —',
           ...(notes.length ? notes : ['nothing yet']),
         ].join('\n');

@@ -1169,6 +1169,23 @@
   top: 84px;
 }
 
+/* Not sticky on a phone held upright. There the journey holds itself with a
+   `position: sticky` stage of its own (AyadiJourney.tsx), and this wrapper's
+   did nothing: it is the last thing in <main>, so it has nowhere to stick to
+   (measured — the world and its stage sit in the same place, to the pixel,
+   with it and without, the whole way through and back). What it did do was
+   make that stage a sticky box *inside* a sticky box, which WebKit positions
+   by a different, lesser-used route than a sticky box on its own — and on an
+   iPhone it is this journey, not the hero (whose stage is on its own), that
+   has trouble scrolling back up. A wide screen keeps the rule above: its
+   journey is pinned by ScrollTrigger, not stuck, and nothing is nested. */
+@media (max-width: 767px) and (orientation: portrait) {
+  .root[data-mode='cinematic']+.world:not(:empty) {
+    position: relative;
+    top: auto;
+  }
+}
+
 /* Once it is the thing on screen (AyadiHero writes data-on). */
 .root[data-mode='cinematic']+.world[data-on] {
   pointer-events: auto;

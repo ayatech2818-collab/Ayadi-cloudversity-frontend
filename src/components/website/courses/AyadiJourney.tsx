@@ -279,6 +279,8 @@ export function AyadiJourney({
           const stageEl = stage.current;
           if (!sectionEl || !stageEl) return;
 
+          const followScroll = () => ScrollTrigger.update();
+
           /* ---------- cinematic layout ----------
              Collapse the three acts onto one screen. matchMedia reverts these on
              cleanup, so crossing the breakpoint or turning motion off restores
@@ -293,6 +295,16 @@ export function AyadiJourney({
                it. Nothing is pinned by script. */
             gsap.set(sectionEl, { height: `calc(${100 + PHONE_TRAVEL}svh - 84px)` });
             gsap.set(stageEl, { position: 'sticky', top: 84, height: 'calc(100svh - 84px)', overflow: 'hidden' });
+
+            /* And the acts follow the page every frame, not only when the
+               browser says it has scrolled. ScrollTrigger moves a timeline
+               when a scroll event arrives; a phone scrolls on a thread of its
+               own and sends that word afterwards, and when it comes late or
+               not at all — changing direction, say, as the browser's bars
+               slide back in — ScrollTrigger does not find out by itself (its
+               own re-check, four times a second, reads a cached position).
+               update() reads the real one. */
+            gsap.ticker.add(followScroll);
 
             /* The collage: out of its grid and into the upright box, each card
                to its own place. The flat tilt is the CSS `rotate` the wider
@@ -667,10 +679,11 @@ export function AyadiJourney({
           /* Sets the timeline's length, and doubles as the progress read-out. */
           timeline.to(bar, { scaleX: 1, duration: TOTAL, ease: 'none' }, 0);
 
-          /* The CSS properties written by hand — GSAP reverts only what it
-             set itself. The last two are a phone's (`fitted` is empty on a
-             wide stage, and its cards' tilt is a class). */
+          /* What was added by hand — GSAP reverts only what it set itself.
+             The ticker's listener and the last two are a phone's (`fitted`
+             is empty on a wide stage, and its cards' tilt is a class). */
           return () => {
+            gsap.ticker.remove(followScroll);
             for (const comet of comets) (comet as HTMLElement).style.removeProperty(COMET);
             for (const body of fitted) body.style.scale = '';
             if (!wide) for (const card of cards) card.style.rotate = '';

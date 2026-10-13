@@ -384,6 +384,15 @@
   transform: translateZ(18px);
 }
 
+/* No depth on a touch screen, where the card never tilts: see the note on
+   the stack inside it (.cloudHeroArea, further down). */
+@media (hover: none) {
+  .cardIconLayer {
+    transform: none;
+    transform-style: flat;
+  }
+}
+
 .cardIcon {
   display: grid;
   width: 3.25rem;
@@ -801,12 +810,32 @@
     animation: none;
   }
 
-  .cloudFloatStage {
-    transform: translate3d(0, 0, 18px);
+  /* Flat on a touch screen. The depth these layers are set at is there to
+     part them as the card tilts, and a card only tilts under a mouse
+     (useCardTilt) — under a finger it has nothing to show for itself. What it
+     did do there was put a filtered image four `preserve-3d` boxes deep, and
+     on an iPhone the logo was not drawn at all. Without the depth they are
+     the same three things, one over the other in the order they are written. Every state is named, or the pressed and
+     hovered ones (more specific, above) would put it back. */
+  .cloudHeroArea {
+    perspective: none;
+    transform-style: flat;
   }
 
-  .cloudLogoShadow {
-    transform: translateZ(10px);
+  .card .cloudGlassStage,
+  .card:hover .cloudGlassStage,
+  .card .cloudLogoShadow,
+  .card:hover .cloudLogoShadow,
+  .card .cloudFloatStage,
+  .card:hover .cloudFloatStage,
+  .card[aria-pressed='true'] .cloudFloatStage,
+  .card[aria-pressed='true']:hover .cloudFloatStage {
+    transform: none;
+  }
+
+  .cloudFloatStage,
+  .cloudFloatAnim {
+    transform-style: flat;
   }
 }
 
@@ -1072,12 +1101,32 @@
     animation: none;
   }
 
-  .ayatechFloatStage {
-    transform: translate3d(0, 0, 18px);
+  /* Flat on a touch screen. The depth these layers are set at is there to
+     part them as the card tilts, and a card only tilts under a mouse
+     (useCardTilt) — under a finger it has nothing to show for itself. What it
+     did do there was put a filtered image four `preserve-3d` boxes deep, and
+     on an iPhone the logo was not drawn at all. Without the depth they are
+     the same three things, one over the other in the order they are written. Every state is named, or the pressed and
+     hovered ones (more specific, above) would put it back. */
+  .ayatechHeroArea {
+    perspective: none;
+    transform-style: flat;
   }
 
-  .ayatechLogoShadow {
-    transform: translateZ(10px);
+  .card .ayatechGlassStage,
+  .card:hover .ayatechGlassStage,
+  .card .ayatechLogoShadow,
+  .card:hover .ayatechLogoShadow,
+  .card .ayatechFloatStage,
+  .card:hover .ayatechFloatStage,
+  .card[aria-pressed='true'] .ayatechFloatStage,
+  .card[aria-pressed='true']:hover .ayatechFloatStage {
+    transform: none;
+  }
+
+  .ayatechFloatStage,
+  .ayatechFloatAnim {
+    transform-style: flat;
   }
 }
 
@@ -2052,16 +2101,18 @@
     height: 3.5rem;
   }
 
-  .cloudLogoImage {
-    max-width: 100%;
-    width: 100%;
-    max-height: 2.5rem;
-  }
-
+  /* A size of its own: as tall as the pedestal has room for, and as wide as
+     the artwork is at that height (its width and height attributes give the
+     ratio, before it has loaded as well as after). It was `width: 100%` of a
+     box that takes its own width from this image — a circle each engine is
+     free to settle its own way — with the height left to follow. Drawn, it
+     is the same size it was. */
+  .cloudLogoImage,
   .ayatechLogoImage {
-    max-width: 100%;
-    width: 100%;
-    max-height: 2.5rem;
+    width: auto;
+    max-width: none;
+    height: 2.5rem;
+    max-height: none;
   }
 
   .cloudGlassStage,

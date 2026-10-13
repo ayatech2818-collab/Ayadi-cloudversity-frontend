@@ -14,9 +14,16 @@ export type WorldId = 'cloudversity' | 'ayatech';
 /* The cards' logos are 13rem across at most (9.5rem on a phone — .cloudLogoImage
    and .ayatechLogoImage in hero.module.css), and the artwork behind them is
    3116px wide. Sized, so the browser is sent — and decodes — something near
-   what it shows. Not preloaded either: they are the last thing in the hero
-   to be seen, and the first screen has an image of its own to fetch first. */
+   what it shows. Not preloaded: they are the last thing in the hero to be
+   seen, and the first screen has an image of its own to fetch first.
+
+   But not left to the browser's lazy loading or its asynchronous decoding
+   either (LOGO_LOADING). A card is hidden, transformed and filtered until
+   the choice comes up, and the logo was the one thing on it an iPhone never
+   drew; fetched with the page and decoded as it is painted, there is nothing
+   about either for the browser to decide later. They are two small files. */
 const LOGO_SIZES = '(min-width: 640px) 13rem, 9.5rem';
+const LOGO_LOADING = { loading: 'eager', decoding: 'sync' } as const;
 
 type World = {
   id: WorldId;
@@ -129,6 +136,7 @@ function WorldCard({
                   width={3116}
                   height={1701}
                   sizes={LOGO_SIZES}
+                  {...LOGO_LOADING}
                   className={styles.cloudLogoImage}
                 />
                 <span className={styles.cloudLightSweep} />
@@ -156,6 +164,7 @@ function WorldCard({
                   width={1000}
                   height={450}
                   sizes={LOGO_SIZES}
+                  {...LOGO_LOADING}
                   className={styles.ayatechLogoImage}
                 />
                 <span className={styles.ayatechLightSweep} />

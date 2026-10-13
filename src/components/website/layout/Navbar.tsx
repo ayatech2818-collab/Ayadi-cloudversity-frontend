@@ -369,74 +369,69 @@ export function Navbar() {
         aria-label="Mobile navigation"
         className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(8px,env(safe-area-inset-bottom))] md:hidden"
       >
-        {/* More popup */}
-        <AnimatePresence>
-          {isMoreOpen && (
-            <>
-              <motion.button
-                type="button"
-                aria-label="Close More menu"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                // exit={{ opacity: 0 }}
-                onClick={() => setIsMoreOpen(false)}
-                className="fixed inset-0 -z-10 bg-black/10"
-              />
+      {/* More popup — no Framer Motion */}
+{isMoreOpen && (
+  <>
+    {/* Backdrop */}
+    <button
+      type="button"
+      aria-label="Close More menu"
+      onClick={() => setIsMoreOpen(false)}
+      className="fixed inset-0 -z-10 bg-black/10"
+    />
 
-              <motion.div
-                initial={{ opacity: 0, y: 12, scale: 0.94 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                // exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                transition={{ type: 'spring', stiffness: 360, damping: 28 }}
-                className="
-                  absolute bottom-[calc(100%+14px)] right-4 w-48
-                  overflow-hidden rounded-[24px] border border-white/60
-                  bg-white/95 p-2
-                  shadow-[0_12px_40px_rgba(4,76,59,0.20)]
-                "
-              >
-                <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
+    {/* Popup */}
+    <div
+      className="
+        absolute bottom-[calc(100%+14px)] right-4 w-48
+        overflow-hidden rounded-[24px] border border-white/60
+        bg-white/95 p-2
+        shadow-[0_12px_40px_rgba(4,76,59,0.20)]
+      "
+    >
+      <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
 
-                {[
-                  { href: '/blog', label: 'Blog', Icon: BlogIcon },
-                  { href: '/media', label: 'Media', Icon: Images },
-                ].map(({ href, label, Icon }) => {
-                  const active =
-                    pathname === href || pathname.startsWith(`${href}/`);
+      {[
+        { href: '/blog', label: 'Blog', Icon: BlogIcon },
+        { href: '/media', label: 'Media', Icon: Images },
+      ].map(({ href, label, Icon }) => {
+        const active =
+          pathname === href || pathname.startsWith(`${href}/`);
 
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => setIsMoreOpen(false)}
-                      aria-current={active ? 'page' : undefined}
-                      className={`
-                        flex items-center gap-3 rounded-2xl px-3 py-3
-                        text-sm font-semibold transition-colors
-                        ${
-                          active
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-slate-700 hover:bg-primary/[0.07] hover:text-primary'
-                        }
-                      `}
-                    >
-                      <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                      {label}
-                    </Link>
-                  );
-                })}
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={() => setIsMoreOpen(false)}
+            aria-current={active ? 'page' : undefined}
+            className={`
+              flex items-center gap-3 rounded-2xl px-3 py-3
+              text-sm font-semibold transition-colors
+              ${
+                active
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-slate-700 hover:bg-primary/[0.07] hover:text-primary'
+              }
+            `}
+          >
+            <Icon className="size-[18px] shrink-0" aria-hidden="true" />
+            {label}
+          </Link>
+        );
+      })}
+    </div>
+  </>
+)}
 
         {/* Horizontally swipeable glass navigation */}
         <div
           className="
             relative mx-auto w-full max-w-[440px] overflow-hidden
             rounded-full border border-white/65
-            bg-white/95 p-1.5
+            bg-white/45 p-1.5
             shadow-[0_10px_40px_rgba(4,76,59,0.18)]
+            // backdrop-blur-2xl
+            // supports-[backdrop-filter]:bg-white/35
           "
         >
           {/* Reflective glass edges */}

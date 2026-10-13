@@ -391,10 +391,8 @@ export function Navbar() {
                 className="
                   absolute bottom-[calc(100%+14px)] right-4 w-48
                   overflow-hidden rounded-[24px] border border-white/60
-                  bg-white/70 p-2
+                  bg-white/95 p-2
                   shadow-[0_12px_40px_rgba(4,76,59,0.20)]
-                  backdrop-blur-2xl
-                  supports-[backdrop-filter]:bg-white/60
                 "
               >
                 <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
@@ -437,10 +435,8 @@ export function Navbar() {
           className="
             relative mx-auto w-full max-w-[440px] overflow-hidden
             rounded-full border border-white/65
-            bg-white/45 p-1.5
+            bg-white/95 p-1.5
             shadow-[0_10px_40px_rgba(4,76,59,0.18)]
-            backdrop-blur-2xl
-            supports-[backdrop-filter]:bg-white/35
           "
         >
           {/* Reflective glass edges */}

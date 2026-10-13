@@ -378,7 +378,7 @@ export function Navbar() {
                 aria-label="Close More menu"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                // exit={{ opacity: 0 }}
                 onClick={() => setIsMoreOpen(false)}
                 className="fixed inset-0 -z-10 bg-black/10"
               />
@@ -386,7 +386,7 @@ export function Navbar() {
               <motion.div
                 initial={{ opacity: 0, y: 12, scale: 0.94 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                // exit={{ opacity: 0, y: 8, scale: 0.96 }}
                 transition={{ type: 'spring', stiffness: 360, damping: 28 }}
                 className="
                   absolute bottom-[calc(100%+14px)] right-4 w-48

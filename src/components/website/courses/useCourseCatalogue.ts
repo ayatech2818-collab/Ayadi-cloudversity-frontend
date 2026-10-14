@@ -1,13 +1,21 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import { categoryById, categoryBySlug, courseCategories } from './categories';
-import { ayadiCourses } from './dummyData';
+import { getCourseBrands } from '@/lib/api/course-brands';
+import { getCategories } from '@/lib/api/course-categories';
+import { getSubcategories } from '@/lib/api/course-subcategories';
+import { getCourses } from '@/lib/api/courses';
+import { getApiErrorMessage } from '@/lib/api/errors';
+
 import { countByCategory, countBySubcategory, filterCourses } from './filterCourses';
-import { subcategoriesByCategoryId, subcategoryById, subcategoryBySlug } from './subcategories';
-import type { CatalogueCategory, CatalogueSubcategory } from './types';
+import {
+  mapCourseToCatalogueCourse,
+  type CatalogueCategory,
+  type CatalogueCourse,
+  type CatalogueSubcategory,
+} from './types';
 
 /* useLayoutEffect warns during SSR — same swap as CoursesIntro. */
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
@@ -16,39 +24,189 @@ const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffec
 const CATEGORY_PARAM = 'category';
 const SUBCATEGORY_PARAM = 'subcategory';
 
-const categories = [...courseCategories].sort((a, b) => a.display_order - b.display_order);
+function findCategoryInList(categories: CatalogueCategory[], slug: string | null): CatalogueCategory | null {
+  if (!slug) return null;
+  const lower = slug.toLowerCase();
+  return (
+    categories.find(
+      (c) =>
+        c.slug.toLowerCase() === lower ||
+        // Support legacy aliases
+        (lower === 'academic' && c.slug.includes('academic')) ||
+        (lower === 'creative' && (c.slug.includes('creative') || c.slug.includes('life'))) ||
+        (lower === 'readiness' &&
+          (c.slug.includes('readiness') || c.slug.includes('workspace') || c.slug.includes('workplace'))),
+    ) ?? null
+  );
+}
+
+function findSubcategoryInList(
+  subcategories: CatalogueSubcategory[],
+  categoryId: string,
+  subSlug: string | null,
+): CatalogueSubcategory | null {
+  if (!subSlug) return null;
+  const lower = subSlug.toLowerCase();
+  return (
+    subcategories.find(
+      (s) => s.category_id === categoryId && (s.slug.toLowerCase() === lower || s.id === subSlug),
+    ) ?? null
+  );
+}
 
 /*
- * The catalogue's state, and everything worked out from it.
+ * The catalogue's state, powered by the live FastAPI backend.
  *
- * This is the seam for the backend: the components below it take what this
- * returns as props and know nothing about where it came from. Today that is
- * the dummy data, filtered here; later the imports above become
- * `getCategories()` / `getSubcategories()` / `getCourses()` requests, with
- * `search`, `category_id`, and `subcategory_id` sent as query parameters,
- * and the return value keeps its shape.
+ * Dynamically resolves the active Ayadi Cloudversity brand, its categories,
+ * subcategories, and published courses. Provides responsive client-side
+ * multi-term search, category counts, subcategory filtering, and URL parameter
+ * synchronisation.
  */
 export function useCourseCatalogue() {
   const [query, setQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [activeSubcategoryId, setActiveSubcategoryId] = useState<string | null>(null);
 
+  const [categories, setCategories] = useState<CatalogueCategory[]>([]);
+  const [allSubcategories, setAllSubcategories] = useState<CatalogueSubcategory[]>([]);
+  const [rawCourses, setRawCourses] = useState<CatalogueCourse[]>([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const categoriesRef = useRef<CatalogueCategory[]>([]);
+  const subcategoriesRef = useRef<CatalogueSubcategory[]>([]);
+
   const search = query.trim();
+
+  /* =========================================================
+     FETCH LIVE DATA FROM BACKEND
+  ========================================================= */
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCatalogueData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // 1. Fetch active brands and dynamically resolve Ayadi Cloudversity
+        const brands = await getCourseBrands();
+        const activeBrands = brands.filter((b) => b.is_active);
+
+        // Preferred match is slug 'ayadicloudveristy' (verified DB slug), with fallbacks
+        const ayadiBrand = activeBrands.find(
+          (b) =>
+            b.slug === 'ayadicloudveristy' ||
+            b.slug === 'ayadi' ||
+            b.name.toLowerCase().includes('cloudversity'),
+        );
+
+        if (!ayadiBrand) {
+          throw new Error('Ayadi Cloudversity brand not found or inactive.');
+        }
+
+        // 2. Concurrently fetch categories, subcategories, and published courses
+        const [fetchedCategories, fetchedSubcategories, fetchedCourses] = await Promise.all([
+          getCategories(ayadiBrand.id),
+          getSubcategories(),
+          getCourses({ brand_id: ayadiBrand.id, is_published: true }),
+        ]);
+
+        if (cancelled) return;
+
+        // Filter active categories for this brand and sort by display_order
+        const activeCategories: CatalogueCategory[] = fetchedCategories
+          .filter((c) => c.is_active && c.brand_id === ayadiBrand.id)
+          .sort((a, b) => a.display_order - b.display_order)
+          .map((c) => ({
+            id: c.id,
+            slug: c.slug,
+            name: c.name,
+            description: c.description,
+            display_order: c.display_order,
+          }));
+
+        const activeCategoryIds = new Set(activeCategories.map((c) => c.id));
+
+        // Filter active subcategories belonging to active categories
+        const activeSubcategories: CatalogueSubcategory[] = fetchedSubcategories
+          .filter((s) => s.is_active && activeCategoryIds.has(s.category_id))
+          .sort((a, b) => a.display_order - b.display_order)
+          .map((s) => ({
+            id: s.id,
+            category_id: s.category_id,
+            slug: s.slug,
+            name: s.name,
+            description: s.description,
+            display_order: s.display_order,
+          }));
+
+        // Normalize courses to CatalogueCourse
+        const normalizedCourses = fetchedCourses.map(mapCourseToCatalogueCourse);
+
+        categoriesRef.current = activeCategories;
+        subcategoriesRef.current = activeSubcategories;
+
+        setCategories(activeCategories);
+        setAllSubcategories(activeSubcategories);
+        setRawCourses(normalizedCourses);
+        setError(null);
+
+        // Resolve any initial URL parameters on first load
+        if (typeof window !== 'undefined') {
+          const currentParams = new URL(window.location.href).searchParams;
+          const initialCategorySlug = currentParams.get(CATEGORY_PARAM);
+          const initialSubcategorySlug = currentParams.get(SUBCATEGORY_PARAM);
+
+          if (initialCategorySlug) {
+            const matchedCategory = findCategoryInList(activeCategories, initialCategorySlug);
+            if (matchedCategory) {
+              setActiveCategoryId(matchedCategory.id);
+              const matchedSub = findSubcategoryInList(
+                activeSubcategories,
+                matchedCategory.id,
+                initialSubcategorySlug,
+              );
+              setActiveSubcategoryId(matchedSub?.id ?? null);
+            }
+          }
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error('Failed to load course catalogue:', err);
+        setError(getApiErrorMessage(err, 'Unable to load course catalogue. Please try again.'));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadCatalogueData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadToken]);
 
   /* Available subcategories under the currently selected main category */
   const subcategories = useMemo(
-    () => (activeCategoryId ? subcategoriesByCategoryId(activeCategoryId) : []),
-    [activeCategoryId],
+    () => (activeCategoryId ? allSubcategories.filter((s) => s.category_id === activeCategoryId) : []),
+    [activeCategoryId, allSubcategories],
   );
 
-  /* Search first, category second, so the category tiles can count what the
-     search turns up in each of them. */
-  const searchMatches = useMemo(() => filterCourses(ayadiCourses, categories, { search }), [search]);
+  /* =========================================================
+     FILTERING & SEARCH
+  ========================================================= */
+
+  /* Search across all published courses */
+  const searchMatches = useMemo(() => filterCourses(rawCourses, categories, { search }), [rawCourses, categories, search]);
 
   /* Courses matching search within the active main category (before subcategory filter) */
   const categoryMatches = useMemo(
     () => filterCourses(searchMatches, categories, { category_id: activeCategoryId ?? undefined }),
-    [searchMatches, activeCategoryId],
+    [searchMatches, categories, activeCategoryId],
   );
 
   /* Live course counts per subcategory under the active category */
@@ -60,16 +218,15 @@ export function useCourseCatalogue() {
       filterCourses(categoryMatches, categories, {
         subcategory_id: activeSubcategoryId ?? undefined,
       }),
-    [categoryMatches, activeSubcategoryId],
+    [categoryMatches, categories, activeSubcategoryId],
   );
 
   const counts = useMemo(() => countByCategory(searchMatches), [searchMatches]);
 
-  /* Writes the category choice into the address as well, so a filtered view can be
-     shared and a footer category link always registers as a change. Native
-     history rather than the router: Next keeps useSearchParams in step with
-     it, and nothing is re-requested.
-     Switching main category always resets subcategory selection to All. */
+  /* =========================================================
+     NAVIGATION HANDLERS
+  ========================================================= */
+
   const selectCategory = useCallback((category: CatalogueCategory | null) => {
     setActiveCategoryId(category?.id ?? null);
     setActiveSubcategoryId(null);
@@ -84,7 +241,6 @@ export function useCourseCatalogue() {
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
   }, []);
 
-  /* Sets active subcategory within the current main category */
   const selectSubcategory = useCallback((subcategory: CatalogueSubcategory | null) => {
     setActiveSubcategoryId(subcategory?.id ?? null);
 
@@ -96,19 +252,23 @@ export function useCourseCatalogue() {
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
   }, []);
 
-  /* Handles URL parameters on arrival and browser navigation */
   const applyParams = useCallback(
     ({ categorySlug, subcategorySlug }: { categorySlug: string | null; subcategorySlug: string | null }) => {
-      const category = categoryBySlug(categorySlug);
-      if (category) {
-        setActiveCategoryId(category.id);
+      if (!categorySlug) {
+        setActiveCategoryId(null);
+        setActiveSubcategoryId(null);
+        return;
+      }
 
-        const subcategory = subcategoryBySlug(subcategorySlug);
-        if (subcategory && subcategory.category_id === category.id) {
-          setActiveSubcategoryId(subcategory.id);
-        } else {
-          setActiveSubcategoryId(null);
-        }
+      const matchedCategory = findCategoryInList(categoriesRef.current, categorySlug);
+      if (matchedCategory) {
+        setActiveCategoryId(matchedCategory.id);
+        const matchedSub = findSubcategoryInList(
+          subcategoriesRef.current,
+          matchedCategory.id,
+          subcategorySlug,
+        );
+        setActiveSubcategoryId(matchedSub?.id ?? null);
       } else {
         setActiveCategoryId(null);
         setActiveSubcategoryId(null);
@@ -117,7 +277,6 @@ export function useCourseCatalogue() {
     [],
   );
 
-  /* An unknown slug falls back to all courses */
   const applyCategorySlug = useCallback(
     (slug: string | null) => {
       applyParams({ categorySlug: slug, subcategorySlug: null });
@@ -133,6 +292,10 @@ export function useCourseCatalogue() {
     setQuery('');
     selectCategory(null);
   }, [selectCategory]);
+
+  const retry = useCallback(() => {
+    setReloadToken((t) => t + 1);
+  }, []);
 
   return {
     categories,
@@ -151,8 +314,11 @@ export function useCourseCatalogue() {
     setQuery,
     /** `query`, trimmed — empty when there is nothing to search for. */
     search,
-    activeCategory: (activeCategoryId && categoryById(activeCategoryId)) || null,
-    activeSubcategory: (activeSubcategoryId && subcategoryById(activeSubcategoryId)) || null,
+    activeCategory: categories.find((c) => c.id === activeCategoryId) ?? null,
+    activeSubcategory: allSubcategories.find((s) => s.id === activeSubcategoryId) ?? null,
+    loading,
+    error,
+    retry,
     selectCategory,
     selectSubcategory,
     clearSubcategory,

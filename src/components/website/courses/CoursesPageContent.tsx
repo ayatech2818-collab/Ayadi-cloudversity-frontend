@@ -112,6 +112,9 @@ export function CoursesPageContent() {
             onClearSearch={catalogue.clearSearch}
             onReset={catalogue.reset}
             onEnroll={openEnrollment}
+            loading={catalogue.loading}
+            error={catalogue.error}
+            onRetry={catalogue.retry}
           />
         </div>
       </div>

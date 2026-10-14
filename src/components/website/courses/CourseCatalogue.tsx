@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { BookOpen, SearchX, X } from 'lucide-react';
+import { AlertCircle, BookOpen, SearchX, X } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -38,6 +38,9 @@ export function CourseCatalogue({
   onClearSearch,
   onReset,
   onEnroll,
+  loading = false,
+  error = null,
+  onRetry,
 }: {
   courses: CatalogueCourse[];
   categories: CatalogueCategory[];
@@ -52,6 +55,9 @@ export function CourseCatalogue({
   onClearSearch: () => void;
   onReset: () => void;
   onEnroll: (course: CatalogueCourse) => void;
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -82,11 +88,47 @@ export function CourseCatalogue({
           </div>
 
           <p aria-live="polite" className="text-xs text-muted sm:text-sm">
-            {courses.length} {courses.length === 1 ? 'course' : 'courses'}
+            {loading ? 'Loading courses…' : `${courses.length} ${courses.length === 1 ? 'course' : 'courses'}`}
           </p>
         </div>
 
-        {courses.length > 0 ? (
+        {loading ? (
+          <div className="relative mt-5 grid gap-4 sm:mt-7 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="flex flex-col overflow-hidden rounded-2xl bg-surface ring-1 ring-inset ring-border animate-pulse"
+              >
+                <div className="aspect-[16/10] bg-muted/10" />
+                <div className="flex flex-1 flex-col p-4 sm:p-6 space-y-3">
+                  <div className="h-3 w-24 rounded bg-muted/15" />
+                  <div className="h-5 w-3/4 rounded bg-muted/20" />
+                  <div className="h-4 w-full rounded bg-muted/10" />
+                  <div className="h-4 w-2/3 rounded bg-muted/10" />
+                  <div className="mt-auto pt-6 border-t border-border flex justify-between items-center">
+                    <div className="h-3 w-28 rounded bg-muted/15" />
+                    <div className="h-7 w-20 rounded-full bg-muted/20" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="mt-7 rounded-2xl bg-surface px-6 py-14 text-center ring-1 ring-inset ring-rose-500/20 sm:px-10">
+            <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500">
+              <AlertCircle size={24} aria-hidden="true" />
+            </span>
+            <h3 className="mt-5 text-lg font-bold tracking-[-0.02em] text-accent">Unable to load courses</h3>
+            <p className="mt-1.5 text-sm text-muted">{error}</p>
+            {onRetry ? (
+              <div className="mt-6 flex justify-center">
+                <button type="button" onClick={onRetry} className={PRIMARY_ACTION}>
+                  Try again
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : courses.length > 0 ? (
           /* `relative` is for popLayout: a card on its way out is lifted out
              of the grid and positioned against this, so the rest can close up
              under it straight away. */

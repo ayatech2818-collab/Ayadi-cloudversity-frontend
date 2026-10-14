@@ -17,25 +17,37 @@ export type CategoryStyle = {
   dot: string;
 };
 
+const ACADEMIC_STYLE: CategoryStyle = {
+  icon: GraduationCap,
+  tile: 'bg-primary/10 text-primary',
+  text: 'text-primary',
+  dot: 'bg-primary',
+};
+
+const CREATIVE_STYLE: CategoryStyle = {
+  icon: Palette,
+  tile: 'bg-brand-teal/10 text-brand-teal',
+  text: 'text-brand-teal',
+  dot: 'bg-brand-teal',
+};
+
+const READINESS_STYLE: CategoryStyle = {
+  icon: Briefcase,
+  tile: 'bg-accent/10 text-accent',
+  text: 'text-accent',
+  dot: 'bg-accent',
+};
+
 const STYLES: Record<string, CategoryStyle> = {
-  academic: {
-    icon: GraduationCap,
-    tile: 'bg-primary/10 text-primary',
-    text: 'text-primary',
-    dot: 'bg-primary',
-  },
-  creative: {
-    icon: Palette,
-    tile: 'bg-brand-teal/10 text-brand-teal',
-    text: 'text-brand-teal',
-    dot: 'bg-brand-teal',
-  },
-  readiness: {
-    icon: Briefcase,
-    tile: 'bg-accent/10 text-accent',
-    text: 'text-accent',
-    dot: 'bg-accent',
-  },
+  // Legacy short slugs
+  academic: ACADEMIC_STYLE,
+  creative: CREATIVE_STYLE,
+  readiness: READINESS_STYLE,
+  // Real backend database slugs
+  'academic-learning-pathways': ACADEMIC_STYLE,
+  'life-creative-skills': CREATIVE_STYLE,
+  'workspace-readiness-pd': READINESS_STYLE,
+  'workplace-readiness-pd': READINESS_STYLE,
 };
 
 /* A category added in the admin later has no entry above; it gets this
@@ -55,4 +67,11 @@ export const ALL_COURSES_STYLE: CategoryStyle = {
   dot: 'bg-text',
 };
 
-export const categoryStyle = (slug: string): CategoryStyle => STYLES[slug] ?? FALLBACK;
+export const categoryStyle = (slug: string): CategoryStyle => {
+  if (STYLES[slug]) return STYLES[slug];
+  const lower = slug.toLowerCase();
+  if (lower.includes('academic')) return ACADEMIC_STYLE;
+  if (lower.includes('creative') || lower.includes('life')) return CREATIVE_STYLE;
+  if (lower.includes('readiness') || lower.includes('workspace') || lower.includes('workplace')) return READINESS_STYLE;
+  return FALLBACK;
+};

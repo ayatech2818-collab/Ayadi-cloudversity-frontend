@@ -1,8 +1,10 @@
 import type { CourseCategory } from '@/lib/api/course-categories';
 import type { CourseSubcategory } from '@/lib/api/course-subcategories';
-import type { CourseFilters } from '@/lib/api/courses';
+import type { Course, CourseFilters } from '@/lib/api/courses';
 
 export type BrandId = 'ayadi' | 'ayatech' | 'ags';
+
+export const DEFAULT_COURSE_PLACEHOLDER = '/images/blog/placeholder.svg';
 
 export interface DummyCourseItem {
   id: string;
@@ -40,9 +42,9 @@ export type CatalogueSubcategory = Pick<
   'id' | 'category_id' | 'slug' | 'name' | 'description' | 'display_order'
 >;
 
-/** A dummy course that points at its category (`categoryId` →
+/** A course that points at its category (`categoryId` →
     `CatalogueCategory.id`) and optional subcategory (`subcategoryId` →
-    `CatalogueSubcategory.id`) instead of carrying the category's name. */
+    `CatalogueSubcategory.id`). */
 export type CatalogueCourse = Omit<DummyCourseItem, 'category'> & {
   categoryId: string;
   subcategoryId?: string;
@@ -50,3 +52,17 @@ export type CatalogueCourse = Omit<DummyCourseItem, 'category'> & {
 
 /** The backend course filters the catalogue offers. */
 export type CatalogueFilters = Pick<CourseFilters, 'category_id' | 'subcategory_id' | 'search'>;
+
+/** Converts a backend API Course object into the shape expected by the public catalogue. */
+export function mapCourseToCatalogueCourse(course: Course): CatalogueCourse {
+  return {
+    id: course.id,
+    title: course.title,
+    categoryId: course.category_id ?? '',
+    subcategoryId: course.subcategory_id ?? undefined,
+    level: course.level?.trim() || 'All Levels',
+    duration: course.duration?.trim() || 'Flexible',
+    description: course.short_description?.trim() || course.description?.trim() || '',
+    image: course.thumbnail_url?.trim() || DEFAULT_COURSE_PLACEHOLDER,
+  };
+}

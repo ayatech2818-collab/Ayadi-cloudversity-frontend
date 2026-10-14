@@ -115,7 +115,7 @@ export function CoursesIntro({
     <section
       ref={scope}
       aria-labelledby="courses-heading"
-      className="relative isolate overflow-hidden px-5 pb-8 pt-32 sm:px-8 sm:pt-36 lg:px-16 lg:pb-10 lg:pt-40"
+      className="relative isolate overflow-hidden px-4 pb-6 pt-24 sm:px-8 sm:pb-8 sm:pt-36 lg:px-16 lg:pb-10 lg:pt-40"
     >
       {/* ---------- AMBIENT ---------- */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
@@ -134,7 +134,7 @@ export function CoursesIntro({
       </div>
 
       {/* ---------- CONTENT ---------- */}
-      <div className="mx-auto grid w-full max-w-[1180px] items-center gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
+      <div className="mx-auto grid w-full max-w-[1180px] items-center gap-8 sm:gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
         <div>
           <span
             data-reveal="eyebrow"
@@ -149,7 +149,7 @@ export function CoursesIntro({
               reader or a crawler. */}
           <h1
             id="courses-heading"
-            className="mt-6 text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-accent sm:text-6xl lg:text-[3.4rem] xl:text-[4rem]"
+            className="mt-4 text-3xl font-semibold leading-[1.04] tracking-[-0.04em] text-accent sm:mt-6 sm:text-5xl lg:text-[3.4rem] xl:text-[4rem]"
           >
             {HEADLINE.map((line, lineIndex) => {
               const isLastLine = lineIndex === HEADLINE.length - 1;
@@ -184,11 +184,11 @@ export function CoursesIntro({
             })}
           </h1>
 
-          <p data-reveal="lede" className="mt-6 text-base text-muted sm:text-lg">
+          <p data-reveal="lede" className="mt-3 text-sm text-muted sm:mt-6 sm:text-lg">
             Courses for every stage of learning.
           </p>
 
-          <div data-reveal="lede" className="mt-7 max-w-xl">
+          <div data-reveal="lede" className="mt-5 max-w-xl sm:mt-7">
             <CourseSearch value={query} onChange={onQueryChange} onSubmit={onSearchSubmit} />
           </div>
         </div>

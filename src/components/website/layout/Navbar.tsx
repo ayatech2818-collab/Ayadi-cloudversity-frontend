@@ -428,12 +428,13 @@ export function Navbar() {
 </AnimatePresence>
   {/* Mobile navigation — no More popup or Framer Motion */}
   <div
-    className="
-      relative mx-auto w-full max-w-[440px] overflow-hidden
-      rounded-full border border-white/65
-      bg-white/95 p-1.5
-      shadow-[0_10px_40px_rgba(4,76,59,0.18)]
-    "
+   className="
+    relative mx-auto w-full max-w-[440px] overflow-hidden
+    rounded-full border border-white/70
+    bg-white/75 p-1.5
+    backdrop-blur-xl supports-[backdrop-filter]:bg-white/65
+    shadow-[0_10px_40px_rgba(4,76,59,0.16)]
+  "
   >
     {/* Reflective top edge */}
     <div

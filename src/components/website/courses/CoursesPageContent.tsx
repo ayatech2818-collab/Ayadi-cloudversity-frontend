@@ -8,8 +8,9 @@ import { releaseScroll } from '@/lib/smooth-scroll';
 
 import { CourseCatalogue } from './CourseCatalogue';
 import { CourseCategoryNav } from './CourseCategoryNav';
+import { CourseSubcategoryNav } from './CourseSubcategoryNav';
 import { CoursesIntro } from './CoursesIntro';
-import type { CatalogueCategory } from './types';
+import type { CatalogueCategory, CatalogueCourse } from './types';
 import { CategoryParam, useCourseCatalogue } from './useCourseCatalogue';
 
 const scrollToCatalogue = () => {
@@ -21,13 +22,14 @@ const scrollToCatalogue = () => {
  * The Courses page: Ayadi Cloudversity's catalogue, and only that. AyaTech and
  * Ayadi Glocal School are not listed here.
  *
- * Everything the page knows comes from useCourseCatalogue; the three sections
+ * Everything the page knows comes from useCourseCatalogue; the sections
  * are handed their slice of it and nothing else, so this file is the only
  * place that changes when the hook starts talking to the API.
  */
 export function CoursesPageContent() {
   const catalogue = useCourseCatalogue();
   const [isEnrollOpen, setIsEnrollOpen] = useState(false);
+  const [enrollingCourse, setEnrollingCourse] = useState<CatalogueCourse | null>(null);
 
   const { selectCategory } = catalogue;
 
@@ -48,14 +50,20 @@ export function CoursesPageContent() {
     [selectCategory],
   );
 
-  const openEnrollment = useCallback(() => setIsEnrollOpen(true), []);
-  const closeEnrollment = useCallback(() => setIsEnrollOpen(false), []);
+  const openEnrollment = useCallback((course?: CatalogueCourse) => {
+    setEnrollingCourse(course ?? null);
+    setIsEnrollOpen(true);
+  }, []);
+  const closeEnrollment = useCallback(() => {
+    setIsEnrollOpen(false);
+    setEnrollingCourse(null);
+  }, []);
 
   return (
     <main>
-      {/* Follows /courses?category=… — see the note on CategoryParam */}
+      {/* Follows /courses?category=…&subcategory=… — see the note on CategoryParam */}
       <Suspense fallback={null}>
-        <CategoryParam onChange={catalogue.applyCategorySlug} />
+        <CategoryParam onChange={catalogue.applyParams} />
       </Suspense>
 
       {/* GSAP-driven. Submitting the search carries you down to the results:
@@ -72,7 +80,7 @@ export function CoursesPageContent() {
           whatever is above it by a negative margin. It sits outside the inner
           wrapper because that wrapper is what the tabs are sticky within —
           they should let go where the grid ends, not ride over the card. */}
-      <div className="pb-60 md:pb-82 lg:pb-70">
+      <div className="pb-36 sm:pb-60 md:pb-82 lg:pb-70">
         <div>
           <CourseCategoryNav
             categories={catalogue.categories}
@@ -82,13 +90,25 @@ export function CoursesPageContent() {
             onSelect={switchCategory}
           />
 
+          {catalogue.activeCategory && catalogue.subcategories.length > 0 ? (
+            <CourseSubcategoryNav
+              subcategories={catalogue.subcategories}
+              activeSubcategory={catalogue.activeSubcategory}
+              counts={catalogue.subcategoryCounts}
+              totalCount={catalogue.activeCategoryTotalCount}
+              onSelect={catalogue.selectSubcategory}
+            />
+          ) : null}
+
           <CourseCatalogue
             courses={catalogue.courses}
             categories={catalogue.categories}
             activeCategory={catalogue.activeCategory}
+            activeSubcategory={catalogue.activeSubcategory}
             search={catalogue.search}
             matchCount={catalogue.matchCount}
             onClearCategory={() => switchCategory(null)}
+            onClearSubcategory={catalogue.clearSubcategory}
             onClearSearch={catalogue.clearSearch}
             onReset={catalogue.reset}
             onEnroll={openEnrollment}
@@ -99,7 +119,12 @@ export function CoursesPageContent() {
       {/* Overlaps the footer below it — see the note in GetStartedCta.tsx */}
       <GetStartedCta />
 
-      <LazyEnrollmentModal isOpen={isEnrollOpen} onClose={closeEnrollment} />
+      <LazyEnrollmentModal
+        isOpen={isEnrollOpen}
+        onClose={closeEnrollment}
+        courseTitle={enrollingCourse?.title}
+        courseId={enrollingCourse?.id}
+      />
     </main>
   );
 }

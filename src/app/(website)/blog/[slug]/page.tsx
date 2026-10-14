@@ -373,7 +373,7 @@ export default async function BlogDetailPage({
           ARTICLE
       ========================================================= */}
 
-      <section className="px-5 py-20 sm:px-8 lg:px-16 lg:py-28">
+      <section className="mb-30 px-5 py-20 sm:px-8 lg:px-16 lg:py-28">
         <div className="mx-auto grid max-w-[1180px] gap-14 lg:grid-cols-[1fr_280px] lg:gap-20">
           <article className="max-w-[68ch]">
             {sections.length > 0 ? (
@@ -484,7 +484,7 @@ export default async function BlogDetailPage({
               ) : null}
             </nav>
 
-            <div className="mt-10 rounded-2xl bg-surface p-6 ring-1 ring-inset ring-border pb-60">
+            <div className="mt-10 rounded-2xl bg-surface p-6 ring-1 ring-inset ring-border">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
                 About Ayadi
               </p>

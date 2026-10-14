@@ -93,6 +93,7 @@ export default function Footer() {
         via-[#04231c]
         to-[#031813]
         pt-40 sm:pt-44 lg:pt-56
+        pb-16 sm:pb-0
         mt-[50px] sm:mt-0
       "
     >

@@ -116,14 +116,14 @@ export default function ContactForm({
 
   return (
     <div
-      className={`rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8 ${className}`}
+      className={`rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8 ${className}`}
     >
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">
+      <div className="mb-5 sm:mb-8">
+        <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
           Send Us an Enquiry
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-gray-600">
+        <p className="mt-1.5 text-xs leading-5 text-gray-600 sm:mt-2 sm:text-sm sm:leading-6">
           Have a question or need more information? Fill out the
           form and our team will get back to you.
         </p>
@@ -141,7 +141,7 @@ export default function ContactForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-5">
         {/* Name */}
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
@@ -187,7 +187,7 @@ export default function ContactForm({
         </div>
 
         {/* Email / Phone */}
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-3.5 sm:grid-cols-2 sm:gap-5">
           <div>
             <label
               htmlFor="email"
@@ -208,7 +208,7 @@ export default function ContactForm({
                 placeholder="you@example.com"
                 required
                 maxLength={255}
-                className="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
+                className="w-full rounded-lg border border-gray-200 py-2.5 pl-9 pr-3 text-xs outline-none transition focus:ring-2 focus:ring-primary/40 sm:rounded-xl sm:py-3 sm:pl-11 sm:pr-4 sm:text-sm"
               />
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function ContactForm({
             </label>
 
             <div className="relative">
-              <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Phone className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 sm:left-4 sm:h-4 sm:w-4" />
 
               <input
                 id="phone"
@@ -259,7 +259,7 @@ export default function ContactForm({
         </div>
 
         {/* Location */}
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid gap-3.5 sm:grid-cols-3 sm:gap-5">
           <div>
             <label
               htmlFor="city"
@@ -283,7 +283,7 @@ export default function ContactForm({
           <div>
             <label
               htmlFor="country"
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="mb-1.5 block text-xs font-medium text-gray-700 sm:mb-2 sm:text-sm"
             >
               Country
             </label>
@@ -296,7 +296,7 @@ export default function ContactForm({
               onChange={handleChange}
               placeholder="Country"
               maxLength={100}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-xs outline-none transition focus:ring-2 focus:ring-primary/40 sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm"
             />
           </div>
 
@@ -336,8 +336,8 @@ export default function ContactForm({
             value={form.message}
             onChange={handleChange}
             placeholder="Tell us how we can help..."
-            rows={5}
-            className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
+            rows={4}
+            className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2.5 text-xs outline-none transition focus:ring-2 focus:ring-primary/40 sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm"
           />
         </div>
 
@@ -345,11 +345,12 @@ export default function ContactForm({
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-gradient px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-accent/25 transition-[translate,box-shadow] duration-200 enabled:hover:-translate-y-0.5 enabled:hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent-gradient px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-accent/25 transition-[translate,box-shadow] duration-200 enabled:hover:-translate-y-0.5 enabled:hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:gap-2 sm:rounded-xl sm:px-6 sm:py-3.5 sm:text-sm"
+          
         >
           {loading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
               Sending...
             </>
           ) : (

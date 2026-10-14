@@ -9,6 +9,8 @@ import { createEnrollment } from '@/lib/api/enrollment';
 export interface EnrollmentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  courseTitle?: string;
+  courseId?: string;
 }
 
 interface FormData {
@@ -46,7 +48,7 @@ const initialFormData: FormData = {
 
 const emptySubscribe = () => () => {};
 
-export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
+export function EnrollmentModal({ isOpen, onClose, courseTitle, courseId }: EnrollmentModalProps) {
   const mounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -143,6 +145,13 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
     setIsSubmitting(true);
 
     try {
+      const composedMessage = [
+        courseTitle ? `Course: ${courseTitle}${courseId ? ` (ID: ${courseId})` : ''}` : null,
+        formData.message.trim() || null,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+
       await createEnrollment({
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim() || null,
@@ -158,24 +167,26 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
         country: formData.country.trim() || null,
         zipcode: formData.zipcode.trim() || null,
 
-        message: formData.message.trim() || null,
+        message: composedMessage || null,
       });
 
       setStep("success");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(
           "Enrollment submission failed:",
           error
       );
 
+      const errResponse = error as { response?: { data?: { detail?: string } } } | undefined;
       setSubmitError(
-          error?.response?.data?.detail ||
+          errResponse?.response?.data?.detail ||
               "Something went wrong while submitting your application. Please try again."
       );
     } finally {
       setIsSubmitting(false);
     }
   };
+
   if (!mounted) return null;
 
   return createPortal(
@@ -186,7 +197,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
           aria-modal="true"
           aria-labelledby="enrollment-modal-title"
           aria-describedby="enrollment-modal-description"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 overflow-y-auto"
         >
           {/* ---------- BACKDROP OVERLAY ---------- */}
           <motion.div
@@ -212,10 +223,10 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
               max-w-[780px]
               max-h-[92vh]
               overflow-y-auto
-              rounded-[26px]
+              rounded-[20px]
               sm:rounded-[30px]
               bg-accent-strong
-              p-5
+              p-4
               sm:p-8
               md:p-9
               text-white
@@ -242,12 +253,13 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
               className="
                 group
                 absolute
-                right-4
-                top-4
+                right-3.5
+                top-3.5
                 sm:right-6
                 sm:top-6
                 flex
-                size-9
+                size-7.5
+                sm:size-9
                 items-center
                 justify-center
                 rounded-full
@@ -264,15 +276,15 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                 focus-visible:outline-primary
               "
             >
-              <X className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />
+              <X className="size-3.5 sm:size-4.5 transition-transform duration-200 group-hover:rotate-90" />
             </button>
 
             {/* ---------- HEADER ---------- */}
-            <header className="mb-6 text-center sm:mb-7">
+            <header className="mb-4 text-center sm:mb-7">
               <h2
                 id="enrollment-modal-title"
                 className="
-                  text-2xl
+                  text-xl
                   font-bold
                   tracking-tight
                   bg-brand-gradient
@@ -284,12 +296,19 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
               >
                 Ayadi Cloudversity
               </h2>
+              {courseTitle ? (
+                <div className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-emerald-300 ring-1 ring-inset ring-primary/40">
+                  <span className="truncate">Course: {courseTitle}</span>
+                </div>
+              ) : null}
               <p
                 id="enrollment-modal-description"
-                className="mt-1 text-sm font-medium text-slate-200 sm:text-[15px]"
+                className="mt-1 text-xs font-medium text-slate-200 sm:text-[15px]"
               >
                 {step === 'success'
                   ? 'Application Received'
+                  : courseTitle
+                  ? `Enrollment enquiry for ${courseTitle}`
                   : "We're happy to hear from you"}
               </p>
             </header>
@@ -297,12 +316,12 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
             {/* ---------- STEP 1: CONTACT & PERSONAL DETAILS ---------- */}
             {step === 1 && (
               <form onSubmit={handleSubmit} noValidate>
-                <div className="grid grid-cols-1 gap-x-5 gap-y-3.5 sm:grid-cols-2 sm:gap-y-4">
+                <div className="grid grid-cols-1 gap-x-5 gap-y-2.5 sm:grid-cols-2 sm:gap-y-4">
                   {/* First Name */}
                   <div>
                     <label
                       htmlFor="firstName"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       First Name<span className="ml-0.5 text-rose-400 font-bold">*</span>
                     </label>
@@ -316,13 +335,19 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       aria-invalid={Boolean(errors.firstName)}
                       aria-describedby={errors.firstName ? 'firstName-error' : undefined}
                       className={`
-                        h-11
+                        h-9
+                        sm:h-11
                         w-full
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
-                        px-3.5
-                        text-sm
+                        px-3
+                        sm:px-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
+                        placeholder:text-xs
+                        sm:placeholder:text-sm
                         placeholder:text-slate-400/60
                         border
                         transition-all
@@ -337,7 +362,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       `}
                     />
                     {errors.firstName && (
-                      <span id="firstName-error" className="mt-1 block text-xs text-rose-400">
+                      <span id="firstName-error" className="mt-0.5 block text-[11px] text-rose-400 sm:mt-1 sm:text-xs">
                         {errors.firstName}
                       </span>
                     )}
@@ -347,7 +372,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   <div>
                     <label
                       htmlFor="lastName"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       Last Name
                     </label>
@@ -359,15 +384,21 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       value={formData.lastName}
                       onChange={handleChange}
                       className="
-                        h-11
+                        h-9
+                        sm:h-11
                         w-full
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
                         border
                         border-white/10
-                        px-3.5
-                        text-sm
+                        px-3
+                        sm:px-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
+                        placeholder:text-xs
+                        sm:placeholder:text-sm
                         placeholder:text-slate-400/60
                         transition-all
                         duration-200
@@ -384,7 +415,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   <div className="sm:col-span-2">
                     <label
                       htmlFor="dateOfBirth"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       Date Of Birth
                     </label>
@@ -395,14 +426,18 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       value={formData.dateOfBirth}
                       onChange={handleChange}
                       className="
-                        h-11
+                        h-9
+                        sm:h-11
                         w-full
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
                         border
                         border-white/10
-                        px-3.5
-                        text-sm
+                        px-3
+                        sm:px-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
                         transition-all
                         duration-200
@@ -421,7 +456,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   <div>
                     <label
                       htmlFor="email"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       Email<span className="ml-0.5 text-rose-400 font-bold">*</span>
                     </label>
@@ -435,13 +470,19 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       aria-invalid={Boolean(errors.email)}
                       aria-describedby={errors.email ? 'email-error' : undefined}
                       className={`
-                        h-11
+                        h-9
+                        sm:h-11
                         w-full
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
-                        px-3.5
-                        text-sm
+                        px-3
+                        sm:px-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
+                        placeholder:text-xs
+                        sm:placeholder:text-sm
                         placeholder:text-slate-400/60
                         border
                         transition-all
@@ -456,7 +497,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       `}
                     />
                     {errors.email && (
-                      <span id="email-error" className="mt-1 block text-xs text-rose-400">
+                      <span id="email-error" className="mt-0.5 block text-[11px] text-rose-400 sm:mt-1 sm:text-xs">
                         {errors.email}
                       </span>
                     )}
@@ -466,7 +507,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   <div>
                     <label
                       htmlFor="phone"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       Phone<span className="ml-0.5 text-rose-400 font-bold">*</span>
                     </label>
@@ -480,13 +521,19 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       aria-invalid={Boolean(errors.phone)}
                       aria-describedby={errors.phone ? 'phone-error' : undefined}
                       className={`
-                        h-11
+                        h-9
+                        sm:h-11
                         w-full
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
-                        px-3.5
-                        text-sm
+                        px-3
+                        sm:px-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
+                        placeholder:text-xs
+                        sm:placeholder:text-sm
                         placeholder:text-slate-400/60
                         border
                         transition-all
@@ -501,7 +548,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       `}
                     />
                     {errors.phone && (
-                      <span id="phone-error" className="mt-1 block text-xs text-rose-400">
+                      <span id="phone-error" className="mt-0.5 block text-[11px] text-rose-400 sm:mt-1 sm:text-xs">
                         {errors.phone}
                       </span>
                     )}
@@ -511,7 +558,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   <div>
                     <label
                       htmlFor="address"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       Address
                     </label>
@@ -523,15 +570,21 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       value={formData.address}
                       onChange={handleChange}
                       className="
-                        h-11
+                        h-9
+                        sm:h-11
                         w-full
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
                         border
                         border-white/10
-                        px-3.5
-                        text-sm
+                        px-3
+                        sm:px-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
+                        placeholder:text-xs
+                        sm:placeholder:text-sm
                         placeholder:text-slate-400/60
                         transition-all
                         duration-200
@@ -548,7 +601,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   <div>
                     <label
                       htmlFor="city"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       City<span className="ml-0.5 text-rose-400 font-bold">*</span>
                     </label>
@@ -562,13 +615,19 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       aria-invalid={Boolean(errors.city)}
                       aria-describedby={errors.city ? 'city-error' : undefined}
                       className={`
-                        h-11
+                        h-9
+                        sm:h-11
                         w-full
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
-                        px-3.5
-                        text-sm
+                        px-3
+                        sm:px-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
+                        placeholder:text-xs
+                        sm:placeholder:text-sm
                         placeholder:text-slate-400/60
                         border
                         transition-all
@@ -583,7 +642,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       `}
                     />
                     {errors.city && (
-                      <span id="city-error" className="mt-1 block text-xs text-rose-400">
+                      <span id="city-error" className="mt-0.5 block text-[11px] text-rose-400 sm:mt-1 sm:text-xs">
                         {errors.city}
                       </span>
                     )}
@@ -593,7 +652,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   <div>
                     <label
                       htmlFor="country"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       Country
                     </label>
@@ -605,15 +664,21 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       value={formData.country}
                       onChange={handleChange}
                       className="
-                        h-11
+                        h-9
+                        sm:h-11
                         w-full
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
                         border
                         border-white/10
-                        px-3.5
-                        text-sm
+                        px-3
+                        sm:px-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
+                        placeholder:text-xs
+                        sm:placeholder:text-sm
                         placeholder:text-slate-400/60
                         transition-all
                         duration-200
@@ -630,7 +695,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   <div>
                     <label
                       htmlFor="zipcode"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       Zipcode
                     </label>
@@ -642,15 +707,21 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       value={formData.zipcode}
                       onChange={handleChange}
                       className="
-                        h-11
+                        h-9
+                        sm:h-11
                         w-full
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
                         border
                         border-white/10
-                        px-3.5
-                        text-sm
+                        px-3
+                        sm:px-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
+                        placeholder:text-xs
+                        sm:placeholder:text-sm
                         placeholder:text-slate-400/60
                         transition-all
                         duration-200
@@ -667,7 +738,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                   <div className="sm:col-span-2">
                     <label
                       htmlFor="message"
-                      className="mb-1.5 block text-[13px] font-medium text-slate-200"
+                      className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
                     >
                       Message
                     </label>
@@ -679,16 +750,22 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                       onChange={handleChange}
                       rows={3}
                       className="
-                        h-20
+                        h-16
+                        sm:h-20
                         w-full
                         resize-none
-                        rounded-[14px]
+                        rounded-xl
+                        sm:rounded-[14px]
                         bg-[#1c274c]/85
                         border
                         border-white/10
-                        p-3.5
-                        text-sm
+                        p-2.5
+                        sm:p-3.5
+                        text-xs
+                        sm:text-sm
                         text-white
+                        placeholder:text-xs
+                        sm:placeholder:text-sm
                         placeholder:text-slate-400/60
                         transition-all
                         duration-200
@@ -703,24 +780,29 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                 </div>
 
                 {submitError && (
-                  <div className="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+                  <div className="mt-3 rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 sm:mt-4 sm:rounded-xl sm:px-4 sm:py-3 sm:text-sm">
                     {submitError}
                   </div>
                 )}
 
                 {/* Bottom Action - Submit Application */}
-                <div className="mt-5 flex justify-end sm:mt-6">
+                <div className="mt-4 flex justify-end sm:mt-6">
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     className="
-                      h-[42px]
-                      min-w-[140px]
-                      rounded-[14px]
+                      h-9
+                      sm:h-[42px]
+                      min-w-[120px]
+                      sm:min-w-[140px]
+                      rounded-xl
+                      sm:rounded-[14px]
                       bg-brand-gradient
-                      px-5
+                      px-4
+                      sm:px-5
                       font-bold
-                      text-sm
+                      text-xs
+                      sm:text-sm
                       text-white
                       shadow-md
                       shadow-accent/40
@@ -746,29 +828,34 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
 
             {/* ---------- SUCCESS STATE ---------- */}
             {step === 'success' && (
-              <div className="py-6 text-center sm:py-8">
-                <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30">
-                  <CheckCircle2 className="size-8 text-emerald-400" />
+              <div className="py-4 text-center sm:py-8">
+                <div className="mx-auto mb-3 flex size-11 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30 sm:mb-4 sm:size-14">
+                  <CheckCircle2 className="size-6 text-emerald-400 sm:size-8" />
                 </div>
-                <h3 className="text-xl font-bold text-white sm:text-2xl">
+                <h3 className="text-lg font-bold text-white sm:text-2xl">
                   Enrollment Request Submitted!
                 </h3>
-                <p className="mx-auto mt-2 max-w-md text-sm text-slate-300">
-                  Thank you, <span className="font-semibold text-white">{formData.firstName}</span>. Our admissions advisor will review your application and reach out to you within 24 hours.
+                <p className="mx-auto mt-1.5 max-w-md text-xs text-slate-300 sm:mt-2 sm:text-sm">
+                  Thank you, <span className="font-semibold text-white">{formData.firstName}</span>. Our admissions advisor will review your application{courseTitle ? <> for <span className="font-semibold text-white">{courseTitle}</span></> : ''} and reach out to you within 24 hours.
                 </p>
 
-                <div className="mt-7 flex justify-center">
+                <div className="mt-5 flex justify-center sm:mt-7">
                   <button
                     type="button"
                     onClick={handleClose}
                     className="
-                      h-[42px]
-                      min-w-[130px]
-                      rounded-[14px]
+                      h-9
+                      sm:h-[42px]
+                      min-w-[110px]
+                      sm:min-w-[130px]
+                      rounded-xl
+                      sm:rounded-[14px]
                       bg-brand-gradient
-                      px-6
+                      px-4
+                      sm:px-6
                       font-bold
-                      text-sm
+                      text-xs
+                      sm:text-sm
                       text-white
                       shadow-md
                       shadow-accent/40

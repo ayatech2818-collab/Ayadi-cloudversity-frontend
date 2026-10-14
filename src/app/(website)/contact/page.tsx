@@ -12,19 +12,19 @@ export default function ContactPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-12 lg:py-28">
+      <section className="relative overflow-hidden bg-white mt-10 sm:mt-0">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-8 sm:py-20 lg:px-12 lg:py-28">
           <div className="max-w-3xl">
-            <span className="inline-flex rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
+            <span className="inline-flex rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-semibold text-primary sm:px-4 sm:py-2 sm:text-sm">
               Get In Touch
             </span>
 
-            <h1 className="mt-5 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+            <h1 className="mt-4 text-[1.85rem] font-bold leading-tight tracking-tight text-gray-900 sm:mt-5 sm:text-5xl lg:text-6xl">
               We&apos;d Love to{" "}
               <span className="bg-brand-gradient bg-clip-text text-transparent">Hear From You</span>
             </h1>
 
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-600">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-gray-600 sm:mt-6 sm:text-lg sm:leading-8">
               Have a question about our courses, programs, or services?
               Send us an enquiry and our team will get back to you.
             </p>
@@ -47,8 +47,8 @@ export default function ContactPage() {
           itself up over the end of this section (-mt-44, md:-mt-65, lg:-mt-55
           in GetStartedCta.tsx), so the padding is that overlap plus a gap, and
           the card never lands on the form or the maps. */}
-      <section className="pb-60 pt-16 sm:pt-20 md:pb-82 lg:pb-76">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:px-12">
+      <section className="pb-48 pt-10 sm:pt-20 md:pb-82 lg:pb-76">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:gap-10 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:px-12">
           <ContactForm className="lg:sticky lg:top-28 lg:max-h-[calc(100dvh-8rem)] lg:self-start lg:overflow-y-auto" />
 
           <ContactLocation />

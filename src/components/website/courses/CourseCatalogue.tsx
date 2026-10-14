@@ -6,7 +6,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { CourseCard } from './CourseCard';
-import type { CatalogueCategory, CatalogueCourse } from './types';
+import type { CatalogueCategory, CatalogueCourse, CatalogueSubcategory } from './types';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -30,9 +30,11 @@ export function CourseCatalogue({
   courses,
   categories,
   activeCategory,
+  activeSubcategory,
   search,
   matchCount,
   onClearCategory,
+  onClearSubcategory,
   onClearSearch,
   onReset,
   onEnroll,
@@ -40,11 +42,13 @@ export function CourseCatalogue({
   courses: CatalogueCourse[];
   categories: CatalogueCategory[];
   activeCategory: CatalogueCategory | null;
+  activeSubcategory?: CatalogueSubcategory | null;
   search: string;
   /** Matches for the search across every category, which tells the empty
       state whether looking wider would help. */
   matchCount: number;
   onClearCategory: () => void;
+  onClearSubcategory?: () => void;
   onClearSearch: () => void;
   onReset: () => void;
   onEnroll: (course: CatalogueCourse) => void;
@@ -58,22 +62,26 @@ export function CourseCatalogue({
     <section
       id="catalogue"
       aria-labelledby="catalogue-heading"
-      className="scroll-mt-40 px-5 pt-8 sm:px-8 lg:px-16 lg:pt-10"
+      className="scroll-mt-36 px-3 pt-6 sm:scroll-mt-40 sm:px-8 sm:pt-8 lg:px-16 lg:pt-10"
     >
       <div className="mx-auto max-w-[1180px]">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 sm:gap-y-3">
             <h2
               id="catalogue-heading"
-              className="text-xl font-semibold tracking-[-0.03em] text-accent sm:text-2xl"
+              className="text-lg font-semibold tracking-[-0.03em] text-accent sm:text-2xl"
             >
-              {activeCategory ? activeCategory.name : 'All courses'}
+              {activeCategory
+                ? activeSubcategory
+                  ? `${activeCategory.name} — ${activeSubcategory.name}`
+                  : activeCategory.name
+                : 'All courses'}
             </h2>
 
             {search ? <SearchChip search={search} onClear={onClearSearch} /> : null}
           </div>
 
-          <p aria-live="polite" className="text-sm text-muted">
+          <p aria-live="polite" className="text-xs text-muted sm:text-sm">
             {courses.length} {courses.length === 1 ? 'course' : 'courses'}
           </p>
         </div>
@@ -82,7 +90,7 @@ export function CourseCatalogue({
           /* `relative` is for popLayout: a card on its way out is lifted out
              of the grid and positioned against this, so the rest can close up
              under it straight away. */
-          <ul className="relative mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <ul className="relative mt-5 grid gap-4 sm:mt-7 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="popLayout" initial={!reduceMotion}>
               {courses.map((course, index) => (
                 <motion.li
@@ -116,9 +124,11 @@ export function CourseCatalogue({
         ) : (
           <EmptyState
             activeCategory={activeCategory}
+            activeSubcategory={activeSubcategory}
             search={search}
             matchCount={matchCount}
             onClearCategory={onClearCategory}
+            onClearSubcategory={onClearSubcategory}
             onClearSearch={onClearSearch}
             onReset={onReset}
           />
@@ -137,16 +147,20 @@ export function CourseCatalogue({
 
 function EmptyState({
   activeCategory,
+  activeSubcategory,
   search,
   matchCount,
   onClearCategory,
+  onClearSubcategory,
   onClearSearch,
   onReset,
 }: {
   activeCategory: CatalogueCategory | null;
+  activeSubcategory?: CatalogueSubcategory | null;
   search: string;
   matchCount: number;
   onClearCategory: () => void;
+  onClearSubcategory?: () => void;
   onClearSearch: () => void;
   onReset: () => void;
 }) {
@@ -182,6 +196,22 @@ function EmptyState({
             All courses
           </button>
         ) : null}
+      </>
+    );
+  } else if (activeSubcategory) {
+    // The subcategory itself has no courses.
+    icon = <BookOpen aria-hidden="true" size={24} />;
+    title = `No courses in ${activeSubcategory.name} yet`;
+    actions = (
+      <>
+        {onClearSubcategory && (
+          <button type="button" onClick={onClearSubcategory} className={PRIMARY_ACTION}>
+            All {activeCategory?.name ?? 'category'} courses
+          </button>
+        )}
+        <button type="button" onClick={onClearCategory} className={SECONDARY_ACTION}>
+          All courses
+        </button>
       </>
     );
   } else if (activeCategory) {

@@ -361,7 +361,9 @@ function CinematicJourney() {
             How It Works
           </span>
 
-          <h2 className="mx-auto mt-7 max-w-4xl text-4xl font-bold leading-[1.05] tracking-[-0.045em] text-white md:text-6xl lg:text-7xl">
+          <h2 
+            className="mx-auto mt-5 max-w-4xl text-3xl font-bold leading-[1.05] tracking-[-0.045em] text-white sm:text-4xl md:mt-7 md:text-6xl lg:text-7xl"
+            >
             Your learning journey,
             <br />
             <span className="bg-linear-to-r from-lime-200 via-emerald-300 to-teal-200 bg-clip-text text-transparent">
@@ -369,7 +371,7 @@ function CinematicJourney() {
             </span>
           </h2>
 
-          <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-emerald-50/70 md:text-lg">
+          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-emerald-50/70 md:mt-6 md:text-lg">
             One journey. Four moments that move you from curiosity to confidence.
           </p>
 
@@ -385,7 +387,7 @@ function CinematicJourney() {
         </motion.div>
 
         {/* ---------------- STEPS ---------------- */}
-        <div className="absolute inset-x-0 top-1/2 z-10 -translate-y-1/2 px-6 lg:px-12">
+        <div className="absolute inset-x-0 top-1/2 z-10 -translate-y-1/2 px-3 md:px-6 lg:px-12">
           {steps.map((step, index) => (
             <CinematicStep key={step.number} step={step} index={index} progress={progress} palette={palette} />
           ))}
@@ -408,7 +410,7 @@ function CinematicJourney() {
         </motion.span>
 
         {/* ---------------- TIMELINE ---------------- */}
-        <div className="absolute inset-x-6 bottom-[calc(100lvh-100svh+4rem)] z-20 lg:inset-x-12">
+        <div className="absolute inset-x-6 bottom-[calc(100lvh-100svh+6.5rem)] z-20 lg:inset-x-12">
           <motion.div style={{ backgroundColor: palette.hairline }} className="relative h-px">
             <motion.div
               style={{ scaleX: lineScaleX, backgroundColor: lineColor }}
@@ -492,7 +494,8 @@ const CinematicStep = memo(function CinematicStep({
           max-w-[1400px]
           grid-cols-1
           items-center
-          gap-12
+          gap-4
+          md:gap-8
           lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]
           lg:gap-20
         "
@@ -515,7 +518,7 @@ const CinematicStep = memo(function CinematicStep({
             style={{ animationDelay: idleDelay }}
             className="relative motion-safe:animate-[idle-tilt_9s_ease-in-out_infinite]"
           >
-            <div className="relative h-[24vh] w-full overflow-hidden rounded-[2rem] shadow-[0_40px_90px_-45px_rgba(2,44,34,0.85)] lg:h-auto lg:aspect-[4/5]">
+            <div className="relative mx-auto aspect-square w-full max-w-[270px] overflow-hidden rounded-2xl shadow-[0_40px_90px_-45px_rgba(2,44,34,0.85)] md:mx-0 md:max-w-none md:aspect-auto md:h-[24vh] md:rounded-[2rem] lg:h-auto lg:aspect-[4/5]">
               {/* Slow push-in across the step — the classic cinematic move */}
               <motion.div style={{ scale: artScale }} className="absolute inset-0">
                 <Image
@@ -596,28 +599,28 @@ const CinematicStep = memo(function CinematicStep({
 
           <motion.h3
             style={{ color: palette.ink }}
-            className="mt-6 text-5xl font-bold leading-[0.95] tracking-[-0.045em] md:text-6xl lg:text-7xl"
+            className="mt-3 text-3xl font-bold leading-[0.95] tracking-[-0.045em] md:mt-6 md:text-6xl lg:text-7xl"
           >
             {step.title}
           </motion.h3>
 
           <motion.p
             style={{ color: palette.accent }}
-            className="mt-4 text-xl font-semibold tracking-[-0.01em] md:text-2xl"
+            className="mt-2 text-base font-semibold tracking-[-0.01em] md:mt-4 md:text-2xl"
           >
             {step.subtitle}
           </motion.p>
 
           <motion.p
             style={{ color: palette.inkMuted }}
-            className="mt-5 max-w-lg text-base leading-relaxed md:text-lg"
+            className="mt-3 max-w-lg text-sm leading-relaxed md:mt-5 md:text-lg"
           >
             {step.description}
           </motion.p>
 
           <motion.div
             style={{ color: palette.inkFaint }}
-            className="mt-9 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.25em]"
+            className="mt-5 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] md:mt-9 md:gap-3 md:text-[11px] md:tracking-[0.25em]"
           >
             Continue your journey
             <motion.span style={{ color: palette.accent }}>

@@ -20,6 +20,7 @@ export const ayadiCourses: CatalogueCourse[] = [
     id: 'ayadi-1',
     title: 'Python Full Stack Development',
     categoryId: 'readiness',
+    subcategoryId: 'sub-readiness-software',
     level: 'Advanced',
     duration: '12 Weeks',
     description: 'Build real-world full-stack web applications with Python, contemporary frameworks, and modern databases.',
@@ -30,6 +31,7 @@ export const ayadiCourses: CatalogueCourse[] = [
     id: 'ayadi-2',
     title: 'Digital Marketing Mastery',
     categoryId: 'readiness',
+    subcategoryId: 'sub-readiness-marketing',
     level: 'Intermediate',
     duration: '8 Weeks',
     description: 'Learn data-driven marketing campaigns, brand positioning, and omnichannel analytics to accelerate growth.',
@@ -40,6 +42,7 @@ export const ayadiCourses: CatalogueCourse[] = [
     id: 'ayadi-3',
     title: 'UI/UX Design & Design Systems',
     categoryId: 'creative',
+    subcategoryId: 'sub-creative-design',
     level: 'Beginner',
     duration: '6 Weeks',
     description: 'Master human-centric interface design, wireframing, interactive prototyping, and design systems.',
@@ -50,6 +53,7 @@ export const ayadiCourses: CatalogueCourse[] = [
     id: 'ayadi-4',
     title: 'Data Science & Analytics',
     categoryId: 'academic',
+    subcategoryId: 'sub-academic-data-ai',
     level: 'Intermediate',
     duration: '10 Weeks',
     description: 'Turn data into meaningful insights using modern analytical tools.',
@@ -59,6 +63,7 @@ export const ayadiCourses: CatalogueCourse[] = [
     id: 'ayadi-5',
     title: 'Artificial Intelligence',
     categoryId: 'academic',
+    subcategoryId: 'sub-academic-data-ai',
     level: 'Advanced',
     duration: '12 Weeks',
     description: 'Understand AI concepts and build intelligent applications.',
@@ -68,6 +73,7 @@ export const ayadiCourses: CatalogueCourse[] = [
     id: 'ayadi-6',
     title: 'Communication Skills',
     categoryId: 'creative',
+    /* Intentionally no subcategoryId to demonstrate courses without a subcategory */
     level: 'Beginner',
     duration: '4 Weeks',
     description: 'Develop confident communication skills for academic and professional growth.',
@@ -179,3 +185,8 @@ export const brandContentMap: Record<BrandId, BrandSectionData> = {
     ],
   },
 };
+
+/** Find a course by its unique ID */
+export const courseById = (id: string): CatalogueCourse | undefined =>
+  ayadiCourses.find((course) => course.id === id);
+

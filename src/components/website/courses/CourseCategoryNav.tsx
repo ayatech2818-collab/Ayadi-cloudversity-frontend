@@ -53,7 +53,7 @@ export function CourseCategoryNav({
   }, [activeId, reduceMotion]);
 
   return (
-    <div className="sticky top-[84px] z-30 px-5 sm:px-8 lg:px-16">
+    <div className="sticky top-[84px] z-30 px-3 sm:px-8 lg:px-16">
       {/* The ring is an overlay (`after:`) rather than on the bar itself, so a
           tab scrolled to the edge passes under it instead of over it. */}
       <motion.div
@@ -67,7 +67,7 @@ export function CourseCategoryNav({
           layoutScroll
           role="group"
           aria-label="Filter courses by category"
-          className="relative flex gap-1.5 overflow-x-auto p-1.5 [scrollbar-width:none] max-lg:pr-9 [&::-webkit-scrollbar]:hidden"
+          className="relative flex gap-1 sm:gap-1.5 overflow-x-auto p-1 sm:p-1.5 [scrollbar-width:none] max-lg:pr-9 [&::-webkit-scrollbar]:hidden"
         >
           <CategoryTab
             label="All"
@@ -127,7 +127,7 @@ function CategoryTab({
       onClick={onSelect}
       /* The outline is drawn inside the tab: outside it, the bar's rounded
          clip would cut it off. */
-      className={`relative flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[13px] font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:-outline-offset-2 sm:px-4 sm:py-3 ${
+      className={`relative flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-xl px-2.5 py-2 text-xs font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:-outline-offset-2 sm:px-4 sm:py-3 sm:text-[13px] ${
         grow ? 'lg:flex-1' : ''
       } ${
         isActive
@@ -143,8 +143,8 @@ function CategoryTab({
         />
       ) : null}
 
-      <span className="relative flex items-center gap-2">
-        <Icon aria-hidden="true" size={16} strokeWidth={2} />
+      <span className="relative flex items-center gap-1.5 sm:gap-2">
+        <Icon aria-hidden="true" size={15} strokeWidth={2} className="sm:size-4" />
 
         {label}
 

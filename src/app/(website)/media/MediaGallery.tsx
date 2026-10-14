@@ -50,9 +50,9 @@ const lineUp: Variants = {
 type TileShape = 'wide' | 'portrait' | 'square';
 
 const TILE_HEIGHT: Record<TileShape, string> = {
-  wide: 'min-h-[280px] sm:min-h-[320px] lg:min-h-[400px]',
-  portrait: 'min-h-[360px] sm:min-h-[420px] lg:min-h-[480px]',
-  square: 'min-h-[300px] sm:min-h-[340px] lg:min-h-[380px]',
+  wide: 'min-h-[180px] sm:min-h-[320px] lg:min-h-[400px]',
+  portrait: 'min-h-[210px] sm:min-h-[420px] lg:min-h-[480px]',
+  square: 'min-h-[190px] sm:min-h-[340px] lg:min-h-[380px]',
 };
 
 /* An album has no shape of its own, so the mosaic repeats this rhythm. `wide`
@@ -61,7 +61,7 @@ const TILE_HEIGHT: Record<TileShape, string> = {
 const MOSAIC: TileShape[] = ['wide', 'portrait', 'square', 'wide'];
 
 /* Shared by the mosaic and its skeleton so nothing jumps when the data lands. */
-const ARCHIVE_GRID = 'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3';
+const ARCHIVE_GRID = 'grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3';
 
 const TYPE_FILTERS = [
   { value: 'all', label: 'All' },
@@ -458,7 +458,7 @@ function AlbumTile({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.55, ease: EASE, delay: Math.min(index * 0.05, 0.25) }}
-      className={`h-full ${shape === 'wide' ? 'sm:col-span-2' : ''}`}
+      className={`h-full ${shape === 'wide' ? 'lg:col-span-2' : ''}`}
     >
       <motion.button
         type="button"
@@ -491,30 +491,39 @@ function AlbumTile({
               }`}
             />
 
-            <span className="absolute left-4 top-4 rounded-full bg-surface/90 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary ring-1 ring-inset ring-primary/20">
+            <span className="absolute left-2 top-2 rounded-full bg-surface/90 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-primary ring-1 ring-inset ring-primary/20 sm:left-4 sm:top-4 sm:px-3 sm:py-1 sm:text-[11px] sm:tracking-[0.14em]">
               {total} {total === 1 ? 'item' : 'items'}
             </span>
 
             {/* Only an album with no photos is fronted by a film. */}
             {cover.type === 'video' ? (
               <span className="absolute inset-0 flex items-center justify-center">
-                <span className="flex size-14 items-center justify-center rounded-full bg-white/90 text-primary shadow-xl transition-transform duration-300 group-hover:scale-110">
+                <span className="flex size-9 items-center justify-center rounded-full bg-white/90 text-primary shadow-xl transition-transform duration-300 group-hover:scale-110 sm:size-14">
                   <Play aria-hidden="true" size={20} className="ml-0.5 fill-current" />
                 </span>
               </span>
             ) : null}
 
-            <div className="absolute inset-x-0 bottom-0 p-5">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/65">{describeAlbum(album)}</p>
+            <div className="absolute inset-x-0 bottom-0 p-2.5 sm:p-5">
+              <p className="text-[8px] font-bold uppercase tracking-[0.1em] text-white/65 sm:text-[11px] sm:tracking-[0.16em]">
+                {describeAlbum(album)}
+              </p>
 
-              <h3 className="mt-1.5 text-lg font-bold leading-snug tracking-[-0.02em] text-white">{album.title}</h3>
+              <h3 className="mt-1 text-xs font-bold leading-snug tracking-[-0.02em] text-white sm:mt-1.5 sm:text-lg">
+                {album.title}
+              </h3>
 
-              <time dateTime={album.date} className="mt-1 block text-xs text-white/55">
+              <time
+                dateTime={album.date}
+                className="mt-0.5 block text-[9px] text-white/55 sm:mt-1 sm:text-xs"
+              >
                 {album.displayDate}
               </time>
 
               {album.description ? (
-                <p className="mt-2 line-clamp-2 max-w-xl text-sm leading-6 text-white/70">{album.description}</p>
+                <p className="mt-1 line-clamp-2 text-[9px] leading-4 text-white/70 sm:mt-2 sm:max-w-xl sm:text-sm sm:leading-6">
+                  {album.description}
+                </p>
               ) : null}
             </div>
         </motion.div>
@@ -527,7 +536,7 @@ function ArchiveSkeleton() {
   return (
     <ul aria-hidden="true" className={`mt-6 ${ARCHIVE_GRID}`}>
       {MOSAIC.map((shape, index) => (
-        <li key={index} className={shape === 'wide' ? 'sm:col-span-2' : ''}>
+        <li key={index} className={shape === 'wide' ? 'lg:col-span-2' : ''}>
           <div
             className={`flex h-full flex-col justify-end gap-3 rounded-2xl bg-primary/[0.06] p-5 ring-1 ring-inset ring-border motion-safe:animate-pulse ${TILE_HEIGHT[shape]}`}
           >
@@ -848,7 +857,7 @@ function LightboxArrow({ side, onClick }: { side: 'left' | 'right'; onClick: () 
         side === 'left' ? 'left-3 sm:left-6' : 'right-3 sm:right-6'
       }`}
     >
-      <Icon aria-hidden="true" size={20} />
+      <Icon aria-hidden="true" size={14} className="ml-0.5 fill-current sm:size-5" />
     </button>
   );
 }

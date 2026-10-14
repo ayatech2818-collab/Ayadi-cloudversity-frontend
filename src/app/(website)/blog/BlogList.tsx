@@ -365,20 +365,17 @@ export default function BlogList() {
         </motion.div>
       </section>
 
-      {/* =========================================================
+     {/* =========================================================
           FEATURED
       ========================================================= */}
 
       {showFeatured && featured ? (
         <section
           aria-labelledby="featured-heading"
-          className="px-5 pb-16 sm:px-8 lg:px-16 lg:pb-20"
+          className="px-3 pb-12 sm:px-8 sm:pb-16 lg:px-16 lg:pb-20"
         >
           <div className="mx-auto max-w-[1180px]">
-            <h2
-              id="featured-heading"
-              className="sr-only"
-            >
+            <h2 id="featured-heading" className="sr-only">
               Featured article
             </h2>
 
@@ -397,6 +394,7 @@ export default function BlogList() {
               >
                 <CardDecor />
 
+                {/* Image */}
                 <div className="relative aspect-[16/10] overflow-hidden bg-primary/5 md:aspect-auto md:min-h-[360px]">
                   <BlogCover
                     src={featured.image}
@@ -412,27 +410,29 @@ export default function BlogList() {
                   />
                 </div>
 
-                <div className="flex flex-col justify-center p-6 sm:p-9 lg:p-12">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-primary ring-1 ring-inset ring-primary/20">
+                {/* Content */}
+                <div className="flex flex-col justify-center p-4 sm:p-9 lg:p-12">
+                  {/* Category and featured badge */}
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-primary ring-1 ring-inset ring-primary/20 sm:gap-2 sm:px-3 sm:text-[11px] sm:tracking-[0.16em]">
                       <span
                         aria-hidden="true"
                         className="relative flex size-1.5"
                       >
                         <span className="absolute inline-flex size-full rounded-full bg-primary opacity-75 motion-safe:animate-ping" />
-
                         <span className="relative inline-flex size-full rounded-full bg-primary" />
                       </span>
 
                       Featured
                     </span>
 
-                    <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted/70">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-muted/70 sm:text-[11px] sm:tracking-[0.16em]">
                       {featured.category}
                     </span>
                   </div>
 
-                  <h3 className="mt-5 text-2xl font-semibold leading-[1.15] tracking-[-0.03em] text-accent transition-colors duration-300 group-hover:text-primary sm:text-3xl lg:text-4xl">
+                  {/* Title */}
+                  <h3 className="mt-3 text-xl font-semibold leading-[1.2] tracking-[-0.03em] text-accent transition-colors duration-300 group-hover:text-primary sm:mt-5 sm:text-3xl lg:text-4xl">
                     <Link
                       href={`/blog/${featured.slug}`}
                       className="after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
@@ -441,16 +441,18 @@ export default function BlogList() {
                     </Link>
                   </h3>
 
-                  <p className="mt-4 max-w-md text-base leading-8 text-muted">
+                  {/* Excerpt */}
+                  <p className="mt-2.5 max-w-md text-xs leading-5 text-muted sm:mt-4 sm:text-base sm:leading-8">
                     {featured.excerpt}
                   </p>
 
-                  <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted">
-                    <span className="flex items-center gap-1.5">
+                  {/* Date and reading time */}
+                  <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-muted sm:mt-6 sm:gap-x-5 sm:gap-y-2 sm:text-xs">
+                    <span className="flex items-center gap-1">
                       <CalendarDays
                         aria-hidden="true"
-                        size={14}
-                        className="text-primary"
+                        size={12}
+                        className="text-primary sm:size-[14px]"
                       />
 
                       <time dateTime={featured.date}>
@@ -458,26 +460,27 @@ export default function BlogList() {
                       </time>
                     </span>
 
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center gap-1">
                       <Clock3
                         aria-hidden="true"
-                        size={14}
-                        className="text-primary"
+                        size={12}
+                        className="text-primary sm:size-[14px]"
                       />
 
                       {featured.readTime}
                     </span>
                   </div>
 
+                  {/* Read article */}
                   <span
                     aria-hidden="true"
-                    className="mt-7 flex items-center gap-2 text-sm font-bold text-primary"
+                    className="mt-4 flex items-center gap-1.5 text-xs font-bold text-primary sm:mt-7 sm:gap-2 sm:text-sm"
                   >
                     Read article
 
                     <ArrowUpRight
-                      size={16}
-                      className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                      size={14}
+                      className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 sm:size-4"
                     />
                   </span>
                 </div>
@@ -487,19 +490,20 @@ export default function BlogList() {
         </section>
       ) : null}
 
-      {/* =========================================================
+     {/* =========================================================
           GRID
       ========================================================= */}
 
       <section
         aria-labelledby="articles-heading"
-        className="px-5 pb-24 sm:px-8 lg:px-16 lg:pb-82"
+        className="px-3 pb-60 sm:px-8 sm:pb-24 lg:px-16 lg:pb-82"
       >
         <div
           ref={gridRef}
           className="mx-auto max-w-[1180px] scroll-mt-28"
         >
-          <div className="flex flex-wrap items-end justify-between gap-4">
+          {/* Heading */}
+          <div className="flex flex-wrap items-end justify-between gap-2 sm:gap-4">
             <div>
               <Eyebrow>
                 {category === 'All'
@@ -509,7 +513,7 @@ export default function BlogList() {
 
               <h2
                 id="articles-heading"
-                className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-accent sm:text-3xl"
+                className="mt-2 text-lg font-semibold tracking-[-0.03em] text-accent sm:mt-4 sm:text-3xl"
               >
                 From the Ayadi community
               </h2>
@@ -517,7 +521,7 @@ export default function BlogList() {
 
             <p
               aria-live="polite"
-              className="text-sm text-muted"
+              className="text-[10px] text-muted sm:text-sm"
             >
               {loading
                 ? 'Loading articles...'
@@ -534,7 +538,7 @@ export default function BlogList() {
           </div>
 
           {/* Topic filter */}
-          <div className="mt-8 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-1.5 sm:mt-8 sm:gap-2">
             {categories.map((name) => {
               const isActive = name === category;
 
@@ -544,7 +548,7 @@ export default function BlogList() {
                   type="button"
                   onClick={() => changeCategory(name)}
                   aria-pressed={isActive}
-                  className={`rounded-full px-4 py-2 text-xs font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                  className={`rounded-full px-2.5 py-1.5 text-[10px] font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:px-4 sm:py-2 sm:text-xs ${
                     isActive
                       ? 'bg-accent-gradient text-white shadow-lg shadow-accent/25'
                       : 'bg-surface text-muted ring-1 ring-inset ring-border hover:text-primary hover:ring-primary/30'
@@ -558,8 +562,8 @@ export default function BlogList() {
 
           {/* Error */}
           {error ? (
-            <div className="mt-10 rounded-2xl border border-border bg-surface p-8 text-center">
-              <p className="text-sm text-muted">
+            <div className="mt-6 rounded-xl border border-border bg-surface p-4 text-center sm:mt-10 sm:rounded-2xl sm:p-8">
+              <p className="text-xs text-muted sm:text-sm">
                 {error}
               </p>
 
@@ -568,7 +572,7 @@ export default function BlogList() {
                 onClick={() => {
                   setCategory(category);
                 }}
-                className="mt-4 text-sm font-bold text-primary hover:underline"
+                className="mt-3 text-xs font-bold text-primary hover:underline sm:mt-4 sm:text-sm"
               >
                 Try again
               </button>
@@ -577,7 +581,7 @@ export default function BlogList() {
 
           {/* Loading */}
           {loading ? (
-            <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({
                 length: POSTS_PER_PAGE,
               }).map((_, index) => (
@@ -587,12 +591,12 @@ export default function BlogList() {
                 >
                   <div className="aspect-[16/10] animate-pulse bg-primary/5" />
 
-                  <div className="space-y-4 p-6">
-                    <div className="h-3 w-24 animate-pulse rounded bg-primary/10" />
+                  <div className="space-y-2 p-3 sm:space-y-4 sm:p-6">
+                    <div className="h-2 w-12 animate-pulse rounded bg-primary/10 sm:h-3 sm:w-24" />
 
-                    <div className="h-6 w-4/5 animate-pulse rounded bg-primary/10" />
+                    <div className="h-4 w-4/5 animate-pulse rounded bg-primary/10 sm:h-6" />
 
-                    <div className="h-16 animate-pulse rounded bg-primary/10" />
+                    <div className="h-8 animate-pulse rounded bg-primary/10 sm:h-16" />
                   </div>
                 </div>
               ))}
@@ -603,14 +607,13 @@ export default function BlogList() {
           {!loading &&
           !error &&
           visible.length === 0 ? (
-            <div className="mt-10 rounded-2xl border border-border bg-surface p-12 text-center">
-              <p className="text-base font-semibold text-accent">
+            <div className="mt-6 rounded-xl border border-border bg-surface p-5 text-center sm:mt-10 sm:rounded-2xl sm:p-12">
+              <p className="text-sm font-semibold text-accent sm:text-base">
                 No articles found.
               </p>
 
-              <p className="mt-2 text-sm text-muted">
-                There are no published articles in this
-                category yet.
+              <p className="mt-1.5 text-xs text-muted sm:mt-2 sm:text-sm">
+                There are no published articles in this category yet.
               </p>
             </div>
           ) : null}
@@ -624,16 +627,17 @@ export default function BlogList() {
               variants={stagger}
               initial={start}
               animate="visible"
-              className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3"
+              className="mt-5 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-5 md:grid-cols-2 lg:grid-cols-3"
             >
               {visible.map((post) => (
                 <motion.li
                   key={post.id}
                   variants={fadeUp}
+                  className="min-w-0"
                 >
                   <PostCard
                     post={post}
-                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 50vw"
                   />
                 </motion.li>
               ))}
@@ -647,18 +651,17 @@ export default function BlogList() {
           {!loading && totalPages > 1 ? (
             <nav
               aria-label="Article pages"
-              className="mt-14 flex flex-wrap items-center justify-center gap-2"
+              className="mt-7 flex flex-wrap items-center justify-center gap-1.5 sm:mt-14 sm:gap-2"
             >
               <PageButton
-                onClick={() =>
-                  goToPage(currentPage - 1)
-                }
+                onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
                 label="Previous page"
               >
                 <ChevronLeft
                   aria-hidden="true"
-                  size={16}
+                  size={14}
+                  className="sm:size-4"
                 />
 
                 <span className="hidden sm:inline">
@@ -672,23 +675,16 @@ export default function BlogList() {
                 },
                 (_, index) => index + 1
               ).map((number) => {
-                const isCurrent =
-                  number === currentPage;
+                const isCurrent = number === currentPage;
 
                 return (
                   <button
                     key={number}
                     type="button"
-                    onClick={() =>
-                      goToPage(number)
-                    }
+                    onClick={() => goToPage(number)}
                     aria-label={`Page ${number}`}
-                    aria-current={
-                      isCurrent
-                        ? 'page'
-                        : undefined
-                    }
-                    className={`size-10 rounded-full text-sm font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                    aria-current={isCurrent ? 'page' : undefined}
+                    className={`size-8 rounded-full text-xs font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:size-10 sm:text-sm ${
                       isCurrent
                         ? 'bg-accent-gradient text-white shadow-lg shadow-accent/25'
                         : 'text-muted ring-1 ring-inset ring-border hover:text-primary hover:ring-primary/30'
@@ -700,12 +696,8 @@ export default function BlogList() {
               })}
 
               <PageButton
-                onClick={() =>
-                  goToPage(currentPage + 1)
-                }
-                disabled={
-                  currentPage === totalPages
-                }
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
                 label="Next page"
               >
                 <span className="hidden sm:inline">
@@ -714,7 +706,8 @@ export default function BlogList() {
 
                 <ChevronRight
                   aria-hidden="true"
-                  size={16}
+                  size={14}
+                  className="sm:size-4"
                 />
               </PageButton>
             </nav>

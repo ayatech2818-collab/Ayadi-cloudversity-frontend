@@ -402,16 +402,16 @@ export default function FeaturedCourses() {
         </motion.div>
 
        {/* BOTTOM */}
-        <div className="mt-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+        <div className="mt-5 flex flex-row items-center justify-between gap-2 sm:mt-10 sm:gap-6">
          
           {/* PREMIUM AUTOPLAY PROGRESS */}
           <div
-            className="flex items-center gap-3 sm:gap-4"
+            className="flex min-w-0 items-center gap-1.5 sm:gap-4"
             role="group"
             aria-label={`Slide ${activeIndex + 1} of ${maxIndex + 1}`}
           >
             {/* Animated progress segments */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               {Array.from({ length: maxIndex + 1 }).map((_, index) => {
                 const isActive = activeIndex === index;
                 const isPast = index < activeIndex;
@@ -420,8 +420,8 @@ export default function FeaturedCourses() {
                   <div
                     key={index}
                     className={`
-                      relative h-1.5 w-7 overflow-hidden rounded-full
-                      sm:w-9
+                      relative h-1 w-5 overflow-hidden rounded-full
+                      sm:h-1.5 sm:w-9
                       ${
                         isPast
                           ? 'bg-[#b8f94a]/60'
@@ -469,7 +469,7 @@ export default function FeaturedCourses() {
             </div>
 
             {/* Animated slide counter */}
-            <div className="flex shrink-0 items-baseline gap-1 font-mono text-xs tabular-nums">
+            <div className="flex shrink-0 items-baseline gap-1 font-mono text-[10px] tabular-nums sm:text-xs">
               <motion.span
                 key={activeIndex}
                 initial={{ opacity: 0, y: 5, filter: 'blur(3px)' }}
@@ -493,12 +493,12 @@ export default function FeaturedCourses() {
           {/* VIEW ALL */}
           <a
             href="/courses"
-                  className="group/all inline-flex items-center gap-2 rounded-full bg-accent-gradient px-5 py-2.5 text-sm font-bold text-white ring-1 ring-inset ring-emerald-300/30 backdrop-blur-sm transition duration-300 hover:ring-emerald-400/70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-300 max-md:px-4 max-md:py-2 max-md:text-xs"          >
+                  className="group/all inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-gradient px-2.5 py-2 text-[9px] font-bold whitespace-nowrap text-white ring-1 ring-inset ring-emerald-300/30 backdrop-blur-sm transition duration-300 hover:ring-emerald-400/70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-300 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm"       >
             View All Courses
             <ArrowRight
               aria-hidden="true"
-              size={17}
-              className="transition-transform duration-300 group-hover/all:translate-x-1"
+              size={14}
+              className="transition-transform duration-300 group-hover/all:translate-x-1 sm:size-[17px]"
             />
           </a>
         </div>

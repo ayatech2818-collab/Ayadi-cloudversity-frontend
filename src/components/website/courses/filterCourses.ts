@@ -22,19 +22,20 @@ function searchableText(course: CatalogueCourse, categoryName: string | undefine
 }
 
 /**
- * Courses matching both criteria. An empty criterion matches everything; a
+ * Courses matching the criteria. An empty criterion matches everything; a
  * search of several words needs each of them somewhere in the course.
  */
 export function filterCourses(
   courses: readonly CatalogueCourse[],
   categories: readonly CatalogueCategory[],
-  { category_id, search }: CatalogueFilters,
+  { category_id, subcategory_id, search }: CatalogueFilters,
 ): CatalogueCourse[] {
   const terms = (search ?? '').toLowerCase().split(/\s+/).filter(Boolean);
   const nameById = new Map(categories.map((category) => [category.id, category.name]));
 
   return courses.filter((course) => {
     if (category_id && course.categoryId !== category_id) return false;
+    if (subcategory_id && course.subcategoryId !== subcategory_id) return false;
     if (terms.length === 0) return true;
 
     const text = searchableText(course, nameById.get(course.categoryId));
@@ -52,3 +53,17 @@ export function countByCategory(courses: readonly CatalogueCourse[]): Record<str
 
   return counts;
 }
+
+/** How many of `courses` sit in each subcategory, keyed by subcategory id. */
+export function countBySubcategory(courses: readonly CatalogueCourse[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+
+  for (const course of courses) {
+    if (course.subcategoryId) {
+      counts[course.subcategoryId] = (counts[course.subcategoryId] ?? 0) + 1;
+    }
+  }
+
+  return counts;
+}
+

@@ -21,9 +21,9 @@ export function preloadEnrollment() {
 
 /** EnrollmentModal, fetched the first time it is opened and kept from then on
     — so closing still plays its exit, and the form keeps its state. */
-export function LazyEnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
+export function LazyEnrollmentModal({ isOpen, onClose, courseTitle, courseId }: EnrollmentModalProps) {
   const [wanted, setWanted] = useState(false);
   if (isOpen && !wanted) setWanted(true);
 
-  return wanted ? <Modal isOpen={isOpen} onClose={onClose} /> : null;
+  return wanted ? <Modal isOpen={isOpen} onClose={onClose} courseTitle={courseTitle} courseId={courseId} /> : null;
 }

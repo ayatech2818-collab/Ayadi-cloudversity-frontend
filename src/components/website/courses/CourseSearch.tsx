@@ -35,7 +35,7 @@ export function CourseSearch({
     <form
       role="search"
       onSubmit={handleSubmit}
-      className="group/search flex h-14 items-center gap-2 rounded-2xl bg-surface pl-5 pr-2 shadow-[0_18px_40px_-28px_rgba(20,29,63,0.45)] ring-1 ring-inset ring-border transition-shadow duration-300 focus-within:ring-2 focus-within:ring-primary"
+      className="group/search flex h-12 sm:h-14 items-center gap-2 rounded-2xl bg-surface pl-4 pr-1.5 sm:pl-5 sm:pr-2 shadow-[0_18px_40px_-28px_rgba(20,29,63,0.45)] ring-1 ring-inset ring-border transition-shadow duration-300 focus-within:ring-2 focus-within:ring-primary"
     >
       <label htmlFor="course-search" className="sr-only">
         Search courses
@@ -72,7 +72,7 @@ export function CourseSearch({
 
       <button
         type="submit"
-        className="group/go flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-primary text-white transition-colors duration-300 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="group/go flex size-9 sm:size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-primary text-white transition-colors duration-300 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         <span className="sr-only">Show results</span>
         <ArrowRight

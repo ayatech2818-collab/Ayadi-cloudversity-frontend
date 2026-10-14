@@ -1099,7 +1099,7 @@ export function AyadiJourney({
             data-rail
             aria-hidden="true"
             style={{ opacity: 0 }}
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-center gap-4 px-5 pb-4 sm:px-8 lg:px-12"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex -translate-y-20 items-center gap-4 px-5 pb-4 sm:translate-y-0 sm:px-8 lg:px-12"
           >
             <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted/70">
               <ChevronDown size={14} className="text-primary motion-safe:animate-bounce" />

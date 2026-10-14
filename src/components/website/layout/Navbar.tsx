@@ -364,190 +364,95 @@ export function Navbar() {
 
       
 
-      {/* MOBILE BOTTOM NAVIGATION */}
-      <nav
-        aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(8px,env(safe-area-inset-bottom))] md:hidden"
-      >
-      {/* More popup — no Framer Motion */}
-      {isMoreOpen && (
-        <>
-          {/* Backdrop */}
-          <button
-            type="button"
-            aria-label="Close More menu"
-            onClick={() => setIsMoreOpen(false)}
-            className="fixed inset-0 -z-10 bg-black/10"
-          />
+{/* MOBILE BOTTOM NAVIGATION */}
+<nav
+  aria-label="Mobile navigation"
+  className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(8px,env(safe-area-inset-bottom))] md:hidden"
+>
+  {/* Mobile navigation — no More popup or Framer Motion */}
+  <div
+    className="
+      relative mx-auto w-full max-w-[440px] overflow-hidden
+      rounded-full border border-white/65
+      bg-white/95 p-1.5
+      shadow-[0_10px_40px_rgba(4,76,59,0.18)]
+    "
+  >
+    {/* Reflective top edge */}
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-x-5 top-0 z-20 h-px bg-gradient-to-r from-transparent via-white/95 to-transparent"
+    />
 
-          {/* Popup */}
-          <div
-            className="
-              absolute bottom-[calc(100%+14px)] right-4 w-48
-              overflow-hidden rounded-[24px] border border-white/60
-              bg-white/95 p-2
-              shadow-[0_12px_40px_rgba(4,76,59,0.20)]
-            "
+    <div
+      className="
+        relative z-0 flex items-stretch gap-1
+        overflow-x-auto overscroll-x-contain
+        snap-x snap-mandatory
+        touch-pan-x
+        [scrollbar-width:none]
+        [&::-webkit-scrollbar]:hidden
+      "
+    >
+      {[
+        { href: "/", label: "Home", Icon: House },
+        { href: "/about", label: "About", Icon: AboutIcon },
+        { href: "/courses", label: "Courses", Icon: CoursesIcon },
+        { href: "/contact", label: "Contact", Icon: Phone },
+        { href: "/blog", label: "Blog", Icon: BlogIcon },
+        { href: "/media", label: "Media", Icon: Images },
+      ].map(({ href, label, Icon }) => {
+        const active =
+          href === "/"
+            ? pathname === "/"
+            : pathname === href || pathname.startsWith(`${href}/`);
+
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-label={label}
+            aria-current={active ? "page" : undefined}
+            className={`
+              relative flex min-w-[66px] shrink-0 snap-start
+              flex-col items-center justify-center gap-1
+              rounded-full px-2 py-2.5
+              ${
+                active
+                  ? "bg-white/80 text-primary shadow-[0_2px_12px_rgba(4,76,59,0.10)] ring-1 ring-inset ring-emerald-100"
+                  : "text-slate-600"
+              }
+            `}
           >
-            <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
+            {/* Static active indicator */}
+            {active && (
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 -z-0 rounded-full bg-gradient-to-b from-white/55 to-emerald-50/30"
+              />
+            )}
 
-            {[
-              { href: '/blog', label: 'Blog', Icon: BlogIcon },
-              { href: '/media', label: 'Media', Icon: Images },
-            ].map(({ href, label, Icon }) => {
-              const active =
-                pathname === href || pathname.startsWith(`${href}/`);
-
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setIsMoreOpen(false)}
-                  aria-current={active ? 'page' : undefined}
-                  className={`
-                    flex items-center gap-3 rounded-2xl px-3 py-3
-                    text-sm font-semibold transition-colors
-                    ${
-                      active
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-slate-700 hover:bg-primary/[0.07] hover:text-primary'
-                    }
-                  `}
-                >
-                  <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                  {label}
-                </Link>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-        {/* Horizontally swipeable glass navigation */}
-        <div
-          className="
-            relative mx-auto w-full max-w-[440px] overflow-hidden
-            rounded-full border border-white/65
-            bg-white/45 p-1.5
-            shadow-[0_10px_40px_rgba(4,76,59,0.18)]
-            backdrop-blur-2xl
-            supports-[backdrop-filter]:bg-white/35
-          "
-        >
-          {/* Reflective glass edges */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-5 top-0 z-20 h-px bg-gradient-to-r from-transparent via-white/95 to-transparent"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-10 rounded-full bg-[linear-gradient(135deg,rgba(255,255,255,0.24),transparent_42%,rgba(21,128,61,0.06))]"
-          />
-
-          <div
-            className="
-              relative z-0 flex items-stretch gap-1
-              overflow-x-auto overscroll-x-contain
-              snap-x snap-mandatory
-              touch-pan-x
-              [scrollbar-width:none]
-              [&::-webkit-scrollbar]:hidden
-            "
-          >
-            {[
-              { href: '/', label: 'Home', Icon: House },
-              { href: '/about', label: 'About', Icon: AboutIcon },
-              { href: '/courses', label: 'Courses', Icon: CoursesIcon },
-              { href: '/contact', label: 'Contact', Icon: Phone },
-            ].map(({ href, label, Icon }) => {
-              const active =
-                href === '/'
-                  ? pathname === '/'
-                  : pathname === href || pathname.startsWith(`${href}/`);
-
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  aria-label={label}
-                  aria-current={active ? 'page' : undefined}
-                  onClick={() => setIsMoreOpen(false)}
-                  className={`
-                    relative flex min-w-[66px] shrink-0 snap-start
-                    flex-col items-center justify-center gap-1
-                    rounded-full px-2 py-2.5
-                    transition-colors duration-300
-                    focus-visible:outline-2 focus-visible:outline-offset-[-2px]
-                    focus-visible:outline-primary
-                    ${
-                      active
-                        ? 'bg-white/65 text-primary shadow-[0_2px_12px_rgba(4,76,59,0.10)] ring-1 ring-inset ring-white/80'
-                        : 'text-slate-600 hover:bg-white/35 hover:text-primary'
-                    }
-                  `}
-                >
-                  {active && (
-                    <motion.span
-                      layoutId="mobile-active-glass"
-                      className="absolute inset-0 -z-0 rounded-full bg-gradient-to-b from-white/55 to-emerald-50/30"
-                      transition={{
-                        type: 'spring',
-                        stiffness: 380,
-                        damping: 30,
-                      }}
-                    />
-                  )}
-
-                  <motion.span
-                    whileTap={{ scale: 0.88 }}
-                    transition={{ type: 'spring', stiffness: 450, damping: 20 }}
-                    className="relative z-10 flex flex-col items-center gap-1"
-                  >
-                    <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                    <span className="max-w-full truncate text-[10px] font-semibold leading-tight">
-                      {label}
-                    </span>
-                  </motion.span>
-                </Link>
-              );
-            })}
-
-            {/* More */}
-            <button
-              type="button"
-              aria-label="More navigation options"
-              aria-expanded={isMoreOpen}
-              onClick={() => setIsMoreOpen((open) => !open)}
-              className={`
-                relative flex min-w-[66px] shrink-0 snap-start
-                flex-col items-center justify-center gap-1
-                rounded-full px-2 py-2.5
-                transition-colors duration-300
-                focus-visible:outline-2 focus-visible:outline-offset-[-2px]
-                focus-visible:outline-primary
-                ${
-                  isMoreOpen ||
-                  pathname.startsWith('/blog') ||
-                  pathname.startsWith('/media')
-                    ? 'bg-white/65 text-primary shadow-[0_2px_12px_rgba(4,76,59,0.10)] ring-1 ring-inset ring-white/80'
-                    : 'text-slate-600 hover:bg-white/35 hover:text-primary'
-                }
-              `}
-            >
-              <span className="flex flex-col items-center gap-1">
-                <MoreHorizontal className="size-[18px]" aria-hidden="true" />
-                <span className="text-[10px] font-semibold leading-tight">More</span>
+            <span className="relative z-10 flex flex-col items-center gap-1">
+              <Icon
+                className="size-[18px] shrink-0"
+                aria-hidden="true"
+              />
+              <span className="max-w-full truncate text-[10px] font-semibold leading-tight">
+                {label}
               </span>
-            </button>
-          </div>
+            </span>
+          </Link>
+        );
+      })}
+    </div>
 
-          {/* Subtle edge shading */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/20"
-          />
-        </div>
-      </nav>
+    {/* Static edge shading */}
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/20"
+    />
+  </div>
+</nav>
 
 
 

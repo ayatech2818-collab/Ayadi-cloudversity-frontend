@@ -371,6 +371,18 @@ export function Navbar() {
 >
 
   {/* Simple More popup — test without animations */}
+
+  {/* 1. Backdrop */}
+{isMoreOpen && (
+  <button
+    type="button"
+    aria-label="Close More menu"
+    onClick={() => setIsMoreOpen(false)}
+    className="fixed inset-0 z-[55] bg-black/10"
+  />
+)}
+
+
 {/* More popup — styled, without animations or blur */}
 {isMoreOpen && (
   <div

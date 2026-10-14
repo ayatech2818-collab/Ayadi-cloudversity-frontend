@@ -369,6 +369,33 @@ export function Navbar() {
   aria-label="Mobile navigation"
   className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(8px,env(safe-area-inset-bottom))] md:hidden"
 >
+
+  {/* Simple More popup — test without animations */}
+{isMoreOpen && (
+  <div
+    className="
+      absolute bottom-[calc(100%+14px)] right-4 z-[60]
+      w-48 rounded-2xl border border-slate-200
+      bg-white p-2 shadow-xl
+    "
+  >
+    <Link
+      href="/blog"
+      onClick={() => setIsMoreOpen(false)}
+      className="block rounded-xl px-3 py-3 text-sm font-semibold text-slate-700"
+    >
+      Blog
+    </Link>
+
+    <Link
+      href="/media"
+      onClick={() => setIsMoreOpen(false)}
+      className="block rounded-xl px-3 py-3 text-sm font-semibold text-slate-700"
+    >
+      Media
+    </Link>
+  </div>
+)}
   {/* Mobile navigation — no More popup or Framer Motion */}
   <div
     className="
@@ -399,8 +426,8 @@ export function Navbar() {
         { href: "/about", label: "About", Icon: AboutIcon },
         { href: "/courses", label: "Courses", Icon: CoursesIcon },
         { href: "/contact", label: "Contact", Icon: Phone },
-        { href: "/blog", label: "Blog", Icon: BlogIcon },
-        { href: "/media", label: "Media", Icon: Images },
+        // { href: "/blog", label: "Blog", Icon: BlogIcon },
+        // { href: "/media", label: "Media", Icon: Images },
       ].map(({ href, label, Icon }) => {
         const active =
           href === "/"
@@ -442,8 +469,26 @@ export function Navbar() {
               </span>
             </span>
           </Link>
+          
         );
       })}
+
+  {/* More — test button only, no popup */}
+      <button
+        type="button"
+        aria-label="More navigation options"
+        onClick={() => setIsMoreOpen((open) => !open)}
+        className="
+          flex min-w-[66px] shrink-0 snap-start
+          flex-col items-center justify-center gap-1
+          rounded-full px-2 py-2.5 text-slate-600
+        "
+      >
+        <MoreHorizontal className="size-[18px]" aria-hidden="true" />
+        <span className="text-[10px] font-semibold leading-tight">
+          More
+        </span>
+      </button>
     </div>
 
     {/* Static edge shading */}

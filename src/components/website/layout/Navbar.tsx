@@ -373,56 +373,59 @@ export function Navbar() {
   {/* Simple More popup — test without animations */}
 
   {/* 1. Backdrop */}
-{/* More popup — styled, without animations or blur */}
-{isMoreOpen && (
-  <div
-    className="
-      absolute bottom-[calc(100%+14px)] right-4 z-[60]
-      w-48 overflow-hidden rounded-[24px]
-      border border-white/60
-      bg-white/95 p-2
-      shadow-[0_12px_40px_rgba(4,76,59,0.20)]
-    "
-  >
-    {/* Reflective top edge */}
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-emerald-100 to-transparent"
-    />
+  {/* More popup — animated, no backdrop */}
+<AnimatePresence>
+  {isMoreOpen && (
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 6, scale: 0.97 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      className="
+        absolute bottom-[calc(100%+14px)] right-4 z-[60]
+        w-48 overflow-hidden rounded-[24px]
+        border border-white/60
+        bg-white/95 p-2
+        shadow-[0_12px_40px_rgba(4,76,59,0.20)]
+      "
+    >
+      {/* Reflective top edge */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-emerald-100 to-transparent"
+      />
 
-    {[
-      { href: "/blog", label: "Blog", Icon: BlogIcon },
-      { href: "/media", label: "Media", Icon: Images },
-    ].map(({ href, label, Icon }) => {
-      const active =
-        pathname === href || pathname.startsWith(`${href}/`);
+      {[
+        { href: "/blog", label: "Blog", Icon: BlogIcon },
+        { href: "/media", label: "Media", Icon: Images },
+      ].map(({ href, label, Icon }) => {
+        const active =
+          pathname === href || pathname.startsWith(`${href}/`);
 
-      return (
-        <Link
-          key={href}
-          href={href}
-          onClick={() => setIsMoreOpen(false)}
-          aria-current={active ? "page" : undefined}
-          className={`
-            flex items-center gap-3 rounded-2xl px-3 py-3
-            text-sm font-semibold transition-colors
-            ${
-              active
-                ? "bg-primary/10 text-primary"
-                : "text-slate-700 hover:bg-primary/[0.07] hover:text-primary"
-            }
-          `}
-        >
-          <Icon
-            className="size-[18px] shrink-0"
-            aria-hidden="true"
-          />
-          {label}
-        </Link>
-      );
-    })}
-  </div>
-)}
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={() => setIsMoreOpen(false)}
+            aria-current={active ? "page" : undefined}
+            className={`
+              flex items-center gap-3 rounded-2xl px-3 py-3
+              text-sm font-semibold transition-colors
+              ${
+                active
+                  ? "bg-primary/10 text-primary"
+                  : "text-slate-700 hover:bg-primary/[0.07] hover:text-primary"
+              }
+            `}
+          >
+            <Icon className="size-[18px] shrink-0" aria-hidden="true" />
+            {label}
+          </Link>
+        );
+      })}
+    </motion.div>
+  )}
+</AnimatePresence>
   {/* Mobile navigation — no More popup or Framer Motion */}
   <div
     className="
@@ -453,8 +456,6 @@ export function Navbar() {
         { href: "/about", label: "About", Icon: AboutIcon },
         { href: "/courses", label: "Courses", Icon: CoursesIcon },
         { href: "/contact", label: "Contact", Icon: Phone },
-        // { href: "/blog", label: "Blog", Icon: BlogIcon },
-        // { href: "/media", label: "Media", Icon: Images },
       ].map(({ href, label, Icon }) => {
         const active =
           href === "/"
@@ -520,10 +521,23 @@ export function Navbar() {
             }
           `}
         >
-          <MoreHorizontal className="size-[18px]" aria-hidden="true" />
-          <span className="text-[10px] font-semibold leading-tight">
-            More
-          </span>
+          <motion.span
+            animate={{ rotate: isMoreOpen ? 90 : 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 22,
+            }}
+            className="flex flex-col items-center gap-1"
+          >
+            <MoreHorizontal
+              className="size-[18px]"
+              aria-hidden="true"
+            />
+            <span className="text-[10px] font-semibold leading-tight">
+              More
+            </span>
+          </motion.span>
         </button>
     </div>
 

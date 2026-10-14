@@ -371,29 +371,54 @@ export function Navbar() {
 >
 
   {/* Simple More popup — test without animations */}
+{/* More popup — styled, without animations or blur */}
 {isMoreOpen && (
   <div
     className="
       absolute bottom-[calc(100%+14px)] right-4 z-[60]
-      w-48 rounded-2xl border border-slate-200
-      bg-white p-2 shadow-xl
+      w-48 overflow-hidden rounded-[24px]
+      border border-white/60
+      bg-white/95 p-2
+      shadow-[0_12px_40px_rgba(4,76,59,0.20)]
     "
   >
-    <Link
-      href="/blog"
-      onClick={() => setIsMoreOpen(false)}
-      className="block rounded-xl px-3 py-3 text-sm font-semibold text-slate-700"
-    >
-      Blog
-    </Link>
+    {/* Reflective top edge */}
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-emerald-100 to-transparent"
+    />
 
-    <Link
-      href="/media"
-      onClick={() => setIsMoreOpen(false)}
-      className="block rounded-xl px-3 py-3 text-sm font-semibold text-slate-700"
-    >
-      Media
-    </Link>
+    {[
+      { href: "/blog", label: "Blog", Icon: BlogIcon },
+      { href: "/media", label: "Media", Icon: Images },
+    ].map(({ href, label, Icon }) => {
+      const active =
+        pathname === href || pathname.startsWith(`${href}/`);
+
+      return (
+        <Link
+          key={href}
+          href={href}
+          onClick={() => setIsMoreOpen(false)}
+          aria-current={active ? "page" : undefined}
+          className={`
+            flex items-center gap-3 rounded-2xl px-3 py-3
+            text-sm font-semibold transition-colors
+            ${
+              active
+                ? "bg-primary/10 text-primary"
+                : "text-slate-700 hover:bg-primary/[0.07] hover:text-primary"
+            }
+          `}
+        >
+          <Icon
+            className="size-[18px] shrink-0"
+            aria-hidden="true"
+          />
+          {label}
+        </Link>
+      );
+    })}
   </div>
 )}
   {/* Mobile navigation — no More popup or Framer Motion */}

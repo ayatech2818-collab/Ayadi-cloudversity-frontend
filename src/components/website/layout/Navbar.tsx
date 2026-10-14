@@ -373,16 +373,6 @@ export function Navbar() {
   {/* Simple More popup — test without animations */}
 
   {/* 1. Backdrop */}
-{isMoreOpen && (
-  <button
-    type="button"
-    aria-label="Close More menu"
-    onClick={() => setIsMoreOpen(false)}
-    className="fixed inset-0 z-[55] bg-black/10"
-  />
-)}
-
-
 {/* More popup — styled, without animations or blur */}
 {isMoreOpen && (
   <div
@@ -510,22 +500,31 @@ export function Navbar() {
         );
       })}
 
-  {/* More — test button only, no popup */}
-      <button
-        type="button"
-        aria-label="More navigation options"
-        onClick={() => setIsMoreOpen((open) => !open)}
-        className="
-          flex min-w-[66px] shrink-0 snap-start
-          flex-col items-center justify-center gap-1
-          rounded-full px-2 py-2.5 text-slate-600
-        "
-      >
-        <MoreHorizontal className="size-[18px]" aria-hidden="true" />
-        <span className="text-[10px] font-semibold leading-tight">
-          More
-        </span>
-      </button>
+  
+      {/* More button */}
+        <button
+          type="button"
+          aria-label="More navigation options"
+          aria-expanded={isMoreOpen}
+          onClick={() => setIsMoreOpen((open) => !open)}
+          className={`
+            relative flex min-w-[66px] shrink-0 snap-start
+            flex-col items-center justify-center gap-1
+            rounded-full px-2 py-2.5
+            ${
+              isMoreOpen ||
+              pathname.startsWith("/blog") ||
+              pathname.startsWith("/media")
+                ? "bg-white/80 text-primary shadow-[0_2px_12px_rgba(4,76,59,0.10)] ring-1 ring-inset ring-emerald-100"
+                : "text-slate-600"
+            }
+          `}
+        >
+          <MoreHorizontal className="size-[18px]" aria-hidden="true" />
+          <span className="text-[10px] font-semibold leading-tight">
+            More
+          </span>
+        </button>
     </div>
 
     {/* Static edge shading */}

@@ -169,12 +169,12 @@ function ResetPasswordForm() {
         />
       </div>
 
-      <div className="relative flex min-h-screen items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="relative flex min-h-screen items-center justify-center p-3 min-[360px]:p-4 sm:p-6 lg:p-8">
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: EASE }}
-          className="grid w-full max-w-6xl overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_30px_100px_rgba(20,70,50,0.12)] lg:grid-cols-[1.05fr_0.95fr]"
+          className="grid w-full max-w-6xl overflow-hidden rounded-2xl sm:rounded-[28px] border border-black/[0.06] bg-white shadow-[0_30px_100px_rgba(20,70,50,0.12)] lg:grid-cols-[1.05fr_0.95fr]"
         >
           {/* LEFT BRAND PANEL */}
           <motion.section
@@ -316,20 +316,20 @@ function ResetPasswordForm() {
             initial={{ opacity: 0, x: 35 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
-            className="flex min-h-[650px] items-center justify-center px-6 py-12 sm:px-10 lg:px-12 xl:px-16"
+            className="flex min-h-0 lg:min-h-[650px] items-center justify-center px-4 py-6 min-[360px]:px-6 min-[360px]:py-8 sm:px-10 sm:py-12 lg:px-12 xl:px-16"
           >
             <div className="w-full max-w-md">
               <motion.div
                 initial={{ opacity: 0, y: -15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="mb-10 flex justify-center lg:hidden"
+                className="mb-4 min-[360px]:mb-5 sm:mb-10 flex justify-center lg:hidden"
               >
-                <div className="rounded-2xl bg-[#0b4635] px-6 py-4">
+                <div className="rounded-xl sm:rounded-2xl bg-[#0b4635] px-4 py-2 min-[360px]:px-5 min-[360px]:py-2.5 sm:px-6 sm:py-4 shadow-md">
                   <img
                     src="/images/ayadi-logo-white.png"
                     alt="Ayadi Cloudversity"
-                    className="w-36"
+                    className="w-28 min-[360px]:w-32 sm:w-36 h-auto object-contain"
                   />
                 </div>
               </motion.div>
@@ -339,18 +339,18 @@ function ResetPasswordForm() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <p className="mb-3 flex items-center gap-2 text-sm font-medium text-[#368364]">
-                  <span className="inline-flex size-6 items-center justify-center rounded-full bg-[#368364]/10 font-mono text-[11px] font-bold">
+                <p className="mb-1.5 sm:mb-3 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-[#368364]">
+                  <span className="inline-flex size-5 sm:size-6 items-center justify-center rounded-full bg-[#368364]/10 font-mono text-[10px] sm:text-[11px] font-bold">
                     2
                   </span>
                   Steps 2–3 of 3 — verify &amp; reset
                 </p>
-                <h1 className="text-3xl font-semibold tracking-tight text-[#10251d] sm:text-4xl">
+                <h1 className="text-xl min-[360px]:text-2xl sm:text-4xl font-semibold tracking-tight text-[#10251d]">
                   Reset password
                 </h1>
-                <p className="mt-3 text-sm leading-6 text-gray-500">
+                <p className="mt-1.5 sm:mt-3 text-xs sm:text-sm leading-relaxed sm:leading-6 text-gray-500">
                   Enter the 8-digit code sent to{" "}
-                  <span className="font-medium text-gray-800">
+                  <span className="font-medium text-gray-800 break-all sm:break-normal">
                     {email || "your email"}
                   </span>
                   .
@@ -365,7 +365,7 @@ function ResetPasswordForm() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -12 }}
                     transition={{ duration: 0.5, ease: EASE }}
-                    className="mt-9 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-6 text-center"
+                    className="mt-4 min-[360px]:mt-5 sm:mt-9 rounded-xl sm:rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 min-[360px]:p-5 sm:p-6 text-center"
                   >
                     <motion.span
                       initial={{ scale: 0.6, opacity: 0 }}
@@ -376,14 +376,14 @@ function ResetPasswordForm() {
                         damping: 18,
                         delay: 0.1,
                       }}
-                      className="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-gradient text-white shadow-lg shadow-emerald-900/20"
+                      className="mx-auto flex size-10 sm:size-12 items-center justify-center rounded-full bg-brand-gradient text-white shadow-lg shadow-emerald-900/20"
                     >
-                      <Check size={22} strokeWidth={2.5} />
+                      <Check className="size-5 sm:size-[22px]" strokeWidth={2.5} />
                     </motion.span>
-                    <p className="mt-4 text-sm font-semibold text-[#10251d]">
+                    <p className="mt-3 sm:mt-4 text-xs min-[360px]:text-sm sm:text-sm font-semibold text-[#10251d]">
                       Password updated
                     </p>
-                    <p className="mt-1 text-sm leading-6 text-gray-500">
+                    <p className="mt-1 text-xs min-[360px]:text-sm leading-relaxed sm:leading-6 text-gray-500">
                       Redirecting you to login…
                     </p>
                   </motion.div>
@@ -395,14 +395,14 @@ function ResetPasswordForm() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -12 }}
                     transition={{ duration: 0.7, delay: 0.3 }}
-                    className="mt-9 space-y-5"
+                    className="mt-4 min-[360px]:mt-5 sm:mt-9 space-y-3 min-[360px]:space-y-3.5 sm:space-y-5"
                   >
                     {/* OTP */}
                     <div>
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-1 sm:mb-2 flex items-center justify-between gap-2">
                         <label
                           htmlFor="otp"
-                          className="block text-sm font-medium text-[#1a2c24]"
+                          className="block text-xs sm:text-sm font-medium text-[#1a2c24]"
                         >
                           Verification code
                         </label>
@@ -410,7 +410,7 @@ function ResetPasswordForm() {
                           type="button"
                           onClick={handleResend}
                           disabled={resending || cooldown > 0 || !email}
-                          className="text-xs font-medium text-[#368364] transition-colors hover:text-[#0b4635] disabled:cursor-not-allowed disabled:opacity-50"
+                          className="shrink-0 text-[11px] sm:text-xs font-medium text-[#368364] transition-colors hover:text-[#0b4635] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {resending
                             ? "Sending…"
@@ -421,8 +421,7 @@ function ResetPasswordForm() {
                       </div>
                       <div className="relative">
                         <ShieldCheck
-                          size={17}
-                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                          className="pointer-events-none absolute left-3 sm:left-4 top-1/2 size-4 sm:size-[17px] -translate-y-1/2 text-gray-400"
                         />
                         <input
                           id="otp"
@@ -436,13 +435,13 @@ function ResetPasswordForm() {
                           required
                           autoComplete="one-time-code"
                           placeholder="12345678"
-                          className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50/70 py-3 pl-11 pr-4 font-mono text-sm tracking-[0.3em] text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
+                          className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50/70 py-2 sm:py-3 pl-9 sm:pl-11 pr-3 sm:pr-4 font-mono text-xs min-[360px]:text-sm tracking-[0.18em] min-[360px]:tracking-[0.25em] sm:tracking-[0.3em] text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
                         />
                       </div>
                       {/* OTP progress dots */}
                       <div
                         aria-hidden="true"
-                        className="mt-3 flex gap-1.5"
+                        className="mt-2 sm:mt-3 flex gap-1 sm:gap-1.5"
                       >
                         {Array.from({ length: 8 }).map((_, i) => (
                           <motion.span
@@ -452,7 +451,7 @@ function ResetPasswordForm() {
                               opacity: otp.length > i ? 1 : 0.35,
                             }}
                             transition={{ duration: 0.25, ease: EASE }}
-                            className={`h-1.5 flex-1 rounded-full ${
+                            className={`h-1 sm:h-1.5 flex-1 rounded-full ${
                               otp.length > i
                                 ? "bg-brand-gradient"
                                 : "bg-gray-200"
@@ -466,14 +465,13 @@ function ResetPasswordForm() {
                     <div>
                       <label
                         htmlFor="password"
-                        className="mb-2 block text-sm font-medium text-[#1a2c24]"
+                        className="mb-1 sm:mb-2 block text-xs sm:text-sm font-medium text-[#1a2c24]"
                       >
                         New password
                       </label>
                       <div className="relative">
                         <Lock
-                          size={16}
-                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                          className="pointer-events-none absolute left-3 sm:left-4 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-gray-400"
                         />
                         <input
                           id="password"
@@ -485,7 +483,7 @@ function ResetPasswordForm() {
                           required
                           autoComplete="new-password"
                           placeholder="Min. 12 characters"
-                          className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50/70 py-3 pl-11 pr-12 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
+                          className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50/70 py-2 sm:py-3 pl-9 sm:pl-11 pr-10 sm:pr-12 text-xs min-[360px]:text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
                         />
                         <button
                           type="button"
@@ -493,12 +491,12 @@ function ResetPasswordForm() {
                           aria-label={
                             showPassword ? "Hide password" : "Show password"
                           }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                          className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 sm:p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
                         >
                           {showPassword ? (
-                            <EyeOff size={19} />
+                            <EyeOff className="size-4 sm:size-[19px]" />
                           ) : (
-                            <Eye size={19} />
+                            <Eye className="size-4 sm:size-[19px]" />
                           )}
                         </button>
                       </div>
@@ -508,14 +506,13 @@ function ResetPasswordForm() {
                     <div>
                       <label
                         htmlFor="confirmPassword"
-                        className="mb-2 block text-sm font-medium text-[#1a2c24]"
+                        className="mb-1 sm:mb-2 block text-xs sm:text-sm font-medium text-[#1a2c24]"
                       >
                         Confirm password
                       </label>
                       <div className="relative">
                         <Lock
-                          size={16}
-                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                          className="pointer-events-none absolute left-3 sm:left-4 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-gray-400"
                         />
                         <input
                           id="confirmPassword"
@@ -527,7 +524,7 @@ function ResetPasswordForm() {
                           required
                           autoComplete="new-password"
                           placeholder="Repeat new password"
-                          className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50/70 py-3 pl-11 pr-12 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
+                          className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50/70 py-2 sm:py-3 pl-9 sm:pl-11 pr-10 sm:pr-12 text-xs min-[360px]:text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
                         />
                         <button
                           type="button"
@@ -535,12 +532,12 @@ function ResetPasswordForm() {
                           aria-label={
                             showConfirm ? "Hide password" : "Show password"
                           }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                          className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 sm:p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
                         >
                           {showConfirm ? (
-                            <EyeOff size={19} />
+                            <EyeOff className="size-4 sm:size-[19px]" />
                           ) : (
-                            <Eye size={19} />
+                            <Eye className="size-4 sm:size-[19px]" />
                           )}
                         </button>
                       </div>
@@ -554,7 +551,7 @@ function ResetPasswordForm() {
                           exit={{ opacity: 0, height: 0, y: -5 }}
                           transition={{ duration: 0.35, ease: EASE }}
                           role="alert"
-                          className="overflow-hidden rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600"
+                          className="overflow-hidden rounded-lg sm:rounded-xl border border-red-100 bg-red-50 px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-red-600"
                         >
                           {error}
                         </motion.div>
@@ -566,9 +563,9 @@ function ResetPasswordForm() {
                       disabled={loading}
                       whileHover={!loading ? { scale: 1.01 } : {}}
                       whileTap={!loading ? { scale: 0.98 } : {}}
-                      className="group relative h-12 w-full cursor-pointer overflow-hidden rounded-xl bg-accent-gradient px-5 text-sm font-medium text-white shadow-lg shadow-[#0b4635]/15 transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                      className="group relative h-10 sm:h-12 w-full cursor-pointer overflow-hidden rounded-lg sm:rounded-xl bg-accent-gradient px-4 sm:px-5 text-xs min-[360px]:text-sm font-medium text-white shadow-lg shadow-[#0b4635]/15 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="relative z-10 flex items-center justify-center gap-2">
+                      <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
                         {loading ? (
                           <>
                             <motion.span
@@ -580,7 +577,7 @@ function ResetPasswordForm() {
                                 repeat: Infinity,
                                 ease: "linear",
                               }}
-                              className="block h-4 w-4 shrink-0 rounded-full border-2 border-white/20 border-t-white"
+                              className="block h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 rounded-full border-2 border-white/20 border-t-white"
                             />
                             Resetting password...
                           </>
@@ -588,29 +585,27 @@ function ResetPasswordForm() {
                           <>
                             Reset password
                             <ArrowRight
-                              size={17}
-                              className="transition-transform duration-300 group-hover:translate-x-1"
+                              className="size-3.5 sm:size-[17px] transition-transform duration-300 group-hover:translate-x-1"
                             />
                           </>
                         )}
                       </span>
                     </motion.button>
 
-                    <div className="flex items-center justify-center pt-1">
+                    <div className="flex items-center justify-center pt-0.5 sm:pt-1">
                       <Link
                         href="/admin/login"
-                        className="group inline-flex items-center gap-1.5 text-xs font-medium text-[#368364] transition-colors hover:text-[#0b4635]"
+                        className="group inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[#368364] transition-colors hover:text-[#0b4635]"
                       >
                         <ArrowLeft
-                          size={14}
-                          className="transition-transform duration-300 group-hover:-translate-x-0.5"
+                          className="size-3 sm:size-3.5 transition-transform duration-300 group-hover:-translate-x-0.5"
                         />
                         Back to login
                       </Link>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 pt-1 text-xs text-gray-400">
-                      <Lock size={14} />
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-0.5 sm:pt-1 text-[11px] sm:text-xs text-gray-400">
+                      <Lock className="size-3 sm:size-3.5" />
                       Secure admin access
                     </div>
                   </motion.form>

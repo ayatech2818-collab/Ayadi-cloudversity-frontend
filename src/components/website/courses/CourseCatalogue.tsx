@@ -11,10 +11,10 @@ import type { CatalogueCategory, CatalogueCourse, CatalogueSubcategory } from '.
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const PRIMARY_ACTION =
-  'inline-flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors duration-300 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+  'inline-flex cursor-pointer items-center justify-center gap-1.5 sm:gap-2 rounded-full bg-primary px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold text-white transition-colors duration-300 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 
 const SECONDARY_ACTION =
-  'inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-muted ring-1 ring-inset ring-border transition-colors duration-300 hover:text-primary hover:ring-primary/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+  'inline-flex cursor-pointer items-center justify-center gap-1.5 sm:gap-2 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold text-muted ring-1 ring-inset ring-border transition-colors duration-300 hover:text-primary hover:ring-primary/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 
 /*
  * The results: what is being shown, and the grid.
@@ -68,14 +68,14 @@ export function CourseCatalogue({
     <section
       id="catalogue"
       aria-labelledby="catalogue-heading"
-      className="scroll-mt-36 px-3 pt-6 sm:scroll-mt-40 sm:px-8 sm:pt-8 lg:px-16 lg:pt-10"
+      className="scroll-mt-36 px-3 pt-5 sm:scroll-mt-40 sm:px-8 sm:pt-8 lg:px-16 lg:pt-10"
     >
       <div className="mx-auto max-w-[1180px]">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 sm:gap-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:gap-x-4 sm:gap-y-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 sm:gap-x-4 sm:gap-y-3">
             <h2
               id="catalogue-heading"
-              className="text-lg font-semibold tracking-[-0.03em] text-accent sm:text-2xl"
+              className="text-base font-bold tracking-tight text-accent sm:text-2xl sm:font-semibold sm:tracking-[-0.03em]"
             >
               {activeCategory
                 ? activeSubcategory
@@ -93,21 +93,21 @@ export function CourseCatalogue({
         </div>
 
         {loading ? (
-          <div className="relative mt-5 grid gap-4 sm:mt-7 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((n) => (
+          <div className="relative mt-4 sm:mt-7 grid grid-cols-2 gap-2.5 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
               <div
                 key={n}
-                className="flex flex-col overflow-hidden rounded-2xl bg-surface ring-1 ring-inset ring-border animate-pulse"
+                className="flex flex-col overflow-hidden max-sm:rounded-xl rounded-2xl bg-surface ring-1 ring-inset ring-border animate-pulse"
               >
                 <div className="aspect-[16/10] bg-muted/10" />
-                <div className="flex flex-1 flex-col p-4 sm:p-6 space-y-3">
-                  <div className="h-3 w-24 rounded bg-muted/15" />
-                  <div className="h-5 w-3/4 rounded bg-muted/20" />
-                  <div className="h-4 w-full rounded bg-muted/10" />
-                  <div className="h-4 w-2/3 rounded bg-muted/10" />
-                  <div className="mt-auto pt-6 border-t border-border flex justify-between items-center">
-                    <div className="h-3 w-28 rounded bg-muted/15" />
-                    <div className="h-7 w-20 rounded-full bg-muted/20" />
+                <div className="flex flex-1 flex-col p-2.5 min-[380px]:p-3 sm:p-6 space-y-2 sm:space-y-3">
+                  <div className="h-2.5 sm:h-3 w-16 sm:w-24 rounded bg-muted/15" />
+                  <div className="h-3.5 sm:h-5 w-3/4 rounded bg-muted/20" />
+                  <div className="h-3 sm:h-4 w-full rounded bg-muted/10 hidden sm:block" />
+                  <div className="h-3 sm:h-4 w-2/3 rounded bg-muted/10" />
+                  <div className="mt-auto pt-2.5 sm:pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div className="h-2.5 sm:h-3 w-14 sm:w-28 rounded bg-muted/15" />
+                    <div className="h-6 sm:h-7 w-full sm:w-20 rounded-full bg-muted/20" />
                   </div>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export function CourseCatalogue({
           /* `relative` is for popLayout: a card on its way out is lifted out
              of the grid and positioned against this, so the rest can close up
              under it straight away. */
-          <ul className="relative mt-5 grid gap-4 sm:mt-7 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <ul className="relative mt-4 sm:mt-7 grid grid-cols-2 gap-2.5 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="popLayout" initial={!reduceMotion}>
               {courses.map((course, index) => (
                 <motion.li
@@ -277,16 +277,16 @@ function EmptyState({
   }
 
   return (
-    <div className="mt-7 rounded-2xl bg-surface px-6 py-14 text-center ring-1 ring-inset ring-border sm:px-10">
-      <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+    <div className="mt-5 sm:mt-7 max-sm:rounded-xl rounded-2xl bg-surface px-4 py-10 sm:px-10 sm:py-14 text-center ring-1 ring-inset ring-border">
+      <span className="mx-auto flex size-11 sm:size-14 items-center justify-center max-sm:rounded-xl rounded-2xl bg-primary/10 text-primary">
         {icon}
       </span>
 
-      <h3 className="mt-5 text-lg font-bold tracking-[-0.02em] text-accent">{title}</h3>
+      <h3 className="mt-4 sm:mt-5 text-base sm:text-lg font-bold tracking-tight sm:tracking-[-0.02em] text-accent">{title}</h3>
 
-      {text ? <p className="mt-1.5 text-sm text-muted">{text}</p> : null}
+      {text ? <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-muted">{text}</p> : null}
 
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">{actions}</div>
+      <div className="mt-5 sm:mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3">{actions}</div>
     </div>
   );
 }
@@ -304,16 +304,16 @@ function SearchChip({ search, onClear }: { search: string; onClear: () => void }
     <button
       type="button"
       onClick={onClear}
-      className="group/chip inline-flex max-w-full cursor-pointer items-center gap-2 rounded-full bg-accent-gradient py-1.5 pl-3.5 pr-2 text-xs font-bold text-white shadow-lg shadow-accent/25 transition-shadow duration-300 hover:shadow-accent/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="group/chip inline-flex max-w-full cursor-pointer items-center gap-1.5 sm:gap-2 rounded-full bg-accent-gradient py-1 pl-2.5 pr-1.5 sm:py-1.5 sm:pl-3.5 sm:pr-2 text-[11px] sm:text-xs font-bold text-white shadow-lg shadow-accent/25 transition-shadow duration-300 hover:shadow-accent/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <span className="sr-only">Clear search: </span>
       <span className="truncate">“{search}”</span>
 
       <span
         aria-hidden="true"
-        className="flex size-5 shrink-0 items-center justify-center rounded-full bg-white/15 transition-colors duration-300 group-hover/chip:bg-white/30"
+        className="flex size-4 sm:size-5 shrink-0 items-center justify-center rounded-full bg-white/15 transition-colors duration-300 group-hover/chip:bg-white/30"
       >
-        <X size={12} strokeWidth={2.5} />
+        <X size={10} strokeWidth={2.5} className="sm:size-3" />
       </span>
     </button>
   );

@@ -90,11 +90,12 @@ export default function LoginPage() {
         />
       </div>
 
-      <div className="relative flex min-h-screen items-center justify-center p-4 sm:p-6 lg:p-8">
-          <motion.div
-            // {...tilt}
-            className="grid w-full max-w-6xl overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_30px_100px_rgba(20,70,50,0.12)] lg:grid-cols-[1.05fr_0.95fr]"
-          >          {/* LEFT BRAND PANEL */}
+      <div className="relative flex min-h-screen items-center justify-center p-3 min-[360px]:p-4 sm:p-6 lg:p-8">
+        <motion.div
+          // {...tilt}
+          className="grid w-full max-w-6xl overflow-hidden rounded-2xl sm:rounded-[28px] border border-black/[0.06] bg-white shadow-[0_30px_100px_rgba(20,70,50,0.12)] lg:grid-cols-[1.05fr_0.95fr]"
+        >
+          {/* LEFT BRAND PANEL */}
           <motion.section
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -228,7 +229,7 @@ export default function LoginPage() {
               delay: 0.1,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="flex min-h-[650px] items-center justify-center px-6 py-12 sm:px-10 lg:px-12 xl:px-16"
+            className="flex min-h-0 lg:min-h-[650px] items-center justify-center px-4 py-6 min-[360px]:px-6 min-[360px]:py-8 sm:px-10 sm:py-12 lg:px-12 xl:px-16"
           >
             <div className="w-full max-w-md">
               {/* Mobile logo */}
@@ -236,13 +237,13 @@ export default function LoginPage() {
                 initial={{ opacity: 0, y: -15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="mb-10 flex justify-center lg:hidden"
+                className="mb-5 min-[360px]:mb-6 sm:mb-10 flex justify-center lg:hidden"
               >
-                <div className="rounded-2xl bg-[#0b4635] px-6 py-4">
+                <div className="rounded-xl sm:rounded-2xl bg-[#0b4635] px-4 py-2.5 min-[360px]:px-5 min-[360px]:py-3 sm:px-6 sm:py-4 shadow-md">
                   <img
                     src="/images/ayadi-logo-white.png"
                     alt="Ayadi Cloudversity"
-                    className="w-36"
+                    className="w-28 min-[360px]:w-32 sm:w-36 h-auto object-contain"
                   />
                 </div>
               </motion.div>
@@ -256,15 +257,15 @@ export default function LoginPage() {
                   delay: 0.2,
                 }}
               >
-                <p className="mb-3 text-sm font-medium text-[#368364]">
+                <p className="mb-1.5 sm:mb-3 text-xs sm:text-sm font-medium text-[#368364]">
                   Welcome back
                 </p>
 
-                <h1 className="text-3xl font-semibold tracking-tight text-[#10251d] sm:text-4xl">
+                <h1 className="text-xl min-[360px]:text-2xl sm:text-4xl font-semibold tracking-tight text-[#10251d]">
                   Sign in to your account
                 </h1>
 
-                <p className="mt-3 text-sm leading-6 text-gray-500">
+                <p className="mt-1.5 sm:mt-3 text-xs sm:text-sm leading-relaxed sm:leading-6 text-gray-500">
                   Enter your credentials to access the Ayadi
                   Cloudversity admin portal.
                 </p>
@@ -279,13 +280,13 @@ export default function LoginPage() {
                   duration: 0.7,
                   delay: 0.3,
                 }}
-                className="mt-9 space-y-5"
+                className="mt-5 sm:mt-9 space-y-3.5 min-[360px]:space-y-4 sm:space-y-5"
               >
                 {/* Email */}
                 <div>
                   <label
                     htmlFor="email"
-                    className="mb-2 block text-sm font-medium text-[#1a2c24]"
+                    className="mb-1.5 sm:mb-2 block text-xs sm:text-sm font-medium text-[#1a2c24]"
                   >
                     Email address
                   </label>
@@ -300,23 +301,23 @@ export default function LoginPage() {
                     required
                     autoComplete="email"
                     placeholder="admin@example.com"
-                    className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50/70 px-4 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
+                    className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50/70 px-3 sm:px-4 text-xs min-[360px]:text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
                   />
                 </div>
 
                 {/* Password */}
                 <div>
-                  <div className="mb-2 flex items-center justify-between">
+                  <div className="mb-1.5 sm:mb-2 flex items-center justify-between">
                     <label
                       htmlFor="password"
-                      className="block text-sm font-medium text-[#1a2c24]"
+                      className="block text-xs sm:text-sm font-medium text-[#1a2c24]"
                     >
                       Password
                     </label>
 
                     <Link
                       href="/admin/forgot-password"
-                      className="text-xs font-medium text-[#368364] transition-colors hover:text-[#0b4635]"
+                      className="text-[11px] sm:text-xs font-medium text-[#368364] transition-colors hover:text-[#0b4635]"
                     >
                       Forgot password?
                     </Link>
@@ -333,7 +334,7 @@ export default function LoginPage() {
                       required
                       autoComplete="current-password"
                       placeholder="Enter your password"
-                      className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50/70 px-4 pr-12 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
+                      className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50/70 px-3 pr-10 sm:px-4 sm:pr-12 text-xs min-[360px]:text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
                     />
 
                     <button
@@ -346,20 +347,19 @@ export default function LoginPage() {
                           ? "Hide password"
                           : "Show password"
                       }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                      className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 sm:p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
                     >
                       {showPassword ? (
                         /* Eye off */
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          width="19"
-                          height="19"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="1.8"
                           strokeLinecap="round"
                           strokeLinejoin="round"
+                          className="size-4 sm:size-[19px]"
                         >
                           <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
                           <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c5 0 8.5 5 8.5 7s-3.5 7-8.5 7a10.43 10.43 0 0 1-4.08-.83" />
@@ -370,14 +370,13 @@ export default function LoginPage() {
                         /* Eye */
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          width="19"
-                          height="19"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="1.8"
                           strokeLinecap="round"
                           strokeLinejoin="round"
+                          className="size-4 sm:size-[19px]"
                         >
                           <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z" />
                           <circle cx="12" cy="12" r="3" />
@@ -392,7 +391,7 @@ export default function LoginPage() {
                   <motion.div
                     initial={{ opacity: 0, height: 0, y: -5 }}
                     animate={{ opacity: 1, height: "auto", y: 0 }}
-                    className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600"
+                    className="rounded-lg sm:rounded-xl border border-red-100 bg-red-50 px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-red-600"
                   >
                     {error}
                   </motion.div>
@@ -404,7 +403,7 @@ export default function LoginPage() {
                   disabled={loading}
                   whileHover={!loading ? { scale: 1.01 } : {}}
                   whileTap={!loading ? { scale: 0.98 } : {}}
-                  className="group relative h-12 w-full overflow-hidden rounded-xl bg-accent-gradient px-5 text-sm font-medium text-white shadow-lg shadow-[#0b4635]/15 transition-all hover:bg-[#0e5943] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                  className="group relative h-10 sm:h-12 w-full overflow-hidden rounded-lg sm:rounded-xl bg-accent-gradient px-4 sm:px-5 text-xs min-[360px]:text-sm font-medium text-white shadow-lg shadow-[#0b4635]/15 transition-all hover:bg-[#0e5943] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     {loading ? (
@@ -416,8 +415,9 @@ export default function LoginPage() {
                             repeat: Infinity,
                             ease: "linear",
                           }}
-                          className="block h-4 w-4 shrink-0 rounded-full border-2 border-white/20 border-t-white"
-                        />                        Signing in...
+                          className="block size-3.5 sm:size-4 shrink-0 rounded-full border-2 border-white/20 border-t-white"
+                        />
+                        Signing in...
                       </>
                     ) : (
                       <>
@@ -425,15 +425,13 @@ export default function LoginPage() {
 
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          width="17"
-                          height="17"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="transition-transform duration-300 group-hover:translate-x-1"
+                          className="size-3.5 sm:size-[17px] transition-transform duration-300 group-hover:translate-x-1"
                         >
                           <path d="M5 12h14" />
                           <path d="m13 6 6 6-6 6" />
@@ -444,17 +442,16 @@ export default function LoginPage() {
                 </motion.button>
 
                 {/* Security note */}
-                <div className="flex items-center justify-center gap-2 pt-2 text-xs text-gray-400">
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-1 sm:pt-2 text-[11px] sm:text-xs text-gray-400">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    className="size-3 sm:size-3.5"
                   >
                     <rect
                       width="18"

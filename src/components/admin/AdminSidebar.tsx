@@ -136,6 +136,7 @@ export default function AdminSidebar({
           text-white
           border-r border-white/10
           shadow-[20px_0_60px_-15px_rgba(11,19,48,0.55)]
+          max-w-[245px] min-[360px]:max-w-[255px] sm:max-w-[270px] lg:max-w-none
           lg:translate-x-0
           ${
             open
@@ -158,11 +159,11 @@ export default function AdminSidebar({
         {/* TOP / LOGO */}
         {/* ================================================= */}
 
-        <div className="relative flex h-[88px] shrink-0 items-center border-b border-white/10 bg-white/[0.02]">
+        <div className="relative flex h-14 sm:h-[88px] shrink-0 items-center border-b border-white/10 bg-white/[0.02]">
           {/* Logo ambient glow */}
           <div
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/25 blur-2xl"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-12 sm:h-16 w-32 sm:w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/25 blur-2xl"
           />
           {/* Logo */}
           <div
@@ -171,7 +172,7 @@ export default function AdminSidebar({
               transition-all duration-300
               ${
                 expanded
-                  ? "justify-start px-7 pb-3"
+                  ? "justify-start px-4 sm:px-7 pb-1 sm:pb-3"
                   : "justify-center"
               }
             `}
@@ -192,7 +193,7 @@ export default function AdminSidebar({
                 src="/images/ayadi-logo-white.png"
                 alt="Ayadi Cloudversity"
                 className={`
-                  w-36 object-contain
+                  w-28 min-[360px]:w-32 sm:w-36 object-contain
                   drop-shadow-[0_2px_14px_rgba(0,0,0,0.45)]
                   brightness-110 contrast-105
                   ${
@@ -212,9 +213,9 @@ export default function AdminSidebar({
                 }}
                 transition={{ duration: 0.2 }}
                 className={`
-                  flex h-11 w-11
+                  flex h-9 w-9 sm:h-11 sm:w-11
                   items-center justify-center
-                  rounded-xl
+                  rounded-lg sm:rounded-xl
                   bg-white/10
                   ring-1 ring-white/15
                   backdrop-blur
@@ -229,7 +230,7 @@ export default function AdminSidebar({
                 <img
                   src="/images/ayadi-mark.png"
                   alt="Ayadi"
-                  className="h-8 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] brightness-110"
+                  className="h-6 sm:h-8 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] brightness-110"
                 />
               </motion.div>
             </Link>
@@ -276,16 +277,18 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close sidebar"
             className="
-              absolute right-4
-              rounded-lg p-2
+              absolute right-2.5 sm:right-4
+              rounded-lg p-1.5 sm:p-2
               text-white/60
               hover:bg-white/10
               hover:text-white
+              transition-colors
               lg:hidden
             "
           >
-            <X size={20} />
+            <X className="size-[18px] sm:size-5" />
           </button>
         </div>
 
@@ -293,7 +296,7 @@ export default function AdminSidebar({
         {/* NAVIGATION */}
         {/* ================================================= */}
 
-        <nav className="admin-sidebar-nav relative flex-1 overflow-y-auto px-3 py-7">
+        <nav className="admin-sidebar-nav relative flex-1 overflow-y-auto px-2 min-[360px]:px-2.5 sm:px-3 py-2.5 min-[360px]:py-3 sm:py-7">
           {/* Workspace */}
           <motion.div
             initial={false}
@@ -303,15 +306,15 @@ export default function AdminSidebar({
               marginBottom: expanded ? 12 : 0,
             }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden px-3"
+            className="overflow-hidden px-2 sm:px-3"
           >
-            <p className="flex items-center gap-3 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45 after:h-px after:flex-1 after:bg-white/10">
+            <p className="flex items-center gap-2 sm:gap-3 whitespace-nowrap text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em] text-white/45 after:h-px after:flex-1 after:bg-white/10">
               Workspace
             </p>
           </motion.div>
 
           {/* Navigation items */}
-          <div className="space-y-1.5">
+          <div className="space-y-1 sm:space-y-1.5">
             {navigation.map((item) => {
               const Icon = item.icon;
 
@@ -327,12 +330,12 @@ export default function AdminSidebar({
                   onClick={onClose}
                   title={!expanded ? item.label : undefined}
                   className={`
-                    group relative flex h-11 items-center
-                    rounded-xl text-sm
+                    group relative flex h-9 min-[360px]:h-10 sm:h-11 items-center
+                    rounded-lg sm:rounded-xl text-xs min-[360px]:text-[13px] sm:text-sm
                     transition-all duration-200
                     ${
                       expanded
-                        ? "justify-between px-3.5"
+                        ? "justify-between px-2.5 sm:px-3.5"
                         : "justify-center px-0"
                     }
                     ${
@@ -346,7 +349,7 @@ export default function AdminSidebar({
                     (expanded ? (
                       <span
                         aria-hidden
-                        className="absolute left-[-12px] top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+                        className="absolute -left-2 sm:-left-3 top-1/2 h-4 sm:h-6 w-0.5 sm:w-1 -translate-y-1/2 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]"
                       />
                     ) : (
                       <span
@@ -359,14 +362,14 @@ export default function AdminSidebar({
                       flex items-center
                       ${
                         expanded
-                          ? "gap-3"
+                          ? "gap-2 sm:gap-3"
                           : "justify-center"
                       }
                     `}
                   >
                     <span
                       className={`
-                        flex h-8 w-8 items-center justify-center rounded-lg transition-all
+                        flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md sm:rounded-lg transition-all
                         ${
                           active
                             ? "bg-white/20 ring-1 ring-white/25"
@@ -375,9 +378,8 @@ export default function AdminSidebar({
                       `}
                     >
                       <Icon
-                        size={18}
                         strokeWidth={active ? 2 : 1.8}
-                        className={`shrink-0 ${active ? "drop-shadow-[0_1px_6px_rgba(0,0,0,0.4)]" : ""}`}
+                        className={`size-3.5 min-[360px]:size-4 sm:size-[18px] shrink-0 ${active ? "drop-shadow-[0_1px_6px_rgba(0,0,0,0.4)]" : ""}`}
                       />
                     </span>
 
@@ -401,8 +403,8 @@ export default function AdminSidebar({
                   {item.label === "Courses" &&
                     expanded && (
                       <ChevronRight
-                        size={15}
                         className="
+                          size-3.5 sm:size-[15px]
                           shrink-0
                           text-white/30
                           transition-transform
@@ -420,30 +422,29 @@ export default function AdminSidebar({
         {/* BOTTOM */}
         {/* ================================================= */}
 
-        <div className="relative shrink-0 border-t border-white/10 bg-black/20 p-3 backdrop-blur">
+        <div className="relative shrink-0 border-t border-white/10 bg-black/20 p-2 min-[360px]:p-2.5 sm:p-3 backdrop-blur">
           {/* Settings */}
           <Link
             href="/admin/settings"
             onClick={onClose}
             title={!expanded ? "Settings" : undefined}
             className={`
-              flex h-11 items-center
-              rounded-xl text-sm
+              flex h-9 min-[360px]:h-10 sm:h-11 items-center
+              rounded-lg sm:rounded-xl text-xs min-[360px]:text-[13px] sm:text-sm
               text-white/60
               transition-all duration-200
               hover:bg-white/[0.07]
               hover:text-white
               ${
                 expanded
-                  ? "gap-3 px-3.5"
+                  ? "gap-2 sm:gap-3 px-2.5 sm:px-3.5"
                   : "justify-center px-0"
               }
             `}
           >
             <Settings
-              size={19}
               strokeWidth={1.8}
-              className="shrink-0"
+              className="size-4 sm:size-[19px] shrink-0"
             />
 
             <motion.span
@@ -468,24 +469,23 @@ export default function AdminSidebar({
             onClick={() => setLogoutOpen(true)}
             title={!expanded ? "Logout" : undefined}
             className={`
-              mt-1 flex h-11 w-full
+              mt-0.5 sm:mt-1 flex h-9 min-[360px]:h-10 sm:h-11 w-full
               items-center
-              rounded-xl
-              text-sm text-white/60
+              rounded-lg sm:rounded-xl
+              text-xs min-[360px]:text-[13px] sm:text-sm text-white/60
               transition-all duration-200
               hover:bg-rose-500/15
               hover:text-rose-200
               ${
                 expanded
-                  ? "gap-3 px-3.5"
+                  ? "gap-2 sm:gap-3 px-2.5 sm:px-3.5"
                   : "justify-center px-0"
               }
             `}
           >
             <LogOut
-              size={19}
               strokeWidth={1.8}
-              className="shrink-0"
+              className="size-4 sm:size-[19px] shrink-0"
             />
 
             <motion.span
@@ -505,7 +505,7 @@ export default function AdminSidebar({
           </button>
 
           {expanded && (
-            <p className="mt-3 flex items-center justify-center gap-1.5 px-3 text-[10px] font-medium uppercase tracking-[0.18em] text-white/30">
+            <p className="mt-1.5 sm:mt-3 flex items-center justify-center gap-1.5 px-2 sm:px-3 text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.15em] sm:tracking-[0.18em] text-white/30">
               <span className="h-1 w-1 rounded-full bg-emerald-400/70 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
               Premium Admin • v1.0
             </p>

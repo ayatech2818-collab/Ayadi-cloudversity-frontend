@@ -60,7 +60,7 @@ export function CourseCategoryNav({
         initial={reduceMotion ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: EASE, delay: 0.15 }}
-        className="relative mx-auto max-w-[1180px] overflow-hidden rounded-2xl bg-surface/90 shadow-[0_18px_40px_-28px_rgba(20,29,63,0.45)] backdrop-blur-sm after:pointer-events-none after:absolute after:inset-0 after:rounded-2xl after:ring-1 after:ring-inset after:ring-border"
+        className="relative mx-auto max-w-[1180px] overflow-hidden max-sm:rounded-xl rounded-2xl bg-surface/90 shadow-[0_18px_40px_-28px_rgba(20,29,63,0.45)] backdrop-blur-sm after:pointer-events-none after:absolute after:inset-0 after:max-sm:rounded-xl after:rounded-2xl after:ring-1 after:ring-inset after:ring-border"
       >
         <motion.div
           ref={row}
@@ -127,7 +127,7 @@ function CategoryTab({
       onClick={onSelect}
       /* The outline is drawn inside the tab: outside it, the bar's rounded
          clip would cut it off. */
-      className={`relative flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-xl px-2.5 py-2 text-xs font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:-outline-offset-2 sm:px-4 sm:py-3 sm:text-[13px] ${
+      className={`relative flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap max-sm:rounded-lg rounded-xl px-2.5 py-1.5 text-[11px] sm:px-4 sm:py-3 sm:text-[13px] font-bold transition-colors duration-300 focus-visible:outline-2 focus-visible:-outline-offset-2 ${
         grow ? 'lg:flex-1' : ''
       } ${
         isActive
@@ -139,12 +139,12 @@ function CategoryTab({
         <motion.span
           layoutId={slidePill ? 'category-tab-pill' : undefined}
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-          className="absolute inset-0 rounded-xl bg-accent-gradient shadow-lg shadow-accent/25"
+          className="absolute inset-0 max-sm:rounded-lg rounded-xl bg-accent-gradient shadow-lg shadow-accent/25"
         />
       ) : null}
 
       <span className="relative flex items-center gap-1.5 sm:gap-2">
-        <Icon aria-hidden="true" size={15} strokeWidth={2} className="sm:size-4" />
+        <Icon aria-hidden="true" size={13} strokeWidth={2} className="sm:size-4" />
 
         {label}
 

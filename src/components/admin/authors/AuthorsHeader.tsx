@@ -56,18 +56,18 @@ export default function AuthorsHeader({
       <button
         type="button"
         onClick={onRestore}
-        className={buttonClass("glass")}
+        className={`${buttonClass("glass", "sm")} h-8 px-2.5 text-xs min-[360px]:h-8.5 min-[360px]:px-3 sm:h-10 sm:px-4 sm:text-sm`}
       >
-        <RotateCcw size={16} />
+        <RotateCcw className="h-3.5 w-3.5 min-[360px]:h-4 min-[360px]:w-4" />
         Restore Author
       </button>
 
       <button
         type="button"
         onClick={onAdd}
-        className={buttonClass("primary")}
+        className={`${buttonClass("primary", "sm")} h-8 px-2.5 text-xs min-[360px]:h-8.5 min-[360px]:px-3 sm:h-10 sm:px-4 sm:text-sm`}
       >
-        <Plus size={17} strokeWidth={2.4} />
+        <Plus className="h-4 w-4 min-[360px]:h-[17px] min-[360px]:w-[17px]" strokeWidth={2.4} />
         Add Author
       </button>
     </PageHeader>

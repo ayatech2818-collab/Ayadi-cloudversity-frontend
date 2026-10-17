@@ -29,7 +29,8 @@ const RANGES: { value: string; label: string; days: AnalyticsRange }[] = [
   { value: "90", label: "90 Days", days: 90 },
 ];
 
-const BODY = "px-5 pb-5 pt-5 sm:px-6 sm:pb-6";
+const BODY =
+  "px-3.5 pb-3.5 pt-3.5 min-[360px]:px-4 min-[360px]:pb-4 min-[360px]:pt-4 sm:px-6 sm:pb-6 sm:pt-5";
 
 interface EnquiryAnalyticsProps {
   range: AnalyticsRange;
@@ -66,8 +67,9 @@ export default function EnquiryAnalytics({
       title="Enquiries Analytics"
       description="Enquiries received per day, by website form"
       action={
-        <div className="flex max-w-full flex-wrap items-center gap-2">
+        <div className="flex max-w-full flex-wrap items-center gap-1.5 sm:gap-2">
           <SegmentedTabs
+            size="sm"
             label="Time range"
             options={RANGES}
             value={String(range)}
@@ -86,9 +88,9 @@ export default function EnquiryAnalytics({
             disabled={Boolean(error) || !analytics}
             aria-label={viewLabel}
             title={viewLabel}
-            className={iconButtonClass()}
+            className={`${iconButtonClass()} h-8 w-8 min-[360px]:h-8.5 min-[360px]:w-8.5 sm:h-9 sm:w-9`}
           >
-            <ViewIcon size={16} />
+            <ViewIcon className="h-3.5 w-3.5 min-[360px]:h-4 min-[360px]:w-4" />
           </button>
         </div>
       }
@@ -112,13 +114,17 @@ export default function EnquiryAnalytics({
       ) : !analytics ? (
         // First load: the totals and the plot, as blanks of the same size.
         <div aria-hidden="true" className={BODY}>
-          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-            <span className={`block h-[30px] w-44 ${PULSE}`} />
-            <span className={`block h-4 w-48 ${PULSE}`} />
+          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 sm:gap-x-6 sm:gap-y-3">
+            <span
+              className={`block h-6 w-32 min-[360px]:h-[30px] min-[360px]:w-44 ${PULSE}`}
+            />
+            <span
+              className={`block h-3.5 w-36 min-[360px]:h-4 min-[360px]:w-48 ${PULSE}`}
+            />
           </div>
 
           <div
-            className={`mt-6 h-[232px] rounded-xl sm:h-[264px] ${PULSE}`}
+            className={`mt-4 h-[170px] rounded-xl min-[360px]:h-[190px] sm:mt-6 sm:h-[264px] ${PULSE}`}
           />
         </div>
       ) : (
@@ -128,15 +134,15 @@ export default function EnquiryAnalytics({
             loading ? "opacity-50" : ""
           }`}
         >
-          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-            <p className="flex items-baseline gap-2">
+          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 sm:gap-x-6 sm:gap-y-3">
+            <p className="flex items-baseline gap-1.5 min-[360px]:gap-2">
               <span
-                className={`text-3xl font-bold leading-none tracking-[-0.03em] ${INK}`}
+                className={`text-2xl font-bold leading-none tracking-[-0.02em] min-[360px]:text-3xl sm:tracking-[-0.03em] ${INK}`}
               >
                 {analytics.total.toLocaleString("en-IN")}
               </span>
 
-              <span className="text-xs text-muted">
+              <span className="text-[11px] text-muted min-[360px]:text-xs">
                 enquiries in the last {analytics.days} days
               </span>
 
@@ -150,13 +156,16 @@ export default function EnquiryAnalytics({
               )}
             </p>
 
-            <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs">
+            <ul className="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[11px] min-[360px]:gap-x-5 min-[360px]:gap-y-1.5 min-[360px]:text-xs">
               {SERIES.map((series) => (
-                <li key={series.key} className="flex items-center gap-2">
+                <li
+                  key={series.key}
+                  className="flex items-center gap-1.5 min-[360px]:gap-2"
+                >
                   <span
                     aria-hidden="true"
                     style={{ backgroundColor: series.color }}
-                    className="h-0.5 w-4 rounded-full"
+                    className="h-0.5 w-3 rounded-full min-[360px]:w-4"
                   />
                   <span className="text-muted">{series.label}</span>
                   <span className="font-bold tabular-nums text-text">
@@ -167,7 +176,7 @@ export default function EnquiryAnalytics({
             </ul>
           </div>
 
-          <div className="pt-6">
+          <div className="pt-4 sm:pt-6">
             {asTable ? (
               <EnquiryActivityTable points={analytics.data} />
             ) : (

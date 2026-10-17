@@ -59,25 +59,25 @@ export default function ContentOverview({
     >
       <dl
         aria-busy={summary === null}
-        className="grid flex-1 auto-rows-fr grid-cols-2 gap-2.5 px-5 pb-5 pt-5 sm:px-6 sm:pb-6 md:grid-cols-4 xl:grid-cols-2"
+        className="grid flex-1 auto-rows-fr grid-cols-2 gap-2 px-3.5 pb-3.5 pt-3.5 min-[360px]:gap-2.5 min-[360px]:px-4 min-[360px]:pb-4 min-[360px]:pt-4 sm:px-6 sm:pb-6 sm:pt-5 md:grid-cols-4 xl:grid-cols-2"
       >
         {ITEMS.map(({ label, icon: Icon, value }) => (
           <div
             key={label}
-            className="flex flex-col justify-center rounded-xl bg-page/70 p-3 ring-1 ring-inset ring-border"
+            className="flex flex-col justify-center rounded-lg bg-page/70 p-2 ring-1 ring-inset ring-border min-[360px]:rounded-xl min-[360px]:p-2.5 sm:p-3"
           >
-            <dt className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
-              <Icon size={13} className="shrink-0 text-primary" />
+            <dt className="flex items-center gap-1.5 text-[10px] font-medium text-muted min-[360px]:text-[11px]">
+              <Icon className="h-3 w-3 shrink-0 text-primary min-[360px]:h-[13px] min-[360px]:w-[13px]" />
               <span className="truncate">{label}</span>
             </dt>
 
             <dd
-              className={`mt-2 text-xl font-bold leading-none tracking-[-0.02em] ${INK}`}
+              className={`mt-1.5 text-base font-bold leading-none tracking-[-0.02em] min-[360px]:mt-2 min-[360px]:text-lg sm:text-xl ${INK}`}
             >
               {summary ? (
                 value(summary).toLocaleString("en-IN")
               ) : (
-                <span className={`block h-5 w-10 ${PULSE}`} />
+                <span className={`block h-4 w-8 min-[360px]:h-5 min-[360px]:w-10 ${PULSE}`} />
               )}
             </dd>
           </div>

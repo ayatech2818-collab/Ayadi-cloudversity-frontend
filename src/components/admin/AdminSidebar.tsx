@@ -159,20 +159,44 @@ export default function AdminSidebar({
         {/* TOP / LOGO */}
         {/* ================================================= */}
 
-        <div className="relative flex h-14 sm:h-[88px] shrink-0 items-center border-b border-white/10 bg-white/[0.02]">
+        <div className="relative flex h-16 shrink-0 items-center px-4 lg:h-[88px] lg:px-0">
           {/* Logo ambient glow */}
           <div
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-1/2 h-12 sm:h-16 w-32 sm:w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/25 blur-2xl"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-12 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/25 blur-2xl lg:h-16 lg:w-40"
           />
-          {/* Logo */}
+
+          {/* Mobile Logo & Close row (< lg) */}
+          <div className="flex w-full items-center justify-between lg:hidden">
+            <Link
+              href="/admin"
+              onClick={onClose}
+              className="flex shrink-0 items-center"
+            >
+              <img
+                src="/images/ayadi-logo-white.png"
+                alt="Ayadi Cloudversity"
+                className="h-10 min-[360px]:h-11 w-auto max-w-[135px] min-[360px]:max-w-[150px] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] brightness-110 contrast-105"
+              />
+            </Link>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close sidebar"
+              className="flex size-9 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white active:scale-95"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          {/* Desktop Logo (animated expand/collapse, >= lg) */}
           <div
             className={`
-              flex w-full items-center
-              transition-all duration-300
+              hidden w-full items-center transition-all duration-300 lg:flex
               ${
                 expanded
-                  ? "justify-start px-4 sm:px-7 pb-1 sm:pb-3"
+                  ? "justify-start px-7 pb-3"
                   : "justify-center"
               }
             `}
@@ -193,7 +217,7 @@ export default function AdminSidebar({
                 src="/images/ayadi-logo-white.png"
                 alt="Ayadi Cloudversity"
                 className={`
-                  w-28 min-[360px]:w-32 sm:w-36 object-contain
+                  w-36 object-contain
                   drop-shadow-[0_2px_14px_rgba(0,0,0,0.45)]
                   brightness-110 contrast-105
                   ${
@@ -213,9 +237,9 @@ export default function AdminSidebar({
                 }}
                 transition={{ duration: 0.2 }}
                 className={`
-                  flex h-9 w-9 sm:h-11 sm:w-11
+                  flex h-11 w-11
                   items-center justify-center
-                  rounded-lg sm:rounded-xl
+                  rounded-xl
                   bg-white/10
                   ring-1 ring-white/15
                   backdrop-blur
@@ -230,13 +254,13 @@ export default function AdminSidebar({
                 <img
                   src="/images/ayadi-mark.png"
                   alt="Ayadi"
-                  className="h-6 sm:h-8 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] brightness-110"
+                  className="h-8 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] brightness-110"
                 />
               </motion.div>
             </Link>
           </div>
 
-          {/* Pin button */}
+          {/* Pin button (desktop only) */}
           {expanded && (
             <button
               type="button"
@@ -272,24 +296,6 @@ export default function AdminSidebar({
               )}
             </button>
           )}
-
-          {/* Mobile close */}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close sidebar"
-            className="
-              absolute right-2.5 sm:right-4
-              rounded-lg p-1.5 sm:p-2
-              text-white/60
-              hover:bg-white/10
-              hover:text-white
-              transition-colors
-              lg:hidden
-            "
-          >
-            <X className="size-[18px] sm:size-5" />
-          </button>
         </div>
 
         {/* ================================================= */}
@@ -422,30 +428,34 @@ export default function AdminSidebar({
         {/* BOTTOM */}
         {/* ================================================= */}
 
-        <div className="relative shrink-0 border-t border-white/10 bg-black/20 p-2 min-[360px]:p-2.5 sm:p-3 backdrop-blur">
+        <div className="relative shrink-0 border-t border-white/[0.08] bg-black/10 px-3 pt-2.5 pb-[max(1.125rem,env(safe-area-inset-bottom))] backdrop-blur lg:border-white/10 lg:bg-black/20 lg:p-3">
           {/* Settings */}
-          <Link
+          
+          {/* <Link
             href="/admin/settings"
             onClick={onClose}
             title={!expanded ? "Settings" : undefined}
             className={`
-              flex h-9 min-[360px]:h-10 sm:h-11 items-center
-              rounded-lg sm:rounded-xl text-xs min-[360px]:text-[13px] sm:text-sm
-              text-white/60
+              flex h-10 items-center
+              rounded-lg text-xs font-medium
+              text-white/70
               transition-all duration-200
-              hover:bg-white/[0.07]
+              hover:bg-white/[0.08]
               hover:text-white
+              lg:h-11 lg:rounded-xl lg:text-sm lg:font-normal lg:text-white/60
               ${
                 expanded
-                  ? "gap-2 sm:gap-3 px-2.5 sm:px-3.5"
+                  ? "gap-2.5 px-3 lg:gap-3 lg:px-3.5"
                   : "justify-center px-0"
               }
             `}
           >
             <Settings
               strokeWidth={1.8}
-              className="size-4 sm:size-[19px] shrink-0"
+              className="size-[18px] shrink-0 lg:size-[19px]"
             />
+
+            <span className="font-medium lg:hidden">Settings</span>
 
             <motion.span
               initial={false}
@@ -455,13 +465,15 @@ export default function AdminSidebar({
               }}
               transition={{ duration: 0.18 }}
               className="
+                hidden
                 overflow-hidden
                 whitespace-nowrap
+                lg:inline-block
               "
             >
               Settings
             </motion.span>
-          </Link>
+          </Link> */}
 
           {/* Logout */}
           <button
@@ -469,24 +481,24 @@ export default function AdminSidebar({
             onClick={() => setLogoutOpen(true)}
             title={!expanded ? "Logout" : undefined}
             className={`
-              mt-0.5 sm:mt-1 flex h-9 min-[360px]:h-10 sm:h-11 w-full
-              items-center
-              rounded-lg sm:rounded-xl
-              text-xs min-[360px]:text-[13px] sm:text-sm text-white/60
+              mt-1 flex h-10 w-full items-center
+              rounded-lg text-xs font-medium text-white/70
               transition-all duration-200
-              hover:bg-rose-500/15
-              hover:text-rose-200
+              hover:bg-rose-500/15 hover:text-rose-200
+              lg:h-11 lg:rounded-xl lg:text-sm lg:font-normal lg:text-white/60
               ${
                 expanded
-                  ? "gap-2 sm:gap-3 px-2.5 sm:px-3.5"
+                  ? "gap-2.5 px-3 lg:gap-3 lg:px-3.5"
                   : "justify-center px-0"
               }
             `}
           >
             <LogOut
               strokeWidth={1.8}
-              className="size-4 sm:size-[19px] shrink-0"
+              className="size-[18px] shrink-0 lg:size-[19px]"
             />
+
+            <span className="font-medium lg:hidden">Logout</span>
 
             <motion.span
               initial={false}
@@ -496,20 +508,15 @@ export default function AdminSidebar({
               }}
               transition={{ duration: 0.18 }}
               className="
+                hidden
                 overflow-hidden
                 whitespace-nowrap
+                lg:inline-block
               "
             >
               Logout
             </motion.span>
           </button>
-
-          {expanded && (
-            <p className="mt-1.5 sm:mt-3 flex items-center justify-center gap-1.5 px-2 sm:px-3 text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.15em] sm:tracking-[0.18em] text-white/30">
-              <span className="h-1 w-1 rounded-full bg-emerald-400/70 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
-              Premium Admin • v1.0
-            </p>
-          )}
         </div>
       </motion.aside>
 

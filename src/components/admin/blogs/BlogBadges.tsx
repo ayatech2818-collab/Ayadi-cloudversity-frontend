@@ -17,15 +17,15 @@ export default function BlogBadges({
   compact = false,
 }: BlogBadgesProps) {
   return (
-    <span className="flex items-center gap-1.5">
+    <span className="flex items-center gap-1 sm:gap-1.5">
       <StatusBadge published={blog.status === "published"} />
 
       {blog.is_featured && (
         <span
           title="Featured"
-          className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-[11px] font-semibold text-white shadow-sm"
+          className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm min-[360px]:gap-1 min-[360px]:px-2 min-[360px]:text-[10px] sm:px-2 sm:py-1 sm:text-[11px]"
         >
-          <Star size={11} className="fill-current" />
+          <Star className="size-2.5 fill-current min-[360px]:size-3 sm:size-[11px]" />
           <span className={compact ? "sr-only" : undefined}>
             Featured
           </span>

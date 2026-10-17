@@ -40,28 +40,24 @@ export default function LogoutDialog({
       open={open}
       id="logout-dialog-title"
       title="Logout from admin?"
-      description={
-        <>
-          Are you sure you want to logout from the admin panel?
-          You will need to sign in again to access your dashboard.
-        </>
-      }
+      description="Are you sure you want to logout from the admin panel? You will need to sign in again to access your dashboard."
       loading={loading}
       confirmLabel="Logout"
+      confirmIcon={LogOut}
       onCancel={onCancel}
       onConfirm={handleLogout}
     >
-      <div className="flex items-center gap-3 rounded-xl border border-border bg-page p-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
-          <LogOut className="h-5 w-5" />
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-page p-2.5 min-[360px]:gap-2.5 min-[360px]:p-3 sm:gap-3 sm:p-4">
+        <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500 min-[360px]:h-8 min-[360px]:w-8 sm:h-10 sm:w-10">
+          <LogOut className="h-3.5 w-3.5 min-[360px]:h-4 min-[360px]:w-4 sm:h-5 sm:w-5" />
         </div>
 
-        <div>
-          <p className="text-sm font-medium text-text">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-semibold text-text min-[360px]:text-[13px] sm:text-sm sm:font-medium">
             Sign out of Ayadi Admin
           </p>
 
-          <p className="mt-0.5 text-xs text-muted">
+          <p className="truncate text-[10px] text-muted min-[360px]:text-[11px] sm:mt-0.5 sm:text-xs">
             Your current admin session will be ended.
           </p>
         </div>

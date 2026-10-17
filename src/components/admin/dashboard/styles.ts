@@ -5,7 +5,7 @@
 
 /** The dashboard's surface: white on the light page, a step above the navy one. */
 export const CARD =
-  "rounded-2xl bg-surface shadow-[0_2px_8px_rgba(15,23,42,0.04)] ring-1 ring-border";
+  "rounded-xl sm:rounded-2xl bg-surface shadow-[0_2px_8px_rgba(15,23,42,0.04)] ring-1 ring-border";
 
 /** For a card that is itself a target: a small lift and the brand's green glow. */
 export const CARD_LIFT =

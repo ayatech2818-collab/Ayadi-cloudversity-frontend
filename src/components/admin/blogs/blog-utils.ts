@@ -4,7 +4,7 @@
 
 /** Shared by the grid and its skeleton so nothing jumps when data lands. */
 export const BLOGS_GRID =
-  "grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4";
+  "grid grid-cols-2 gap-2 min-[360px]:gap-2.5 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4";
 
 // =========================================================
 // FILTERS

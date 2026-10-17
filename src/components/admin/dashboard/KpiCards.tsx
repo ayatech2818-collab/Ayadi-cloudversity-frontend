@@ -89,47 +89,47 @@ export default function KpiCards({ summary }: KpiCardsProps) {
     <section
       aria-label="Key figures"
       aria-busy={summary === null}
-      className="grid grid-cols-2 gap-3 sm:grid-cols-6 sm:gap-4 xl:grid-cols-5"
+      className="grid grid-cols-2 gap-2 min-[360px]:gap-2.5 sm:grid-cols-6 sm:gap-4 xl:grid-cols-5"
     >
       {KPIS.map(({ id, label, icon: Icon, value, note }, index) => (
         <article
           key={id}
-          className={`group relative flex flex-col overflow-hidden p-4 sm:p-5 xl:col-span-1 ${CARD} ${CARD_LIFT} ${SPANS[index]}`}
+          className={`group relative flex flex-col overflow-hidden p-3 min-[360px]:p-3.5 sm:p-5 xl:col-span-1 ${CARD} ${CARD_LIFT} ${SPANS[index]}`}
         >
           <span
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-brand-gradient transition-transform duration-500 group-hover:scale-x-100"
           />
 
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Icon size={19} />
+          <span className="flex h-8 w-8 min-[360px]:h-9 min-[360px]:w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg min-[360px]:rounded-xl bg-primary/10 text-primary">
+            <Icon className="h-4 w-4 min-[360px]:h-[18px] min-[360px]:w-[18px] sm:h-[19px] sm:w-[19px]" />
           </span>
 
           {summary ? (
             <p
-              className={`mt-4 text-[28px] font-bold leading-none tracking-[-0.03em] sm:text-3xl ${INK}`}
+              className={`mt-2.5 min-[360px]:mt-3 sm:mt-4 text-xl min-[360px]:text-2xl sm:text-3xl font-bold leading-none tracking-[-0.02em] sm:tracking-[-0.03em] ${INK}`}
             >
               {value(summary).toLocaleString("en-IN")}
             </p>
           ) : (
             <span
               aria-hidden="true"
-              className={`mt-4 block h-7 w-16 sm:h-[30px] ${PULSE}`}
+              className={`mt-2.5 min-[360px]:mt-3 sm:mt-4 block h-5 w-14 min-[360px]:h-6 min-[360px]:w-16 sm:h-[30px] sm:w-16 ${PULSE}`}
             />
           )}
 
-          <h2 className="mt-2 text-sm font-semibold text-text">
+          <h2 className="mt-1.5 min-[360px]:mt-2 truncate text-xs font-semibold text-text min-[360px]:text-sm">
             {label}
           </h2>
 
           {summary ? (
-            <p className="mt-0.5 text-[11px] text-muted">
+            <p className="mt-0.5 truncate text-[10px] text-muted min-[360px]:text-[11px]">
               {note(summary)}
             </p>
           ) : (
             <span
               aria-hidden="true"
-              className={`mt-1.5 block h-3 w-24 ${PULSE}`}
+              className={`mt-1 min-[360px]:mt-1.5 block h-2.5 w-16 min-[360px]:h-3 min-[360px]:w-24 ${PULSE}`}
             />
           )}
         </article>

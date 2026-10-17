@@ -9,7 +9,8 @@ import { INK, PULSE } from "./styles";
 const RADIUS = 42;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-const ROW = "flex items-center justify-between gap-3 text-sm";
+const ROW =
+  "flex items-center justify-between gap-2 min-[360px]:gap-3 text-xs min-[360px]:text-sm";
 const SWATCH = "h-2.5 w-2.5 shrink-0 rounded-[3px]";
 const BLANK = `block h-4 w-7 ${PULSE}`;
 
@@ -40,7 +41,7 @@ export default function CourseOverview({
     >
       <div
         aria-busy={courses === null}
-        className="flex flex-1 items-center gap-5 px-5 pb-5 pt-5 sm:px-6 sm:pb-6"
+        className="flex flex-1 items-center gap-3.5 px-3.5 pb-3.5 pt-3.5 min-[360px]:gap-5 min-[360px]:px-4 min-[360px]:pb-4 min-[360px]:pt-4 sm:px-6 sm:pb-6 sm:pt-5"
       >
         <div
           role="img"
@@ -49,7 +50,7 @@ export default function CourseOverview({
               ? `${courses.published} of ${courses.total} courses are published`
               : "Loading course figures"
           }
-          className="relative h-24 w-24 shrink-0"
+          className="relative h-20 w-20 shrink-0 min-[360px]:h-24 min-[360px]:w-24"
         >
           <svg
             aria-hidden="true"
@@ -83,7 +84,9 @@ export default function CourseOverview({
 
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             {courses ? (
-              <span className={`text-lg font-bold leading-none ${INK}`}>
+              <span
+                className={`text-base font-bold leading-none min-[360px]:text-lg ${INK}`}
+              >
                 {Math.round(share * 100)}%
               </span>
             ) : (
@@ -96,16 +99,18 @@ export default function CourseOverview({
           </div>
         </div>
 
-        <dl className="min-w-0 flex-1 space-y-2.5">
-          <div className={`${ROW} border-b border-border pb-2.5`}>
+        <dl className="min-w-0 flex-1 space-y-2 sm:space-y-2.5">
+          <div className={`${ROW} border-b border-border pb-2 min-[360px]:pb-2.5`}>
             <dt className="text-muted">Total Courses</dt>
-            <dd className={`text-lg font-bold leading-none ${INK}`}>
+            <dd
+              className={`text-base font-bold leading-none min-[360px]:text-lg ${INK}`}
+            >
               {courses ? courses.total : <span className={BLANK} />}
             </dd>
           </div>
 
           <div className={ROW}>
-            <dt className="flex items-center gap-2 text-muted">
+            <dt className="flex items-center gap-1.5 text-muted min-[360px]:gap-2">
               <span
                 aria-hidden="true"
                 style={{ backgroundColor: "var(--series-1)" }}
@@ -119,7 +124,7 @@ export default function CourseOverview({
           </div>
 
           <div className={ROW}>
-            <dt className="flex items-center gap-2 text-muted">
+            <dt className="flex items-center gap-1.5 text-muted min-[360px]:gap-2">
               <span
                 aria-hidden="true"
                 style={{ backgroundColor: "var(--series-1)" }}

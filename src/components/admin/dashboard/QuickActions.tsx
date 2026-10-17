@@ -54,35 +54,32 @@ export default function QuickActions() {
     <section aria-labelledby="quick-actions-title">
       <h2
         id="quick-actions-title"
-        className={`px-1 text-base font-bold tracking-[-0.01em] ${INK}`}
+        className={`px-1 text-sm font-bold tracking-[-0.01em] min-[360px]:text-base ${INK}`}
       >
         Quick Actions
       </h2>
 
-      <ul className="mt-3 grid grid-cols-2 gap-3">
+      <ul className="mt-2 grid grid-cols-2 gap-2 min-[360px]:mt-3 min-[360px]:gap-2.5 sm:gap-3">
         {ACTIONS.map(({ label, hint, href, icon: Icon }) => (
           <li key={label}>
             <Link
               href={href}
-              className={`group flex h-full flex-col gap-3 p-3.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${CARD} ${CARD_LIFT}`}
+              className={`group flex h-full flex-col gap-2 p-2.5 min-[360px]:gap-2.5 min-[360px]:p-3 sm:gap-3 sm:p-3.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${CARD} ${CARD_LIFT}`}
             >
               <span className="flex items-start justify-between">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon size={19} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary min-[360px]:h-9 min-[360px]:w-9 min-[360px]:rounded-xl sm:h-10 sm:w-10">
+                  <Icon className="h-4 w-4 min-[360px]:h-[18px] min-[360px]:w-[18px] sm:h-[19px] sm:w-[19px]" />
                 </span>
 
-                <ArrowUpRight
-                  size={15}
-                  className="text-muted/60 transition-[translate,color] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
-                />
+                <ArrowUpRight className="h-3.5 w-3.5 text-muted/60 transition-[translate,color] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary min-[360px]:h-[15px] min-[360px]:w-[15px]" />
               </span>
 
               <span>
-                <span className="block text-sm font-semibold text-text">
+                <span className="block truncate text-xs font-semibold text-text min-[360px]:text-sm">
                   {label}
                 </span>
 
-                <span className="mt-0.5 block text-[11px] text-muted">
+                <span className="mt-0.5 block truncate text-[10px] text-muted min-[360px]:text-[11px]">
                   {hint}
                 </span>
               </span>

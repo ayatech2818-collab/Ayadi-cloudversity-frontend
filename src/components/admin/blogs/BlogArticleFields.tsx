@@ -50,7 +50,7 @@ export default function BlogArticleFields({
           placeholder="e.g. Next-Generation Cloud Architecture at Scale"
           disabled={disabled}
           aria-invalid={Boolean(errors.title)}
-          className={`${inputClass(Boolean(errors.title))} h-11`}
+          className={`${inputClass(Boolean(errors.title))} h-9 text-xs min-[360px]:h-9.5 min-[360px]:text-[13px] sm:h-11 sm:text-sm`}
         />
       </Field>
 
@@ -97,7 +97,7 @@ export default function BlogArticleFields({
           placeholder="A compelling overview of what readers will learn in this article..."
           disabled={disabled}
           aria-invalid={Boolean(errors.excerpt)}
-          className={`${inputClass(Boolean(errors.excerpt))} py-3 leading-relaxed`}
+          className={`${inputClass(Boolean(errors.excerpt))} py-2 text-xs leading-relaxed min-[360px]:py-2.5 min-[360px]:text-[13px] sm:py-3 sm:text-sm`}
         />
       </Field>
 
@@ -110,7 +110,7 @@ export default function BlogArticleFields({
       >
         <textarea
           id="blog-content"
-          rows={12}
+          rows={8}
           value={values.content}
           onChange={(event) =>
             onChange("content", event.target.value)
@@ -118,7 +118,7 @@ export default function BlogArticleFields({
           placeholder="Write your article content here..."
           disabled={disabled}
           aria-invalid={Boolean(errors.content)}
-          className={`${inputClass(Boolean(errors.content))} py-3 leading-relaxed`}
+          className={`${inputClass(Boolean(errors.content))} py-2 text-xs leading-relaxed min-[360px]:py-2.5 min-[360px]:text-[13px] sm:py-3 sm:text-sm`}
         />
       </Field>
     </FormSection>

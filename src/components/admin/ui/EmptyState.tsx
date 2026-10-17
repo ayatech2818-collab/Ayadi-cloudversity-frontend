@@ -33,29 +33,29 @@ export default function EmptyState({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-surface px-6 text-center ${
-        compact ? "py-10" : "min-h-[360px] py-12"
+      className={`flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface px-4 text-center min-[360px]:rounded-3xl min-[360px]:px-6 ${
+        compact ? "py-6 sm:py-10" : "min-h-[240px] py-8 sm:min-h-[360px] sm:py-12"
       }`}
     >
       <div
-        className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${
+        className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl min-[360px]:h-12 min-[360px]:w-12 sm:mb-4 sm:h-14 sm:w-14 sm:rounded-2xl ${
           danger
             ? "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
             : "bg-brand-gradient text-white shadow-lg shadow-brand-start/30"
         }`}
       >
-        <Icon size={24} />
+        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
       </div>
 
-      <h3 className="text-base font-bold text-accent">{title}</h3>
+      <h3 className="text-sm font-bold text-accent sm:text-base">{title}</h3>
 
-      <p className="mt-1.5 max-w-sm text-sm text-muted">{text}</p>
+      <p className="mt-1 max-w-sm text-xs text-muted sm:mt-1.5 sm:text-sm">{text}</p>
 
       {action && ActionIcon && (
         <button
           type="button"
           onClick={action.onClick}
-          className={`mt-6 ${buttonClass(action.tone)}`}
+          className={`mt-4 sm:mt-6 ${buttonClass(action.tone, "sm")} sm:h-10 sm:px-4 sm:text-sm`}
         >
           <ActionIcon size={15} />
           {action.label}

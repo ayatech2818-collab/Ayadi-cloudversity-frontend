@@ -195,7 +195,7 @@ export default function AdminDashboard() {
   return (
     <MotionConfig reducedMotion="user">
       <div
-        className={`mx-auto max-w-[1500px] space-y-5 p-4 sm:space-y-6 sm:p-6 lg:p-8 ${CHART_COLORS}`}
+        className={`w-full min-w-0 space-y-3.5 p-3 min-[360px]:space-y-4 min-[360px]:p-4 sm:space-y-6 sm:p-6 lg:p-8 ${CHART_COLORS}`}
       >
         <Reveal>
           <DashboardHeader />
@@ -222,9 +222,9 @@ export default function AdminDashboard() {
 
             <Reveal
               order={2}
-              className="grid gap-5 sm:gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
+              className="grid gap-3.5 min-[360px]:gap-4 sm:gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
             >
-              <div className="flex min-w-0 flex-col gap-5 sm:gap-6">
+              <div className="flex min-w-0 flex-col gap-3.5 min-[360px]:gap-4 sm:gap-6">
                 <EnquiryAnalytics
                   range={range}
                   onRangeChange={setRange}
@@ -242,7 +242,7 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              <aside className="grid min-w-0 gap-5 sm:gap-6 md:grid-cols-2 xl:flex xl:flex-col">
+              <aside className="grid min-w-0 gap-3.5 min-[360px]:gap-4 sm:gap-6 md:grid-cols-2 xl:flex xl:flex-col">
                 <QuickActions />
                 <CourseOverview
                   courses={summary?.courses ?? null}

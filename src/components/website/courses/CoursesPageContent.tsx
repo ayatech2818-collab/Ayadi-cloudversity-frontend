@@ -80,7 +80,7 @@ export function CoursesPageContent() {
           whatever is above it by a negative margin. It sits outside the inner
           wrapper because that wrapper is what the tabs are sticky within —
           they should let go where the grid ends, not ride over the card. */}
-      <div className="pb-36 sm:pb-60 md:pb-82 lg:pb-70">
+      <div className="pb-60 sm:pb-60 md:pb-82 lg:pb-70">
         <div>
           <CourseCategoryNav
             categories={catalogue.categories}

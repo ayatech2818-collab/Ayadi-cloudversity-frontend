@@ -110,12 +110,12 @@ export default function ForgotPasswordPage() {
         />
       </div>
 
-      <div className="relative flex min-h-screen items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="relative flex min-h-screen items-center justify-center p-3 min-[360px]:p-4 sm:p-6 lg:p-8">
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: EASE }}
-          className="grid w-full max-w-6xl overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_30px_100px_rgba(20,70,50,0.12)] lg:grid-cols-[1.05fr_0.95fr]"
+          className="grid w-full max-w-6xl overflow-hidden rounded-2xl sm:rounded-[28px] border border-black/[0.06] bg-white shadow-[0_30px_100px_rgba(20,70,50,0.12)] lg:grid-cols-[1.05fr_0.95fr]"
         >
           {/* LEFT BRAND PANEL */}
           <motion.section
@@ -263,7 +263,7 @@ export default function ForgotPasswordPage() {
             initial={{ opacity: 0, x: 35 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
-            className="flex min-h-[650px] items-center justify-center px-6 py-12 sm:px-10 lg:px-12 xl:px-16"
+            className="flex min-h-0 lg:min-h-[650px] items-center justify-center px-4 py-6 min-[360px]:px-6 min-[360px]:py-8 sm:px-10 sm:py-12 lg:px-12 xl:px-16"
           >
             <div className="w-full max-w-md">
               {/* Mobile logo */}
@@ -271,13 +271,13 @@ export default function ForgotPasswordPage() {
                 initial={{ opacity: 0, y: -15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="mb-10 flex justify-center lg:hidden"
+                className="mb-5 min-[360px]:mb-6 sm:mb-10 flex justify-center lg:hidden"
               >
-                <div className="rounded-2xl bg-[#0b4635] px-6 py-4">
+                <div className="rounded-xl sm:rounded-2xl bg-[#0b4635] px-4 py-2.5 min-[360px]:px-5 min-[360px]:py-3 sm:px-6 sm:py-4 shadow-md">
                   <img
                     src="/images/ayadi-logo-white.png"
                     alt="Ayadi Cloudversity"
-                    className="w-36"
+                    className="w-28 min-[360px]:w-32 sm:w-36 h-auto object-contain"
                   />
                 </div>
               </motion.div>
@@ -288,16 +288,16 @@ export default function ForgotPasswordPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <p className="mb-3 flex items-center gap-2 text-sm font-medium text-[#368364]">
-                  <span className="inline-flex size-6 items-center justify-center rounded-full bg-[#368364]/10 font-mono text-[11px] font-bold">
+                <p className="mb-1.5 sm:mb-3 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-[#368364]">
+                  <span className="inline-flex size-5 sm:size-6 items-center justify-center rounded-full bg-[#368364]/10 font-mono text-[10px] sm:text-[11px] font-bold">
                     1
                   </span>
                   Step 1 of 3 — your email
                 </p>
-                <h1 className="text-3xl font-semibold tracking-tight text-[#10251d] sm:text-4xl">
+                <h1 className="text-xl min-[360px]:text-2xl sm:text-4xl font-semibold tracking-tight text-[#10251d]">
                   Forgot password?
                 </h1>
-                <p className="mt-3 text-sm leading-6 text-gray-500">
+                <p className="mt-1.5 sm:mt-3 text-xs sm:text-sm leading-relaxed sm:leading-6 text-gray-500">
                   Enter your admin email and we&apos;ll send you an
                   8-digit reset code.
                 </p>
@@ -312,7 +312,7 @@ export default function ForgotPasswordPage() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -12 }}
                     transition={{ duration: 0.5, ease: EASE }}
-                    className="mt-9 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-6 text-center"
+                    className="mt-5 sm:mt-9 rounded-xl sm:rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 min-[360px]:p-5 sm:p-6 text-center"
                   >
                     <motion.span
                       initial={{ scale: 0.6, opacity: 0 }}
@@ -323,20 +323,20 @@ export default function ForgotPasswordPage() {
                         damping: 18,
                         delay: 0.1,
                       }}
-                      className="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-gradient text-white shadow-lg shadow-emerald-900/20"
+                      className="mx-auto flex size-10 sm:size-12 items-center justify-center rounded-full bg-brand-gradient text-white shadow-lg shadow-emerald-900/20"
                     >
-                      <Check size={22} strokeWidth={2.5} />
+                      <Check className="size-4 sm:size-[22px]" strokeWidth={2.5} />
                     </motion.span>
-                    <p className="mt-4 text-sm font-semibold text-[#10251d]">
+                    <p className="mt-3 sm:mt-4 text-xs min-[360px]:text-sm sm:text-sm font-semibold text-[#10251d]">
                       Code sent
                     </p>
-                    <p className="mt-1 text-sm leading-6 text-gray-500">
+                    <p className="mt-1 text-xs min-[360px]:text-sm leading-relaxed sm:leading-6 text-gray-500">
                       Check <span className="font-medium text-gray-800">{email.trim()}</span>{" "}
                       for your code. Taking you to verification…
                     </p>
                     <div
                       aria-hidden="true"
-                      className="mx-auto mt-5 h-1 w-32 overflow-hidden rounded-full bg-emerald-900/10"
+                      className="mx-auto mt-3.5 sm:mt-5 h-1 w-28 sm:w-32 overflow-hidden rounded-full bg-emerald-900/10"
                     >
                       <motion.span
                         initial={{ x: "-100%" }}
@@ -354,19 +354,18 @@ export default function ForgotPasswordPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -12 }}
                     transition={{ duration: 0.7, delay: 0.3 }}
-                    className="mt-9 space-y-5"
+                    className="mt-5 sm:mt-9 space-y-3.5 min-[360px]:space-y-4 sm:space-y-5"
                   >
                     <div>
                       <label
                         htmlFor="email"
-                        className="mb-2 block text-sm font-medium text-[#1a2c24]"
+                        className="mb-1.5 sm:mb-2 block text-xs sm:text-sm font-medium text-[#1a2c24]"
                       >
                         Email address
                       </label>
                       <div className="relative">
                         <Mail
-                          size={17}
-                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                          className="pointer-events-none absolute left-3 sm:left-4 top-1/2 size-4 sm:size-[17px] -translate-y-1/2 text-gray-400"
                         />
                         <input
                           id="email"
@@ -376,7 +375,7 @@ export default function ForgotPasswordPage() {
                           required
                           autoComplete="email"
                           placeholder="admin@example.com"
-                          className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50/70 py-3 pl-11 pr-4 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
+                          className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50/70 py-2.5 sm:py-3 pl-9 sm:pl-11 pr-3 sm:pr-4 text-xs min-[360px]:text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#368364] focus:bg-white focus:ring-4 focus:ring-[#368364]/10"
                         />
                       </div>
                     </div>
@@ -389,7 +388,7 @@ export default function ForgotPasswordPage() {
                           exit={{ opacity: 0, height: 0, y: -5 }}
                           transition={{ duration: 0.35, ease: EASE }}
                           role="alert"
-                          className="overflow-hidden rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600"
+                          className="overflow-hidden rounded-lg sm:rounded-xl border border-red-100 bg-red-50 px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-red-600"
                         >
                           {error}
                         </motion.div>
@@ -401,9 +400,9 @@ export default function ForgotPasswordPage() {
                       disabled={loading}
                       whileHover={!loading ? { scale: 1.01 } : {}}
                       whileTap={!loading ? { scale: 0.98 } : {}}
-                      className="group relative h-12 w-full cursor-pointer overflow-hidden rounded-xl bg-accent-gradient px-5 text-sm font-medium text-white shadow-lg shadow-[#0b4635]/15 transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                      className="group relative h-10 sm:h-12 w-full cursor-pointer overflow-hidden rounded-lg sm:rounded-xl bg-accent-gradient px-4 sm:px-5 text-xs min-[360px]:text-sm font-medium text-white shadow-lg shadow-[#0b4635]/15 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span className="relative z-10 flex items-center justify-center gap-2">
+                      <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
                         {loading ? (
                           <>
                             <motion.span
@@ -415,7 +414,7 @@ export default function ForgotPasswordPage() {
                                 repeat: Infinity,
                                 ease: "linear",
                               }}
-                              className="block h-4 w-4 shrink-0 rounded-full border-2 border-white/20 border-t-white"
+                              className="block h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 rounded-full border-2 border-white/20 border-t-white"
                             />
                             Sending code...
                           </>
@@ -423,29 +422,27 @@ export default function ForgotPasswordPage() {
                           <>
                             Send reset code
                             <ArrowRight
-                              size={17}
-                              className="transition-transform duration-300 group-hover:translate-x-1"
+                              className="size-3.5 sm:size-[17px] transition-transform duration-300 group-hover:translate-x-1"
                             />
                           </>
                         )}
                       </span>
                     </motion.button>
 
-                    <div className="flex items-center justify-center pt-1">
+                    <div className="flex items-center justify-center pt-0.5 sm:pt-1">
                       <Link
                         href="/admin/login"
-                        className="group inline-flex items-center gap-1.5 text-xs font-medium text-[#368364] transition-colors hover:text-[#0b4635]"
+                        className="group inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[#368364] transition-colors hover:text-[#0b4635]"
                       >
                         <ArrowLeft
-                          size={14}
-                          className="transition-transform duration-300 group-hover:-translate-x-0.5"
+                          className="size-3 sm:size-3.5 transition-transform duration-300 group-hover:-translate-x-0.5"
                         />
                         Back to login
                       </Link>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 pt-1 text-xs text-gray-400">
-                      <Lock size={14} />
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-0.5 sm:pt-1 text-[11px] sm:text-xs text-gray-400">
+                      <Lock className="size-3 sm:size-3.5" />
                       Secure admin access
                     </div>
                   </motion.form>

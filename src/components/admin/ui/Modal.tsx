@@ -130,7 +130,7 @@ export default function Modal({
                 duration: 0.28,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-3xl bg-surface text-text shadow-[0_40px_100px_-30px_rgba(20,29,63,0.65)] outline-none dark:ring-1 dark:ring-white/10 ${WIDTHS[size]}`}
+              className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-2xl bg-surface text-text shadow-[0_40px_100px_-30px_rgba(20,29,63,0.65)] outline-none sm:rounded-3xl dark:ring-1 dark:ring-white/10 ${WIDTHS[size]}`}
             >
               {children}
             </motion.div>
@@ -162,7 +162,7 @@ export function ModalHeader({
   disabled = false,
 }: ModalHeaderProps) {
   return (
-    <div className="relative isolate shrink-0 overflow-hidden bg-accent-gradient px-6 py-5 text-white">
+    <div className="relative isolate shrink-0 overflow-hidden bg-accent-gradient px-4 py-3 text-white min-[360px]:py-3.5 sm:px-6 sm:py-5">
       <span
         aria-hidden="true"
         className="pointer-events-none absolute -right-8 -top-24 -z-10 h-52 w-52 rounded-full bg-brand-gradient opacity-45 blur-3xl"
@@ -172,21 +172,21 @@ export function ModalHeader({
         className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-brand-gradient"
       />
 
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3.5">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-gradient shadow-lg shadow-brand-start/30">
-            <Icon size={20} strokeWidth={2.2} />
+      <div className="flex items-center justify-between gap-3 sm:gap-4">
+        <div className="flex min-w-0 items-center gap-2.5 min-[360px]:gap-3 sm:gap-3.5">
+          <span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg bg-brand-gradient shadow-lg shadow-brand-start/30 min-[360px]:h-9 min-[360px]:w-9 min-[360px]:rounded-xl sm:h-11 sm:w-11">
+            <Icon className="h-4 w-4 min-[360px]:h-[18px] min-[360px]:w-[18px] sm:h-5 sm:w-5" strokeWidth={2.2} />
           </span>
 
           <div className="min-w-0">
             <h2
               id={id}
-              className="truncate text-lg font-bold tracking-[-0.02em]"
+              className="truncate text-sm font-bold tracking-[-0.02em] min-[360px]:text-base sm:text-lg"
             >
               {title}
             </h2>
 
-            <p className="mt-0.5 text-xs text-white/70">
+            <p className="mt-0.5 text-[10px] text-white/70 min-[360px]:text-[11px] sm:text-xs">
               {description}
             </p>
           </div>
@@ -197,9 +197,9 @@ export function ModalHeader({
           onClick={onClose}
           disabled={disabled}
           aria-label="Close"
-          className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-white/10 text-white/80 ring-1 ring-inset ring-white/15 transition-colors hover:bg-white/20 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-7.5 w-7.5 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-white/10 text-white/80 ring-1 ring-inset ring-white/15 transition-colors hover:bg-white/20 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50 min-[360px]:h-8 min-[360px]:w-8 min-[360px]:rounded-xl sm:h-9 sm:w-9"
         >
-          <X size={18} />
+          <X className="h-3.5 w-3.5 min-[360px]:h-4 min-[360px]:w-4 sm:h-[18px] sm:w-[18px]" />
         </button>
       </div>
     </div>
@@ -208,7 +208,7 @@ export function ModalHeader({
 
 export function ModalFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-border bg-page/70 px-6 py-4">
+    <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border bg-page/70 px-4 py-2.5 min-[360px]:py-3 sm:gap-3 sm:px-6 sm:py-4">
       {children}
     </div>
   );

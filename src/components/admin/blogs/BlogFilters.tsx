@@ -47,9 +47,9 @@ export default function BlogFilters({
   onReset,
 }: BlogFiltersProps) {
   return (
-    <section className="px-4 pt-5 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-3 rounded-2xl bg-surface p-3 shadow-sm ring-1 ring-inset ring-border xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+    <section className="px-3 pt-3.5 min-[360px]:px-4 min-[360px]:pt-4 sm:px-6 sm:pt-5 lg:px-8">
+      <div className="flex flex-col gap-2 rounded-xl bg-surface p-2.5 shadow-sm ring-1 ring-inset ring-border min-[360px]:gap-2.5 min-[360px]:rounded-2xl min-[360px]:p-3 sm:gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex flex-col gap-2 min-[360px]:gap-2.5 sm:gap-3 md:flex-row md:items-center">
           <SearchInput
             value={search}
             onChange={onSearchChange}
@@ -63,11 +63,12 @@ export default function BlogFilters({
             options={BLOG_STATUS_FILTERS}
             value={statusFilter}
             onChange={onStatusChange}
+            size="sm"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="min-w-40 flex-1 sm:flex-none">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="min-w-0 flex-1 sm:min-w-40 sm:flex-none">
             <Select
               aria-label="Filter by category"
               value={categoryFilter}
@@ -85,7 +86,7 @@ export default function BlogFilters({
             </Select>
           </div>
 
-          <div className="min-w-40 flex-1 sm:flex-none">
+          <div className="min-w-0 flex-1 sm:min-w-40 sm:flex-none">
             <Select
               aria-label="Sort blogs"
               icon={ArrowUpDown}
@@ -106,9 +107,9 @@ export default function BlogFilters({
             <button
               type="button"
               onClick={onReset}
-              className={buttonClass("secondary", "lg")}
+              className={`${buttonClass("secondary", "lg")} h-9 px-2.5 text-xs min-[360px]:h-9.5 min-[360px]:px-3 sm:h-11 sm:px-4 sm:text-sm`}
             >
-              <RotateCcw size={14} />
+              <RotateCcw className="size-3 min-[360px]:size-3.5 sm:size-[14px]" />
               Reset
             </button>
           )}
@@ -116,7 +117,7 @@ export default function BlogFilters({
       </div>
 
       {/* Count */}
-      <p className="mt-3 px-1 text-xs text-muted" aria-live="polite">
+      <p className="mt-2 px-1 text-[11px] text-muted min-[360px]:mt-2.5 min-[360px]:text-xs sm:mt-3" aria-live="polite">
         {loading ? (
           "Loading blogs..."
         ) : (

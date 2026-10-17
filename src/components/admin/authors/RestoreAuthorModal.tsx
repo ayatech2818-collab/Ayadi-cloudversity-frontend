@@ -127,7 +127,7 @@ function DeletedAuthors({
         onClose={onClose}
       />
 
-      <div className="flex-1 space-y-3 overflow-y-auto p-6">
+      <div className="flex-1 space-y-2.5 overflow-y-auto p-3.5 min-[360px]:space-y-3 min-[360px]:p-4 sm:p-6">
         {error && <Alert>{error}</Alert>}
 
         {loading ? (
@@ -135,21 +135,21 @@ function DeletedAuthors({
             <div
               key={index}
               aria-hidden="true"
-              className="h-[68px] animate-pulse rounded-2xl bg-page"
+              className="h-[54px] animate-pulse rounded-xl bg-page min-[360px]:h-[58px] sm:h-[68px] sm:rounded-2xl"
             />
           ))
         ) : authors.length === 0 ? (
           !error && (
-            <div className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-page/60 px-6 py-10 text-center">
-              <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-gradient text-white shadow-lg shadow-brand-start/30">
-                <ArchiveRestore size={20} />
+            <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-page/60 px-4 py-6 text-center min-[360px]:py-8 sm:rounded-2xl sm:px-6 sm:py-10">
+              <span className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-gradient text-white shadow-lg shadow-brand-start/30 min-[360px]:h-11 min-[360px]:w-11 sm:mb-3 sm:h-12 sm:w-12 sm:rounded-2xl">
+                <ArchiveRestore className="h-4 w-4 min-[360px]:h-[18px] min-[360px]:w-[18px] sm:h-5 sm:w-5" />
               </span>
 
-              <p className="text-sm font-semibold text-accent">
+              <p className="text-xs font-semibold text-accent min-[360px]:text-sm">
                 Nothing to restore
               </p>
 
-              <p className="mt-1 text-xs text-muted">
+              <p className="mt-0.5 text-[11px] text-muted min-[360px]:text-xs sm:mt-1">
                 Deleted authors will appear here.
               </p>
             </div>
@@ -162,15 +162,14 @@ function DeletedAuthors({
                 onClick={() => handleRestore(author)}
                 disabled={restoringId !== null}
                 aria-label={`Restore ${author.name}`}
-                className={buttonClass("primary", "sm")}
+                className={`${buttonClass("primary", "sm")} h-7.5 px-2.5 text-[11px] min-[360px]:h-8 min-[360px]:px-3 min-[360px]:text-xs sm:h-9 sm:px-3 sm:text-xs`}
               >
                 {restoringId === author.id ? (
                   <LoaderCircle
-                    size={14}
-                    className="animate-spin"
+                    className="h-3 w-3 animate-spin min-[360px]:h-3.5 min-[360px]:w-3.5"
                   />
                 ) : (
-                  <RotateCcw size={14} />
+                  <RotateCcw className="h-3 w-3 min-[360px]:h-3.5 min-[360px]:w-3.5" />
                 )}
                 {restoringId === author.id
                   ? "Restoring..."
@@ -185,7 +184,7 @@ function DeletedAuthors({
         <button
           type="button"
           onClick={onClose}
-          className={buttonClass("secondary")}
+          className={`${buttonClass("secondary", "sm")} h-8.5 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm`}
         >
           Close
         </button>

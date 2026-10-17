@@ -83,14 +83,14 @@ export default function BlogCoverField({
           </p>
         )}
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5 sm:mt-3 sm:gap-2">
           <button
             type="button"
             onClick={openPicker}
             disabled={disabled}
-            className={buttonClass("secondary", "sm")}
+            className={`${buttonClass("secondary", "sm")} h-7.5 px-2.5 text-[11px] min-[360px]:h-8 min-[360px]:px-3 min-[360px]:text-xs sm:h-9 sm:px-3 sm:text-xs`}
           >
-            <ImagePlus size={14} className="text-primary" />
+            <ImagePlus className="size-3 text-primary min-[360px]:size-3.5 sm:size-[14px]" />
             {preview ? "Change cover" : "Upload cover"}
           </button>
 
@@ -99,9 +99,9 @@ export default function BlogCoverField({
               type="button"
               onClick={onClear}
               disabled={disabled}
-              className={buttonClass("secondary", "sm")}
+              className={`${buttonClass("secondary", "sm")} h-7.5 px-2.5 text-[11px] min-[360px]:h-8 min-[360px]:px-3 min-[360px]:text-xs sm:h-9 sm:px-3 sm:text-xs`}
             >
-              <Undo2 size={14} className="text-muted" />
+              <Undo2 className="size-3 text-muted min-[360px]:size-3.5 sm:size-[14px]" />
               {clearLabel}
             </button>
           )}
@@ -120,7 +120,7 @@ export default function BlogCoverField({
           onChange={(event) => onAltChange(event.target.value)}
           placeholder="e.g. Students around a laptop in a classroom"
           disabled={disabled}
-          className={`${inputClass()} h-11`}
+          className={`${inputClass()} h-9 text-xs min-[360px]:h-9.5 min-[360px]:text-[13px] sm:h-11 sm:text-sm`}
         />
       </Field>
 

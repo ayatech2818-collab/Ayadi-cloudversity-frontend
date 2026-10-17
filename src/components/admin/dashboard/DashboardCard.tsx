@@ -28,17 +28,19 @@ export default function DashboardCard({
       aria-labelledby={titleId}
       className={`flex flex-col ${CARD} ${className}`}
     >
-      <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 px-5 pt-5 sm:px-6">
+      <header className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 px-3.5 pt-3.5 min-[360px]:px-4 min-[360px]:pt-4 sm:gap-x-4 sm:gap-y-3 sm:px-6 sm:pt-5">
         <div className="min-w-0">
           <h2
             id={titleId}
-            className={`text-base font-bold tracking-[-0.01em] ${INK}`}
+            className={`text-sm font-bold tracking-[-0.01em] min-[360px]:text-base ${INK}`}
           >
             {title}
           </h2>
 
           {description && (
-            <p className="mt-0.5 text-xs text-muted">{description}</p>
+            <p className="mt-0.5 text-[11px] text-muted min-[360px]:text-xs">
+              {description}
+            </p>
           )}
         </div>
 

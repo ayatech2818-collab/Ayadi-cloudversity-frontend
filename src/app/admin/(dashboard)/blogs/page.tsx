@@ -256,7 +256,7 @@ export default function BlogsPage() {
   const showSkeleton = loading && blogs.length === 0;
 
   return (
-    <div className="min-h-full pb-16">
+    <div className="min-h-full pb-10 sm:pb-16">
       <BlogsHeader blogs={allBlogs} onCreate={openCreate} />
 
       <BlogFilters
@@ -275,7 +275,7 @@ export default function BlogsPage() {
       />
 
       {/* Grid */}
-      <section className="px-4 pt-5 sm:px-6 lg:px-8">
+      <section className="px-3 pt-3.5 min-[360px]:px-4 min-[360px]:pt-4 sm:px-6 sm:pt-5 lg:px-8">
         {showSkeleton ? (
           <BlogsSkeleton />
         ) : !error && blogs.length > 0 ? (

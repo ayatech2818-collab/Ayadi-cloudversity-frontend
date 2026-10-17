@@ -20,10 +20,10 @@ import {
 } from "./chart-utils";
 
 /** Shared by the plot and the gutters either side of it. */
-const PLOT_HEIGHT = "h-52 sm:h-60";
+const PLOT_HEIGHT = "h-40 min-[360px]:h-44 sm:h-60";
 
 /** Room for the y-axis numbers, and for the names at the line ends. */
-const AXIS_GUTTER = "w-7";
+const AXIS_GUTTER = "w-6 min-[360px]:w-7";
 const LABEL_GUTTER = "sm:w-[76px]";
 
 /** The least two end labels may be apart, as a percentage of the plot. */
@@ -122,7 +122,7 @@ export default function EnquiryChart({ points }: EnquiryChartProps) {
             <span
               key={tick}
               style={{ top: `${pointY(tick, top)}%` }}
-              className="absolute right-2 -translate-y-1/2 text-[10px] tabular-nums text-muted"
+              className="absolute right-1.5 -translate-y-1/2 text-[9px] tabular-nums text-muted min-[360px]:right-2 min-[360px]:text-[10px]"
             >
               {tick}
             </span>
@@ -210,7 +210,7 @@ export default function EnquiryChart({ points }: EnquiryChartProps) {
             <div
               aria-hidden="true"
               style={{ left: `${pointX(active, count)}%` }}
-              className={`pointer-events-none absolute top-1 z-10 min-w-32 rounded-xl bg-surface px-3 py-2.5 text-xs shadow-[0_12px_32px_-12px_rgba(15,23,42,0.45)] ring-1 ring-border dark:bg-[#1a2444] ${
+              className={`pointer-events-none absolute top-1 z-10 min-w-28 rounded-xl bg-surface px-2.5 py-2 text-[11px] shadow-[0_12px_32px_-12px_rgba(15,23,42,0.45)] ring-1 ring-border min-[360px]:min-w-32 min-[360px]:px-3 min-[360px]:py-2.5 min-[360px]:text-xs dark:bg-[#1a2444] ${
                 pointX(active, count) > 50
                   ? "-ml-3 -translate-x-full"
                   : "ml-3"
@@ -275,7 +275,7 @@ export default function EnquiryChart({ points }: EnquiryChartProps) {
             <span
               key={index}
               style={{ left: `${pointX(index, count)}%` }}
-              className={`absolute top-0 whitespace-nowrap text-[10px] tabular-nums text-muted ${
+              className={`absolute top-0 whitespace-nowrap text-[9px] tabular-nums text-muted min-[360px]:text-[10px] ${
                 index === 0
                   ? ""
                   : index === last

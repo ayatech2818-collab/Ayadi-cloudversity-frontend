@@ -4,7 +4,8 @@ import type { EnquiryAnalyticsPoint } from "@/lib/api/dashboard";
 
 import { SERIES, formatDay } from "./chart-utils";
 
-const CELL = "px-4 py-2 text-right tabular-nums";
+const CELL =
+  "px-2.5 py-1.5 min-[360px]:px-3 min-[360px]:py-2 sm:px-4 sm:py-2 text-right tabular-nums";
 
 interface EnquiryActivityTableProps {
   /** Oldest first, one per day. */
@@ -20,15 +21,18 @@ export default function EnquiryActivityTable({
   points,
 }: EnquiryActivityTableProps) {
   return (
-    <div className="h-[232px] overflow-y-auto rounded-xl ring-1 ring-border sm:h-[264px]">
-      <table className="w-full text-xs">
+    <div className="h-[170px] overflow-y-auto overflow-x-auto rounded-xl ring-1 ring-border min-[360px]:h-[190px] sm:h-[264px]">
+      <table className="w-full text-[11px] min-[360px]:text-xs">
         <caption className="sr-only">
           Enquiries per day over the last {points.length} days
         </caption>
 
-        <thead className="sticky top-0 bg-page text-[11px] font-bold uppercase tracking-[0.1em] text-muted">
+        <thead className="sticky top-0 bg-page text-[10px] font-bold uppercase tracking-[0.1em] text-muted min-[360px]:text-[11px]">
           <tr>
-            <th scope="col" className="px-4 py-2.5 text-left">
+            <th
+              scope="col"
+              className="px-2.5 py-2 text-left min-[360px]:px-3 min-[360px]:py-2.5 sm:px-4"
+            >
               Date
             </th>
 
@@ -49,7 +53,7 @@ export default function EnquiryActivityTable({
             <tr key={point.date} className="border-t border-border">
               <th
                 scope="row"
-                className="whitespace-nowrap px-4 py-2 text-left font-medium text-text"
+                className="whitespace-nowrap px-2.5 py-1.5 text-left font-medium text-text min-[360px]:px-3 min-[360px]:py-2 sm:px-4 sm:py-2"
               >
                 {formatDay(point.date, true)}
               </th>

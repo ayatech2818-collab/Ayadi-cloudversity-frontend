@@ -204,7 +204,7 @@ export default function AuthorsPage() {
   // =========================================================
 
   return (
-    <div className="min-h-full pb-16">
+    <div className="min-h-full pb-10 sm:pb-16">
       <AuthorsHeader
         authors={authors}
         loading={loading}
@@ -221,7 +221,7 @@ export default function AuthorsPage() {
       />
 
       {/* Grid */}
-      <section className="px-4 pt-5 sm:px-6 lg:px-8">
+      <section className="px-3 pt-3.5 min-[360px]:px-4 min-[360px]:pt-4 sm:px-6 sm:pt-5 lg:px-8">
         {loading ? (
           <AuthorsSkeleton />
         ) : !error && visibleAuthors.length > 0 ? (

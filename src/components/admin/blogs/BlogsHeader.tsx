@@ -58,9 +58,9 @@ export default function BlogsHeader({
       <button
         type="button"
         onClick={onCreate}
-        className={buttonClass("primary")}
+        className={`${buttonClass("primary")} h-8.5 px-3 text-xs min-[360px]:h-9 min-[360px]:px-3.5 sm:h-10 sm:px-4 sm:text-sm`}
       >
-        <Plus size={17} strokeWidth={2.4} />
+        <Plus className="size-3.5 min-[360px]:size-4 sm:size-[17px]" strokeWidth={2.4} />
         Create Blog
       </button>
     </PageHeader>

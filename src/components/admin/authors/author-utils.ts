@@ -6,7 +6,7 @@ import type { Author } from "@/lib/api/authors";
 
 /** Shared by the grid and its skeleton so nothing jumps when data lands. */
 export const AUTHORS_GRID =
-  "grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4";
+  "grid grid-cols-1 gap-2.5 min-[360px]:gap-3 min-[480px]:grid-cols-2 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4";
 
 // =========================================================
 // PROFILE PHOTO

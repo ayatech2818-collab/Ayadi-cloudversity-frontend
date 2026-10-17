@@ -30,17 +30,17 @@ export default function BlogDeleteDialog({
       onConfirm={onConfirm}
     >
       {blog && (
-        <div className="flex items-center gap-3 rounded-2xl bg-page/70 p-3 ring-1 ring-inset ring-border">
-          <div className="h-12 w-20 shrink-0 overflow-hidden rounded-lg">
+        <div className="flex items-center gap-2.5 rounded-xl bg-page/70 p-2.5 ring-1 ring-inset ring-border min-[360px]:gap-3 min-[360px]:rounded-2xl min-[360px]:p-3">
+          <div className="h-10 w-16 shrink-0 overflow-hidden rounded-lg min-[360px]:h-12 min-[360px]:w-20">
             <CoverImage src={blog.cover_image} icon={FileText} />
           </div>
 
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-accent">
+            <p className="truncate text-xs font-semibold text-accent min-[360px]:text-sm">
               {blog.title}
             </p>
 
-            <p className="truncate text-xs text-muted">
+            <p className="truncate text-[11px] text-muted min-[360px]:text-xs">
               {blog.status === "published" ? "Published" : "Draft"}
               {" · "}
               {blog.category || "General"}

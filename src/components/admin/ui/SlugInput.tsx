@@ -40,7 +40,7 @@ export default function SlugInput({
       className={`flex items-center overflow-hidden ${inputGroupClass(invalid)}`}
     >
       {prefix && (
-        <span className="select-none self-stretch bg-page px-3.5 font-mono text-xs leading-[2.75rem] text-muted">
+        <span className="select-none self-stretch bg-page px-2.5 font-mono text-[11px] leading-[2.25rem] text-muted min-[360px]:px-3 min-[360px]:text-xs min-[360px]:leading-[2.375rem] sm:px-3.5 sm:text-xs sm:leading-[2.75rem]">
           {prefix}
         </span>
       )}
@@ -57,8 +57,8 @@ export default function SlugInput({
         placeholder={placeholder}
         disabled={disabled}
         aria-invalid={invalid}
-        className={`h-11 w-full bg-transparent font-mono text-xs text-text outline-none placeholder:text-muted/60 disabled:cursor-not-allowed ${
-          prefix ? "px-3" : "px-3.5"
+        className={`h-9 min-[360px]:h-9.5 sm:h-11 w-full bg-transparent font-mono text-[11px] min-[360px]:text-xs sm:text-xs text-text outline-none placeholder:text-muted/60 disabled:cursor-not-allowed ${
+          prefix ? "px-2.5 min-[360px]:px-3" : "px-3 min-[360px]:px-3.5"
         }`}
       />
     </div>

@@ -224,7 +224,7 @@ function AuthorForm({
         disabled={saving}
       />
 
-      <div className="flex-1 space-y-5 overflow-y-auto p-6">
+      <div className="flex-1 space-y-3.5 overflow-y-auto p-3.5 min-[360px]:space-y-4 min-[360px]:p-4 sm:space-y-5 sm:p-6">
         {formError && <Alert>{formError}</Alert>}
 
         <AuthorPhotoField
@@ -240,7 +240,7 @@ function AuthorForm({
           onClear={handlePhotoClear}
         />
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-3.5 min-[360px]:gap-4 sm:gap-5 sm:grid-cols-2">
           <Field
             label="Name"
             htmlFor="author-name"
@@ -256,7 +256,7 @@ function AuthorForm({
               placeholder="e.g. Adil Shinas"
               disabled={saving}
               aria-invalid={Boolean(errors.name)}
-              className={`${inputClass(Boolean(errors.name))} h-11`}
+              className={`${inputClass(Boolean(errors.name))} h-9 text-xs min-[360px]:h-9.5 sm:h-11 sm:text-sm`}
             />
           </Field>
 
@@ -268,7 +268,7 @@ function AuthorForm({
               onChange={handleChange("designation")}
               placeholder="e.g. Founder & CEO"
               disabled={saving}
-              className={`${inputClass()} h-11`}
+              className={`${inputClass()} h-9 text-xs min-[360px]:h-9.5 sm:h-11 sm:text-sm`}
             />
           </Field>
         </div>
@@ -280,12 +280,12 @@ function AuthorForm({
         >
           <textarea
             id="author-bio"
-            rows={4}
+            rows={3}
             value={values.bio}
             onChange={handleChange("bio")}
             placeholder="Write a short author bio..."
             disabled={saving}
-            className={`${inputClass()} resize-none py-3 leading-6`}
+            className={`${inputClass()} resize-none py-2 text-xs leading-5 min-[360px]:py-2.5 sm:rows-4 sm:py-3 sm:text-sm sm:leading-6`}
           />
         </Field>
 
@@ -296,8 +296,7 @@ function AuthorForm({
         >
           <div className="relative">
             <Link2
-              size={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted h-3.5 w-3.5 min-[360px]:left-3.5 min-[360px]:h-4 min-[360px]:w-4"
             />
 
             <input
@@ -309,7 +308,7 @@ function AuthorForm({
               placeholder="https://linkedin.com/in/username"
               disabled={saving}
               aria-invalid={Boolean(errors.linkedin)}
-              className={`${inputClass(Boolean(errors.linkedin))} h-11 pl-10`}
+              className={`${inputClass(Boolean(errors.linkedin))} h-9 pl-8.5 text-xs min-[360px]:h-9.5 min-[360px]:pl-9 sm:h-11 sm:pl-10 sm:text-sm`}
             />
           </div>
         </Field>
@@ -324,7 +323,7 @@ function AuthorForm({
           type="button"
           onClick={onClose}
           disabled={saving}
-          className={buttonClass("secondary")}
+          className={`${buttonClass("secondary", "sm")} h-8.5 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm`}
         >
           Cancel
         </button>
@@ -332,12 +331,12 @@ function AuthorForm({
         <button
           type="submit"
           disabled={saving}
-          className={buttonClass("primary")}
+          className={`${buttonClass("primary", "sm")} h-8.5 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm`}
         >
           {saving ? (
-            <LoaderCircle size={16} className="animate-spin" />
+            <LoaderCircle className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
           ) : (
-            <Check size={16} strokeWidth={2.5} />
+            <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
           )}
           {saving
             ? "Saving..."

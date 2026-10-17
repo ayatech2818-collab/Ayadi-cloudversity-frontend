@@ -49,7 +49,7 @@ export function CourseSubcategoryNav({
   if (subcategories.length === 0) return null;
 
   return (
-    <div className="relative z-20 px-3 pt-2.5 sm:px-8 sm:pt-3 lg:px-16">
+    <div className="relative z-20 px-3 pt-2 sm:px-8 sm:pt-3 lg:px-16">
       <motion.div
         initial={reduceMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -61,7 +61,7 @@ export function CourseSubcategoryNav({
             ref={row}
             role="group"
             aria-label="Filter courses by subcategory"
-            className="flex items-center gap-1.5 overflow-x-auto py-1 [scrollbar-width:none] max-sm:pr-8 sm:gap-2 [&::-webkit-scrollbar]:hidden"
+            className="flex items-center gap-1 sm:gap-2 overflow-x-auto py-1 [scrollbar-width:none] max-sm:pr-8 sm:gap-2 [&::-webkit-scrollbar]:hidden"
           >
             <SubcategoryPill
               label="All"
@@ -108,7 +108,7 @@ function SubcategoryPill({
       type="button"
       aria-pressed={isActive}
       onClick={onSelect}
-      className={`inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 sm:px-3.5 sm:py-2 sm:text-[13px] ${
+      className={`inline-flex shrink-0 cursor-pointer items-center gap-1 sm:gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 sm:px-3.5 sm:py-2 sm:text-[13px] ${
         isActive
           ? 'bg-accent text-white shadow-xs ring-1 ring-inset ring-accent focus-visible:outline-accent'
           : 'bg-surface/90 text-muted ring-1 ring-inset ring-border hover:bg-surface hover:text-accent focus-visible:outline-primary'

@@ -115,7 +115,7 @@ export function CoursesIntro({
     <section
       ref={scope}
       aria-labelledby="courses-heading"
-      className="relative isolate overflow-hidden px-4 pb-6 pt-24 sm:px-8 sm:pb-8 sm:pt-36 lg:px-16 lg:pb-10 lg:pt-40"
+      className="relative isolate overflow-hidden px-3 pb-4 pt-20 sm:px-8 sm:pb-8 sm:pt-36 lg:px-16 lg:pb-10 lg:pt-40"
     >
       {/* ---------- AMBIENT ---------- */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
@@ -134,13 +134,13 @@ export function CoursesIntro({
       </div>
 
       {/* ---------- CONTENT ---------- */}
-      <div className="mx-auto grid w-full max-w-[1180px] items-center gap-8 sm:gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
+      <div className="mx-auto grid w-full max-w-[1180px] items-center gap-6 sm:gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
         <div>
           <span
             data-reveal="eyebrow"
-            className="inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.22em] text-primary"
+            className="inline-flex items-center gap-2 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.22em] text-primary"
           >
-            <span aria-hidden="true" className="h-px w-6 bg-primary/50" />
+            <span aria-hidden="true" className="h-px w-5 sm:w-6 bg-primary/50" />
             Ayadi Cloudversity
           </span>
 
@@ -149,7 +149,7 @@ export function CoursesIntro({
               reader or a crawler. */}
           <h1
             id="courses-heading"
-            className="mt-4 text-3xl font-semibold leading-[1.04] tracking-[-0.04em] text-accent sm:mt-6 sm:text-5xl lg:text-[3.4rem] xl:text-[4rem]"
+            className="mt-3 text-2xl font-semibold leading-[1.08] tracking-tight sm:mt-6 sm:text-5xl lg:text-[3.4rem] xl:text-[4rem] sm:leading-[1.04] sm:tracking-[-0.04em] text-accent"
           >
             {HEADLINE.map((line, lineIndex) => {
               const isLastLine = lineIndex === HEADLINE.length - 1;
@@ -184,11 +184,11 @@ export function CoursesIntro({
             })}
           </h1>
 
-          <p data-reveal="lede" className="mt-3 text-sm text-muted sm:mt-6 sm:text-lg">
+          <p data-reveal="lede" className="mt-2 text-xs text-muted sm:mt-6 sm:text-lg">
             Courses for every stage of learning.
           </p>
 
-          <div data-reveal="lede" className="mt-5 max-w-xl sm:mt-7">
+          <div data-reveal="lede" className="mt-4 max-w-xl sm:mt-7">
             <CourseSearch value={query} onChange={onQueryChange} onSubmit={onSearchSubmit} />
           </div>
         </div>

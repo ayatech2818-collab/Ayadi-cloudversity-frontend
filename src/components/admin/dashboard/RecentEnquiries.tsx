@@ -29,8 +29,10 @@ import DashboardCard from "./DashboardCard";
 import { PULSE } from "./styles";
 
 const HEAD = "px-3 py-2.5 font-bold";
-const AVATAR = "h-9 w-9 text-[11px]";
-const BODY = "px-5 pb-5 pt-5 sm:px-6 sm:pb-6";
+const AVATAR =
+  "h-7.5 w-7.5 min-[360px]:h-8 min-[360px]:w-8 md:h-9 md:w-9 text-[10px] min-[360px]:text-[11px]";
+const BODY =
+  "px-3.5 pb-3.5 pt-3.5 min-[360px]:px-4 min-[360px]:pb-4 min-[360px]:pt-4 sm:px-6 sm:pb-6 sm:pt-5";
 
 /** For a type or status this page has no badge for: the value, as sent. */
 const PLAIN_BADGE =
@@ -87,10 +89,10 @@ export default function RecentEnquiries({
       action={
         <Link
           href="/admin/enquiries"
-          className={buttonClass("secondary", "sm")}
+          className={`${buttonClass("secondary", "sm")} h-7.5 px-2.5 text-[11px] min-[360px]:h-8 min-[360px]:px-3 min-[360px]:text-xs sm:h-9 sm:px-3 sm:text-xs`}
         >
           View all
-          <ArrowRight size={13} className="text-primary" />
+          <ArrowRight size={13} className="text-primary shrink-0" />
         </Link>
       }
     >
@@ -111,22 +113,24 @@ export default function RecentEnquiries({
           />
         </div>
       ) : !enquiries ? (
-        <ul aria-hidden="true" className="mt-3 pb-2">
+        <ul aria-hidden="true" className="mt-2 min-[360px]:mt-3 pb-1 sm:pb-2">
           {Array.from({ length: 7 }).map((_, index) => (
             <li
               key={index}
-              className="flex items-center gap-3 border-t border-border px-5 py-3 sm:px-6"
+              className="flex items-center gap-2.5 min-[360px]:gap-3 border-t border-border px-3.5 py-2.5 min-[360px]:px-4 min-[360px]:py-3 sm:px-6"
             >
               <span
-                className={`h-9 w-9 shrink-0 rounded-full ${PULSE}`}
+                className={`h-7.5 w-7.5 min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9 shrink-0 rounded-full ${PULSE}`}
               />
 
-              <span className="min-w-0 flex-1 space-y-2">
-                <span className={`block h-3.5 w-2/5 ${PULSE}`} />
-                <span className={`block h-3 w-3/5 ${PULSE}`} />
+              <span className="min-w-0 flex-1 space-y-1.5 sm:space-y-2">
+                <span className={`block h-3 min-[360px]:h-3.5 w-2/5 ${PULSE}`} />
+                <span className={`block h-2.5 min-[360px]:h-3 w-3/5 ${PULSE}`} />
               </span>
 
-              <span className={`h-5 w-16 rounded-full ${PULSE}`} />
+              <span
+                className={`h-4.5 min-[360px]:h-5 w-14 min-[360px]:w-16 rounded-full ${PULSE}`}
+              />
             </li>
           ))}
         </ul>
@@ -210,23 +214,23 @@ export default function RecentEnquiries({
           </div>
 
           {/* Rows, for a phone */}
-          <ul className="mt-3 pb-2 md:hidden">
+          <ul className="mt-2 min-[360px]:mt-3 pb-1 md:hidden">
             {enquiries.map((enquiry) => {
               const name = getEnquiryName(enquiry);
 
               return (
                 <li
                   key={enquiry.id}
-                  className="flex items-center gap-3 border-t border-border px-5 py-3"
+                  className="flex items-center gap-2.5 min-[360px]:gap-3 border-t border-border px-3.5 py-2 min-[360px]:px-4 min-[360px]:py-2.5"
                 >
                   <AuthorAvatar name={name} className={AVATAR} />
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-text">
+                    <p className="truncate text-xs font-semibold text-text min-[360px]:text-sm">
                       {name}
                     </p>
 
-                    <p className="truncate text-xs text-muted">
+                    <p className="truncate text-[10px] text-muted min-[360px]:text-xs">
                       {isEnquiryType(enquiry.type)
                         ? ENQUIRY_TYPE_LABELS[enquiry.type]
                         : enquiry.type}{" "}
@@ -234,10 +238,10 @@ export default function RecentEnquiries({
                     </p>
                   </div>
 
-                  <div className="flex shrink-0 flex-col items-end gap-1">
+                  <div className="flex shrink-0 flex-col items-end gap-0.5 min-[360px]:gap-1">
                     <StatusBadge status={enquiry.status} />
 
-                    <span className="text-[11px] tabular-nums text-muted">
+                    <span className="text-[10px] tabular-nums text-muted min-[360px]:text-[11px]">
                       {formatEnquiryDate(enquiry.created_at)}
                     </span>
                   </div>

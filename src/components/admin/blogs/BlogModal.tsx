@@ -237,12 +237,12 @@ function BlogForm({
 
       <div
         ref={bodyRef}
-        className="flex-1 space-y-5 overflow-y-auto bg-page/60 p-4 sm:p-6"
+        className="flex-1 space-y-3.5 overflow-y-auto bg-page/60 p-3 min-[360px]:space-y-4 min-[360px]:p-4 sm:space-y-5 sm:p-6"
       >
         {formError && <Alert>{formError}</Alert>}
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-5">
+        <div className="grid gap-3.5 min-[360px]:gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-3.5 min-[360px]:space-y-4 sm:space-y-5">
             <BlogArticleFields {...fields} autoSlug={!slugEdited} />
 
             <BlogSeoFields
@@ -253,7 +253,7 @@ function BlogForm({
             />
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-3.5 min-[360px]:space-y-4 sm:space-y-5">
             <BlogCoverField
               preview={coverPreview ?? blog?.cover_image ?? null}
               fileName={cover?.name}
@@ -277,17 +277,17 @@ function BlogForm({
 
       <ModalFooter>
         {/* Where the post stands right now */}
-        <p className="mr-auto flex items-center gap-2 text-[11px] font-semibold text-muted">
+        <p className="mr-auto flex items-center gap-1.5 text-[10px] font-semibold text-muted min-[360px]:gap-2 min-[360px]:text-[11px]">
           <span
-            className={`h-2 w-2 rounded-full ${
+            className={`h-1.5 w-1.5 min-[360px]:h-2 min-[360px]:w-2 rounded-full ${
               isPublished ? "bg-brand-gradient" : "bg-amber-400"
             }`}
           />
           {isPublished ? "Published" : isEdit ? "Draft" : "New post"}
 
           {values.isFeatured && (
-            <span className="inline-flex items-center gap-1 text-amber-600">
-              <Star size={11} className="fill-current" />
+            <span className="inline-flex items-center gap-0.5 text-amber-600 min-[360px]:gap-1">
+              <Star size={10} className="fill-current min-[360px]:size-[11px]" />
               Featured
             </span>
           )}
@@ -297,7 +297,7 @@ function BlogForm({
           type="button"
           onClick={onClose}
           disabled={disabled}
-          className={buttonClass("secondary")}
+          className={`${buttonClass("secondary")} h-8.5 px-2.5 text-xs min-[360px]:h-9 min-[360px]:px-3 sm:h-10 sm:px-4 sm:text-sm`}
         >
           Cancel
         </button>
@@ -315,10 +315,10 @@ function BlogForm({
               ? "Save your changes and move this post back to draft"
               : undefined
           }
-          className={buttonClass("secondary")}
+          className={`${buttonClass("secondary")} h-8.5 px-2.5 text-xs min-[360px]:h-9 min-[360px]:px-3 sm:h-10 sm:px-4 sm:text-sm`}
         >
           {submitting === "draft" && (
-            <LoaderCircle size={16} className="animate-spin" />
+            <LoaderCircle className="size-3.5 animate-spin min-[360px]:size-4 sm:size-4" />
           )}
           {submitting === "draft"
             ? "Saving..."
@@ -331,12 +331,12 @@ function BlogForm({
           type="button"
           onClick={() => handleSubmit("publish")}
           disabled={disabled}
-          className={buttonClass("primary")}
+          className={`${buttonClass("primary")} h-8.5 px-2.5 text-xs min-[360px]:h-9 min-[360px]:px-3 sm:h-10 sm:px-4 sm:text-sm`}
         >
           {submitting === "publish" ? (
-            <LoaderCircle size={16} className="animate-spin" />
+            <LoaderCircle className="size-3.5 animate-spin min-[360px]:size-4 sm:size-4" />
           ) : (
-            <Check size={16} strokeWidth={2.5} />
+            <Check className="size-3.5 min-[360px]:size-4 sm:size-4" strokeWidth={2.5} />
           )}
           {submitting === "publish"
             ? isPublished

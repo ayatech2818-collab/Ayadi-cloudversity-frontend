@@ -16,24 +16,23 @@ type Reason = {
   icon: LucideIcon;
 };
 
-/* The three reasons, word for word from sections/WhyChooseAyadi.tsx (not
-   imported, so that section stays untouched) — keep the two in step. */
+/* The three reasons. */
 const REASONS: Reason[] = [
   {
-    title: 'Expert Instructors',
-    description: 'Learn from vetted industry leaders and academic experts.',
+    title: 'Mentors Who Build Confidence',
+    description: 'Warm, personal mentoring that builds real rapport and grows both skill and confidence..',
     tag: 'Vetted',
     icon: UserRound,
   },
   {
-    title: 'Best-in-Class Program',
-    description: 'Access personalized instruction with customized content.',
+    title: 'One Enrollment, Many Skills',
+    description: 'Enroll once to unlock a growing range of modern, career-ready skill programs.',
     tag: 'Personalized',
     icon: GraduationCap,
   },
   {
-    title: 'Flexible Learning',
-    description: 'Your space at your own pace – you can learn in-depth.',
+    title: 'Learn Anywhere, Anytime',
+    description: 'Live or self-paced classes on any device, on your schedule.',
     tag: 'Self-paced',
     icon: BookOpen,
   },
@@ -73,13 +72,11 @@ function entrance(index: number) {
  * timeline runs those values, and brings the heading in and out (data-h
  * hooks).
  *
- * The card is the WhyChooseAyadi feature card as a compact row: the same
- * glass, ring, top sheen, cursor spotlight, hover lift and glow, icon tile
+ * The card is a compact row: glass, ring, top sheen, cursor spotlight, hover lift and glow, icon tile
  * that tilts and scales with a conic lime border, floating icon, lime tag and
  * accent line — plus a faint glass reflection.
  *
- * Decorative (aria-hidden): the same content is the WhyChooseAyadi section
- * just below the hero, which stays the accessible version of it.
+ * Decorative (aria-hidden).
  */
 export function WhyStage({ stageRef }: { stageRef: RefObject<HTMLDivElement | null> }) {
   return (
@@ -103,9 +100,9 @@ export function WhyStage({ stageRef }: { stageRef: RefObject<HTMLDivElement | nu
           {/* The question's answer, said with it: one block of words that
               arrives together, stays together and leaves together. */}
           <p className={styles.whyQuote}>
-            &ldquo;Every next step
+            Ready to learn and grow
             <span className="block">
-              begins with the <span className={styles.whyQuoteMark}>right learning</span>.&rdquo;
+              with mentors who <span className={styles.whyQuoteMark}>believe in you</span>?
             </span>
           </p>
         </div>

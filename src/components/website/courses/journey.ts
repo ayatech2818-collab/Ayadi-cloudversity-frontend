@@ -1,4 +1,6 @@
-import { Briefcase, FileText, GraduationCap, Leaf, MessageCircle, Palette, type LucideIcon } from 'lucide-react';
+import { BrainCircuit, Briefcase, GraduationCap, Palette, type LucideIcon } from 'lucide-react';
+
+import { courseCategories } from './categories';
 
 /* ==================================================
    ACT TWO — the collage
@@ -122,59 +124,34 @@ export const collageItems: CollageItem[] = [
    ACT THREE — the learning worlds
 ================================================== */
 
-/* Ayadi's six subjects. AyaTech and AGS will each need their own list
-   when their journeys are built — they do not share these. */
+/* Ayadi's four main categories (categories.ts), each with its own icon and
+   tile colour. */
 export type LearningWorld = {
   id: string;
+  /** What `/courses?category=…` carries — the tile opens that category. */
+  slug: string;
   title: string;
   blurb: string;
   icon: LucideIcon;
   /** Icon tile colour. Mostly the brand scale, with one warm outlier so the
-      row does not read as six of the same swatch. */
+      row does not read as four of the same swatch. */
   tint: string;
 };
 
-export const learningWorlds: LearningWorld[] = [
-  {
-    id: 'academic',
-    title: 'Academic',
-    blurb: 'School to Higher Education',
-    icon: GraduationCap,
-    tint: 'bg-primary/10 text-primary',
-  },
-  {
-    id: 'exams',
-    title: 'Exams',
-    blurb: 'Entrance, Scholarship & More',
-    icon: FileText,
-    tint: 'bg-brand-teal/10 text-brand-teal',
-  },
-  {
-    id: 'languages',
-    title: 'Languages',
-    blurb: 'Communication for Life',
-    icon: MessageCircle,
-    tint: 'bg-accent/10 text-accent',
-  },
-  {
-    id: 'professional',
-    title: 'Professional',
-    blurb: 'Career & Workspace Skills',
-    icon: Briefcase,
-    tint: 'bg-accent-soft/10 text-accent-soft',
-  },
-  {
-    id: 'creative',
-    title: 'Creative Skills',
-    blurb: 'Art, Design & Expression',
-    icon: Palette,
-    tint: 'bg-amber-500/10 text-amber-600',
-  },
-  {
-    id: 'growth',
-    title: 'Personal Growth',
-    blurb: 'Leadership, Wellness & More',
-    icon: Leaf,
-    tint: 'bg-primary/10 text-primary',
-  },
-];
+const WORLD_LOOK: Record<string, Pick<LearningWorld, 'icon' | 'tint'>> = {
+  academic: { icon: GraduationCap, tint: 'bg-primary/10 text-primary' },
+  creative: { icon: Palette, tint: 'bg-amber-500/10 text-amber-600' },
+  readiness: { icon: Briefcase, tint: 'bg-accent/10 text-accent' },
+  ai: { icon: BrainCircuit, tint: 'bg-brand-teal/10 text-brand-teal' },
+};
+
+/* A category added to categories.ts without a look of its own still gets a tile. */
+const DEFAULT_LOOK = WORLD_LOOK.academic;
+
+export const learningWorlds: LearningWorld[] = courseCategories.map((category) => ({
+  id: category.id,
+  slug: category.slug,
+  title: category.name,
+  blurb: category.description ?? '',
+  ...(WORLD_LOOK[category.id] ?? DEFAULT_LOOK),
+}));

@@ -98,7 +98,7 @@ export type Rig = {
   /** performance.now() of the last scroll, pointer move or resize. */
   activeAt: number;
   /** The hero has the screen — the only time the scene renders at all. It
-      loses it to the Ayadi journey below once a world has been chosen, so the
+      loses it to the Ayadi journey below once that takes the screen, so the
       two cinematics never run at once. */
   live: boolean;
 

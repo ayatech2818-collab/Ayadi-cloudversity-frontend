@@ -1,10 +1,12 @@
 import type { CatalogueCategory } from './types';
 
 /*
- * The three Ayadi Cloudversity course categories.
+ * The four Ayadi Cloudversity course categories.
  *
- * One list, read by the Courses page, the footer's category links and the
- * dummy catalogue, so a rename happens here and nowhere else.
+ * One list, read by the Courses page's description, the footer's category
+ * links and the journey's last act, so a rename happens here and nowhere
+ * else. Kept in the frontend on purpose: the journey must never wait on the
+ * API to have something to show.
  *
  * Written in the shape of the API's CourseCategory
  * (src/lib/api/course-categories.ts): when the page moves to the backend,
@@ -35,6 +37,13 @@ export const courseCategories: CatalogueCategory[] = [
     name: 'Workplace Readiness & PD',
     description: 'Career and workplace skills',
     display_order: 3,
+  },
+  {
+    id: 'ai',
+    slug: 'ai',
+    name: 'AI & Future-Ready Education',
+    description: 'Skills for what comes next',
+    display_order: 4,
   },
 ];
 

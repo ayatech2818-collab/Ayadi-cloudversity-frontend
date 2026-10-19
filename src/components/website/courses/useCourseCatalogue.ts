@@ -35,7 +35,8 @@ function findCategoryInList(categories: CatalogueCategory[], slug: string | null
         (lower === 'academic' && c.slug.includes('academic')) ||
         (lower === 'creative' && (c.slug.includes('creative') || c.slug.includes('life'))) ||
         (lower === 'readiness' &&
-          (c.slug.includes('readiness') || c.slug.includes('workspace') || c.slug.includes('workplace'))),
+          (c.slug.includes('readiness') || c.slug.includes('workspace') || c.slug.includes('workplace'))) ||
+        (lower === 'ai' && (/(^|-)ai(-|$)/.test(c.slug) || c.slug.includes('future'))),
     ) ?? null
   );
 }

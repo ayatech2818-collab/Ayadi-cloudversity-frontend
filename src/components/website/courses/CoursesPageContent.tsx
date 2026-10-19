@@ -19,8 +19,7 @@ const scrollToCatalogue = () => {
 };
 
 /*
- * The Courses page: Ayadi Cloudversity's catalogue, and only that. AyaTech and
- * Ayadi Glocal School are not listed here.
+ * The Courses page: Ayadi Cloudversity's catalogue.
  *
  * Everything the page knows comes from useCourseCatalogue; the sections
  * are handed their slice of it and nothing else, so this file is the only

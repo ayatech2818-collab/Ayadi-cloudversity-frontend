@@ -27,9 +27,9 @@
   --color-accent: #1e2b57;
   --color-accent-strong: #141d3f;
 
-  /* Sub-brand identities sit on one scale: green (Ayadi) → teal (AyaTech) →
-     navy (AGS). `brand-end` (#0d9488) is only 3.7:1 on white, so this
-     darker teal carries the small text while brand-end carries the fills. */
+  /* The brand scale runs green → teal → navy. `brand-end` (#0d9488) is only
+     3.7:1 on white, so this darker teal carries the small text while
+     brand-end carries the fills. */
   --color-brand-teal: #0f766e;
   --background-image-accent-gradient: linear-gradient(135deg, #141d3f, #1e2b57, #2f4480);
 
@@ -186,8 +186,8 @@ body {
 }
 
 /*
- * Idle bob for the About page's card icons — the same beat as the icons in
- * WhyChooseAyadi, but driven by CSS so it stays off the main thread while the
+ * Idle bob for the About page's card icons — the same beat as the icons on
+ * the hero's Why Choose Ayadi cards, driven by CSS so it stays off the main thread while the
  * section is parked off-screen.
  */
 @keyframes icon-float {

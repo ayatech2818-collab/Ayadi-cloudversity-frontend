@@ -7,7 +7,7 @@ import type { PointerEvent } from 'react';
 /* ==================================================
    CARD CHROME
 
-   The treatment the WhyChooseAyadi feature cards use — cursor spotlight, lift,
+   The treatment the hero's Why Choose Ayadi cards use — cursor spotlight, lift,
    top sheen, rotating icon tile — retuned for a light surface. There the accent
    is lime on deep emerald; here it is the brand green on white, so a page stays
    mostly neutral and the colour only arrives under the cursor.

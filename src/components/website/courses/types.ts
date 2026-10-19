@@ -2,7 +2,7 @@ import type { CourseCategory } from '@/lib/api/course-categories';
 import type { CourseSubcategory } from '@/lib/api/course-subcategories';
 import type { Course, CourseFilters } from '@/lib/api/courses';
 
-export type BrandId = 'ayadi' | 'ayatech' | 'ags';
+export type BrandId = 'ayadi';
 
 export const DEFAULT_COURSE_PLACEHOLDER = '/images/blog/placeholder.svg';
 
@@ -15,15 +15,6 @@ export interface DummyCourseItem {
   description: string;
   image: string;
   badge?: string;
-}
-
-export interface BrandSectionData {
-  title: string;
-  eyebrow: string;
-  description: string;
-  brandBadge: string;
-  ctaText?: string;
-  courses: DummyCourseItem[];
 }
 
 /* ==================================================

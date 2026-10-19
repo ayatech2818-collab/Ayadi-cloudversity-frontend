@@ -1,5 +1,4 @@
 import { Hero } from '@/components/website/sections/Hero';
-import WhyChooseAyadi from '@/components/website/sections/WhyChooseAyadi';
 import LearningPathways from '@/components/website/sections/LearningPathways';
 import  FeaturedCourses from '@/components/website/sections/FeaturedCourses';
 import HowItWorks from "@/components/website/sections/HowItWorks";
@@ -14,7 +13,6 @@ export default function WebsiteHomePage() {
       <Hero />
       {/* Everything below stops animating while it is off screen. */}
       <PauseOffscreen />
-      {/* <WhyChooseAyadi /> */}
       <LearningPathways />
       <CEOMessage />
       <HowItWorks />

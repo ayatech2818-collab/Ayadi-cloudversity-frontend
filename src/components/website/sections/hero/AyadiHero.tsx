@@ -11,33 +11,24 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Compone
 import type { BrandId } from '@/components/website/courses/types';
 import { jumpTo, releaseScroll } from '@/lib/smooth-scroll';
 
-import { AyatechWorld } from './AyatechWorld';
-import { ChooseWorld, type WorldId } from './ChooseWorld';
 import styles from './hero.module.css';
 import { createRig, pickQuality, probeGpu, RIG_START, WHY_KEYS, type Quality, type Rig, type StoryKey } from './rig';
 import { SceneBoundary } from './SceneBoundary';
-import { playWorldEntrance, playWorldTransitionOut } from './worldEntrance';
 import { WhyStage } from './WhyStage';
-import { AYADI_BOX, AYADI_PATH } from './wordmark';
-import { WorldSwitcher } from './WorldSwitcher';
 
 /* three.js and the scene arrive in their own chunk, after the page is up. */
 const HeroScene = dynamic(() => import('./scene/HeroScene'), { ssr: false });
 
-/* ---------- the worlds ----------
+/* ---------- the world ----------
    Ayadi Cloudversity's world is the three-act journey the courses page
    already runs (courses/AyadiJourney.tsx) — reused here as it stands, not
-   rebuilt. It is the hero's default world and part of this page, so it is
-   fetched and mounted while the reader is still at the opening rather than
-   on a click; its own chunk keeps it out of the first load, and idle time
+   rebuilt. It is where the hero arrives and part of this page, so it is
+   fetched and mounted while the reader is still at the opening; its own chunk keeps it out of the first load, and idle time
    keeps the mount out of the way of the scene starting up. */
 type JourneyComponent = ComponentType<{ onSelectBrand: (id: BrandId) => void; bare?: boolean }>;
 
 let journeyChunk: Promise<typeof import('@/components/website/courses/AyadiJourney')> | null = null;
 const loadJourney = () => (journeyChunk ??= import('@/components/website/courses/AyadiJourney'));
-
-/** The fixed navbar, for parking a world's top clear of it. */
-const NAV_CLEARANCE = 84;
 
 /** Runs `job` on the first free moment, or soon anyway. */
 function whenIdle(job: () => void) {
@@ -55,7 +46,7 @@ const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffec
 
 /* The journey needs motion and WebGL. Without either — reduced motion, or a
    browser that cannot run the scene — the same content reads as an ordinary
-   page: the opening, then the two worlds. */
+   page: the opening, then the world. */
 const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
 
 /* ---------- the score ----------
@@ -64,7 +55,7 @@ const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
    from where that value's previous line left it (or RIG_START), and no two
    lines for the same value overlap — so the story is the same frame at the
    same scroll position whichever way, and however fast, you get there. */
-const TOTAL = 10;
+const TOTAL = 8.7;
 
 type Line = [key: StoryKey, to: number, at: number, duration: number, ease?: string];
 
@@ -124,9 +115,9 @@ const SCORE: Line[] = [
 
   /* The far side settles. */
   ['arrive', 1, 7, 1.4, 'power2.out'],
-  ['camY', 0.35, 7.4, 1.6, 'sine.inOut'],
-  ['lookY', 0.1, 7.4, 1.6, 'sine.inOut'],
-  ['camZ', -7.6, 7.7, 1.6, 'sine.out'],
+  ['camY', 0.35, 7.4, 1.3, 'sine.inOut'],
+  ['lookY', 0.1, 7.4, 1.3, 'sine.inOut'],
+  ['camZ', -7.6, 7.7, 1, 'sine.out'],
 ];
 
 /** Deep space at the edge of the frame: the sky's own colour there
@@ -142,8 +133,6 @@ const CUES = {
   globeCaptionOut: [3.4, 0.35],
   skipIn: [0.9, 0.4],
   skipOut: [7.3, 0.3],
-  chooseIn: [7.6, 0.5],
-  cardsIn: [7.85, 0.6],
 } as const;
 
 /* ---------- the Why Choose Ayadi stage ----------
@@ -157,7 +146,7 @@ const CUES = {
    The cards do not go anywhere: they have a place in the portal's space, in
    front of the glass, and it is the approach that follows which takes the
    camera past them. Before the stretch everything plays as it did; after it
-   (the approach, the crossing, Choose your world) the same, just later.
+   (the approach, the crossing, the light) the same, just later.
 
    The words on the glass outlast the stretch. They stand in the middle of
    it, between the cards, and hold there while the camera goes past the
@@ -227,20 +216,20 @@ const PORTAL_CAPTION = {
 } as const;
 
 /* ---------- through the light ----------
-   The last stretch, in master units. Nothing travels: the world is already
-   where it will stay, behind the light, and the light is what moves.
+   The last stretch, in master units. It starts as the camera comes out of
+   the portal's liquid. Nothing travels: the world is already where it will
+   stay, behind the light, and the light is what moves.
 
-     the choice dissolves                         10.80 → 11.15
-     the scene dissolves behind it                10.85 → 11.25
-     light fills the screen                       10.85 → 11.13
-     green air rises inside it                    10.95 → 11.30
-     white holds — a beat, no more                11.13 → 11.23
-     the world fades up, in place                 11.22 → 11.52
-     the light clears off it                      11.23 → 11.61
-     the green air thins out last                 11.58 → 11.98
+     the scene dissolves behind it                 9.55 →  9.95
+     light fills the screen                        9.55 →  9.83
+     green air rises inside it                     9.65 → 10.00
+     white holds — a beat, no more                 9.83 →  9.93
+     the world fades up, in place                  9.82 → 10.20
+     the light clears off it                       9.92 → 10.30
+     the green air thins out last                 10.28 → 10.68
 
    The world is held still through all of this by its own pin, which takes
-   hold at ~11.20, under the white and before a pixel of it can be seen.
+   hold at ~9.90, under the white and before a pixel of it can be seen.
    That does spend a little of its first act's hold, which is why the reveal
    is kept short: what the reader sees is act one being revealed, and then
    act one holding — much the same screen time it always had.
@@ -249,17 +238,16 @@ const PORTAL_CAPTION = {
    ATMOSPHERE below, `.veil` in hero.module.css). While it clears it is
    still blurring what is behind it, so the world comes into focus rather
    than switching on. Scrubbed like everything else, so scrolling back up
-   puts the light back and the choice with it. */
-const CHOOSE_OUT = [10.8, 0.35] as const;
-const CURTAIN = [10.85, 0.4] as const;
-const VEIL = { in: [10.85, 0.28], out: [11.22, 0.38] } as const;
-const ATMOSPHERE = { in: [10.95, 0.35], out: [11.58, 0.4] } as const;
+   puts the light back and the portal with it. */
+const CURTAIN = [9.55, 0.4] as const;
+const VEIL = { in: [9.55, 0.28], out: [9.92, 0.38] } as const;
+const ATMOSPHERE = { in: [9.65, 0.35], out: [10.28, 0.4] } as const;
 
 /* The world's own reveal: opacity only. It cannot be moved, scaled or
    blurred from here — a transform or a filter on its wrapper would become
    the containing block for the `position: fixed` its own pin uses, and the
    pin would come apart. The focus comes from the light in front of it. */
-const WORLD = [11.12, 0.38] as const;
+const WORLD = [9.82, 0.38] as const;
 
 /* The hero's timeline has to keep running after its stage lets go — that is
    where the world arrives and the light clears — so the trigger ends TAIL
@@ -271,15 +259,10 @@ const TAIL = 0.5;
 /** Past here the scene is all but invisible, and stops rendering. */
 const DARK_AT = (CURTAIN[0] + CURTAIN[1] * 0.88) / MASTER_TOTAL;
 
-/** And past here the world is the thing on screen: it takes the pointer,
-    and the switcher comes out. */
+/** And past here the world is the thing on screen: it takes the pointer. */
 const SHOWN_AT = (WORLD[0] + WORLD[1] * 0.6) / MASTER_TOTAL;
 
-/** Where "Skip to the choice" lands: the choice in and holding, before it
-    starts to clear. */
-const CHOICE_AT = (CHOOSE_OUT[0] - 0.2) / MASTER_TOTAL;
-
-/* The journey's length in scroll — 8.45 screens, 7.25 on phones — is the
+/* The journey's length in scroll — 7.54 screens, 6.47 on phones — is the
    section's height in hero.module.css: the stage is sticky inside it. It
    grew with the Why stage by MASTER_TOTAL / TOTAL, so everything outside the
    stretch scrolls at the same speed as before. */
@@ -293,11 +276,9 @@ const CHOICE_AT = (CHOOSE_OUT[0] - 0.2) / MASTER_TOTAL;
  *   → the globe tips toward the camera and becomes a portal; on its glass,
  *     "Why choose Ayadi?" and three cards, one by one, as the camera nears
  *   → the camera flies through the portal's liquid glass
- *   → the far side: Choose your world — Ayadi Cloudversity or AyaTech
- *   → and on, dissolving into the world it is already in: Cloudversity's
- *     own three-act journey, mounted below and taking the screen as the
- *     scene fades into the page. The choice switches worlds; it is not a
- *     gate, and nothing has to be clicked to carry on.
+ *   → and on, through the light, into Cloudversity's own three-act
+ *     journey, mounted below and taking the screen as the scene fades into
+ *     the page. Nothing has to be clicked to carry on.
  *
  * Scroll is the only clock. One ScrollTrigger scrubs one master timeline. It
  * plays the story (SCORE + CUES: every `rig` value and the HTML over it),
@@ -308,7 +289,7 @@ const CHOICE_AT = (CHOOSE_OUT[0] - 0.2) / MASTER_TOTAL;
  * opening included — lives on one stage that is `position: sticky` inside a
  * section 7 screens taller than it: the browser holds it in place (no
  * one-frame slip, as a JavaScript pin has at the very top of a page), the
- * scroll only moves the timeline, and the page moves on once the choice is
+ * scroll only moves the timeline, and the page moves on once the world is
  * on screen. Scrolling back up re-enters it the same way.
  */
 export function AyadiHero() {
@@ -318,26 +299,18 @@ export function AyadiHero() {
   const openingInnerRef = useRef<HTMLDivElement>(null);
   const whyRef = useRef<HTMLDivElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
-  const watermarkRef = useRef<SVGSVGElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const veilRef = useRef<HTMLDivElement>(null);
   const airRef = useRef<HTMLDivElement>(null);
-  const switcherRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<ScrollTrigger | null>(null);
   /* Where the reader is, for the rule that only one heavy thing renders at a
      time: the hero on screen, the world on screen, the scene dissolved. */
   const seen = useRef({ hero: false, world: false, dark: false, shown: false });
-  const restart = useRef(false);
-  const isSwitching = useRef(false);
-  const activeEntranceTl = useRef<gsap.core.Timeline | null>(null);
   const rig = useRef<Rig>(createRig());
 
   const [mode, setMode] = useState<'still' | 'cinematic'>('still');
   const [quality, setQuality] = useState<Quality | null>(null);
   const [ready, setReady] = useState(false);
-  /* Cloudversity is the ecosystem's front door, so it is the world the hero
-     arrives in. The choice switches worlds; it does not unlock one. */
-  const [world, setWorld] = useState<WorldId>('cloudversity');
   const [Journey, setJourney] = useState<JourneyComponent | null>(null);
 
   const handleReady = useCallback(() => setReady(true), []);
@@ -352,7 +325,7 @@ export function AyadiHero() {
 
   /* The journey's own calls to action — its programmes, its categories. On
      this page they belong to the courses further down it, not to another
-     route: the reader stays in the world they chose. */
+     route: the reader stays in the world. */
   const showCourses = useCallback(() => {
     releaseScroll();
     document.getElementById('featured-courses-title')?.closest('section')?.scrollIntoView({ block: 'start' });
@@ -361,7 +334,7 @@ export function AyadiHero() {
   /* ---------- one at a time ----------
      The scene renders only while the hero has the screen, the world below
      has not taken it, and the scene has not already dissolved into the page.
-     The same signal shows the switcher. Written straight to the DOM: it
+     The same signal hands the world the pointer. Written straight to the DOM: it
      flips as the reader crosses the seam, and neither React nor the scene
      should re-render for it. */
   const sync = useCallback(() => {
@@ -376,8 +349,8 @@ export function AyadiHero() {
     state.live = hero && !inWorld && !dark;
     state.activeAt = performance.now();
 
-    for (const element of [worldRef.current, switcherRef.current]) {
-      if (!element) continue;
+    const element = worldRef.current;
+    if (element) {
       if (inWorld) element.dataset.on = '';
       else delete element.dataset.on;
     }
@@ -390,49 +363,6 @@ export function AyadiHero() {
        in globals.css. */
     rootRef.current?.toggleAttribute('data-offscreen', mode === 'cinematic' && (!hero || inWorld));
   }, [mode]);
-
-  /* Switching worlds while you are inside one drops you at the start of the
-     other; from the hero it only changes what is waiting below. */
-  const chooseWorld = useCallback(
-    (next: WorldId) => {
-      if (next === world) return;
-      if (isSwitching.current) return;
-
-      // If the reader is not currently viewing the world (e.g. they are in the hero section),
-      // simply update what is waiting below without triggering cinematic world swap.
-      if (!seen.current.world) {
-        setWorld(next);
-        return;
-      }
-
-      isSwitching.current = true;
-      restart.current = true;
-
-      // Kill any active entrance animation
-      if (activeEntranceTl.current) {
-        activeEntranceTl.current.kill();
-        activeEntranceTl.current = null;
-      }
-
-      // 1. Transition OUT using the liquid veil / atmosphere
-      playWorldTransitionOut({
-        veil: veilRef.current,
-        air: airRef.current,
-        worldEl: worldRef.current,
-        onComplete: () => {
-          if (next === 'cloudversity' && !Journey) {
-            void loadJourney().then((module) => {
-              setJourney(() => module.AyadiJourney);
-              setWorld(next);
-            });
-          } else {
-            setWorld(next);
-          }
-        },
-      });
-    },
-    [world, Journey],
-  );
 
   /* ---------- which layout ---------- */
   useIsomorphicLayoutEffect(() => {
@@ -468,9 +398,8 @@ export function AyadiHero() {
     /*
      * The opening has to fit on the stage now that nothing scrolls it: on a
      * short screen it scales down as a whole (--fit). Then, relative to the
-     * stage — which is exactly the canvas — where the mark's slot and the
-     * watermark sit, for the scene to dock the mark into and draw the
-     * watermark behind it.
+     * stage — which is exactly the canvas — where the mark's slot sits, for
+     * the scene to dock the mark into.
      */
     const measure = () => {
       /* The Why heading's own size, and a card's, as laid out — before the
@@ -502,18 +431,6 @@ export function AyadiHero() {
       state.slotTop = rect.top - origin.top;
       state.slotWidth = rect.width;
       state.slotHeight = rect.height;
-
-      const watermark = watermarkRef.current;
-      if (!watermark) return;
-      /* The box as drawn — after --fit — which is all the scene needs: the
-         letterforms are the artwork's, stretched to it as the SVG is. */
-      const box = watermark.getBoundingClientRect();
-      const spec = state.watermark;
-      spec.left = box.left - origin.left;
-      spec.top = box.top - origin.top;
-      spec.width = box.width;
-      spec.height = box.height;
-      spec.version += 1;
     };
     measure();
 
@@ -525,8 +442,6 @@ export function AyadiHero() {
 
       const captions = [...layer('globe-caption'), ...layer('portal-caption')];
       gsap.set(captions, { autoAlpha: 0, y: 20 });
-      gsap.set(layer('choose-head'), { autoAlpha: 0, y: 24 });
-      gsap.set(layer('card'), { autoAlpha: 0, y: 48, rotateX: 16, transformPerspective: 900, transformOrigin: '50% 100%' });
       gsap.set(layer('progress'), { scaleY: 0, transformOrigin: '50% 0%' });
       gsap.set([...layer('shade'), ...layer('fade')], { autoAlpha: 0 });
       gsap.set(layer('skip'), { opacity: 0 });
@@ -535,7 +450,7 @@ export function AyadiHero() {
       gsap.set(layer('why-tag'), { autoAlpha: 0, y: 6, scale: 0.8 });
       gsap.set(layer('why-accent'), { scaleX: 0, transformOrigin: '0% 50%' });
 
-      /* The story: everything from the opening to Choose your world, in story
+      /* The story: everything from the opening to the far side, in story
          units. Paused — the master timeline below plays it. */
       const timeline = gsap.timeline({ paused: true, defaults: { ease: 'none', immediateRender: false } });
 
@@ -580,24 +495,12 @@ export function AyadiHero() {
       show('globe-caption', CUES.globeCaptionIn);
       hide('globe-caption', CUES.globeCaptionOut);
 
-      timeline.fromTo(
-        layer('choose-head'),
-        { autoAlpha: 0, y: 24 },
-        { autoAlpha: 1, y: 0, duration: CUES.chooseIn[1], ease: 'power2.out' },
-        CUES.chooseIn[0],
-      );
-      timeline.fromTo(
-        layer('card'),
-        { autoAlpha: 0, y: 48, rotateX: 16 },
-        { autoAlpha: 1, y: 0, rotateX: 0, duration: CUES.cardsIn[1], ease: 'power2.out', stagger: 0.15 },
-        CUES.cardsIn[0],
-      );
       /* Opacity only, never visibility: the skip button stays in the tab order
          from the very start, and shows itself when focused (see .skip). */
       timeline.fromTo(layer('skip'), { opacity: 0 }, { opacity: 1, duration: CUES.skipIn[1] }, CUES.skipIn[0]);
       timeline.to(layer('skip'), { opacity: 0, duration: CUES.skipOut[1] }, CUES.skipOut[0]);
 
-      /* Pad the end, so Choose your world holds for a while before the page moves on. */
+      /* Pad the end, so the light and the world have the rest of the scroll. */
       timeline.set({}, {}, TOTAL);
 
       /* ---------- the master: the story, stretched for the Why stage ---------- */
@@ -714,14 +617,7 @@ export function AyadiHero() {
         PORTAL_CAPTION.out[0],
       );
 
-      /* The choice and the scene dissolve into the light that is rising
-         over both of them. */
-      master.fromTo(
-        [...layer('choose-head'), ...layer('card')],
-        { autoAlpha: 1, y: 0 },
-        { autoAlpha: 0, y: -18, duration: CHOOSE_OUT[1], ease: 'power1.in', stagger: 0.05 },
-        CHOOSE_OUT[0],
-      );
+      /* The scene dissolves into the light that is rising over it. */
       master.fromTo(
         [...layer('canvas'), ...layer('track')],
         { autoAlpha: 1 },
@@ -859,8 +755,8 @@ export function AyadiHero() {
     };
   }, [sync]);
 
-  /* The default world is part of this page: fetch and mount it in the first
-     free moment, long before the hero reaches the choice. */
+  /* The world is part of this page: fetch and mount it in the first free
+     moment, long before the hero reaches it. */
   useEffect(() => {
     if (Journey) return;
     return whenIdle(() => {
@@ -873,53 +769,6 @@ export function AyadiHero() {
       );
     });
   }, [Journey]);
-
-  /* A world switched from inside the world starts at its own beginning —
-     anything else drops the reader into the middle of it. */
-  useEffect(() => {
-    if (!restart.current) return;
-    restart.current = false;
-
-    const element = worldRef.current;
-    if (!element) return;
-
-    /* The old world took its triggers, its pin and its height with it. */
-    ScrollTrigger.refresh();
-    const pinned = ScrollTrigger.getAll().find((trigger) => trigger.pin && element.contains(trigger.trigger ?? null));
-    jumpTo(pinned ? pinned.start : element.getBoundingClientRect().top + window.scrollY - NAV_CLEARANCE);
-
-    // 2. Play the INITIAL ENTRANCE ANIMATION for the newly mounted world
-    activeEntranceTl.current = playWorldEntrance({
-      world,
-      worldEl: element,
-      veil: veilRef.current,
-      air: airRef.current,
-      onComplete: () => {
-        isSwitching.current = false;
-        activeEntranceTl.current = null;
-      },
-    });
-  }, [world, Journey]);
-
-  /* If the user scrolls during the short entrance animation, complete it immediately
-     so the existing ScrollTrigger journey takes over without any delay or collision. */
-  useEffect(() => {
-    const handleScrollInterrupt = () => {
-      if (isSwitching.current && activeEntranceTl.current) {
-        activeEntranceTl.current.progress(1);
-      }
-    };
-    window.addEventListener('wheel', handleScrollInterrupt, { passive: true });
-    window.addEventListener('touchmove', handleScrollInterrupt, { passive: true });
-    return () => {
-      window.removeEventListener('wheel', handleScrollInterrupt);
-      window.removeEventListener('touchmove', handleScrollInterrupt);
-      if (activeEntranceTl.current) {
-        activeEntranceTl.current.kill();
-        activeEntranceTl.current = null;
-      }
-    };
-  }, []);
 
   /* ---------- live input ---------- */
   useEffect(() => {
@@ -951,13 +800,13 @@ export function AyadiHero() {
     };
   }, [mode]);
 
-  /* Straight to the choice — not past it, where it has already cleared.
-     Instant: the scrub carries the scene through the rest of the journey
-     quickly on its way. */
+  /* Straight to the world, once the light has cleared off it. Instant: the
+     scrub carries the scene through the rest of the journey quickly on its
+     way. */
   const skip = () => {
     const trigger = triggerRef.current;
     if (!trigger) return;
-    jumpTo(trigger.start + (trigger.end - trigger.start) * CHOICE_AT);
+    jumpTo(trigger.end);
   };
 
   return (
@@ -971,7 +820,7 @@ export function AyadiHero() {
       >
         {/* ================= the stage =================
             Sticky for the whole journey: the opening, the canvas, the captions
-            and the choice all live on it, so the page never moves under them. */}
+            and the Why stage all live on it, so the page never moves under them. */}
         <div ref={stageRef} className={styles.stage}>
           <div data-h="shade" aria-hidden="true" className={styles.shade} />
 
@@ -987,30 +836,10 @@ export function AyadiHero() {
 
           <div className={styles.ui}>
             {/* ================= the opening =================
-                One centred column: the AYADI watermark and the 3D mark, then the
-                copy. The mark is the scene's own — it docks into the slot below. */}
+                One centred column: the 3D mark, then the copy. The mark is the scene's own — it docks into the slot below. */}
             <div ref={openingRef} data-h="opening" className={styles.opening}>
               <div ref={openingInnerRef} className={styles.openingInner}>
                 <div className={styles.brand}>
-                  {/* The watermark: the official AYADI letterforms, huge and faint.
-                      With the scene running it is drawn behind the 3D logo by the
-                      backdrop shader, measured from this element; this one only
-                      shows until then, and without motion or WebGL. */}
-                  <svg
-                    ref={watermarkRef}
-                    aria-hidden="true"
-                    viewBox={`0 0 ${AYADI_BOX[2]} ${AYADI_BOX[3]}`}
-                    className={styles.watermark}
-                  >
-                    <defs>
-                      <linearGradient id="hero-watermark-ink" x1="0" x2="1" y1="0" y2="0">
-                        <stop offset="0" stopColor="var(--color-brand-middle)" />
-                        <stop offset="1" stopColor="var(--color-brand-end)" />
-                      </linearGradient>
-                    </defs>
-                    <path d={AYADI_PATH} fill="url(#hero-watermark-ink)" fillRule="evenodd" />
-                  </svg>
-
                   {/* The official logo, in 3D, docks here. Until the scene is on
                       screen — and always, without motion or WebGL — the
                       artwork itself stands in, and the scene takes over from
@@ -1078,10 +907,6 @@ export function AyadiHero() {
                 Step into the Ayadi ecosystem
               </span>
             </p>
-
-            <div className={styles.choose}>
-              <ChooseWorld selected={world} onSelect={chooseWorld} />
-            </div>
           </div>
 
           <span data-h="track" aria-hidden="true" className={styles.progressTrack}>
@@ -1094,21 +919,19 @@ export function AyadiHero() {
             onClick={skip}
             className={`${styles.skip} items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-2 text-xs font-bold text-white/80 ring-1 ring-inset ring-white/20 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300`}
           >
-            Skip to the choice
+            Skip intro
             <ChevronDown aria-hidden="true" size={14} />
           </button>
         </div>
       </section>
 
-      {/* The chosen world, on the same page and pulled up over the hero's
-          last screen so the two cross-dissolve. Cloudversity is the journey
-          the courses page runs, reused as it stands; AyaTech is a holding
-          card until its own is built. Only the active one is mounted — the
-          other takes its GSAP context and its triggers with it. */}
+      {/* The world, on the same page and pulled up over the hero's last
+          screen so the two cross-dissolve: the journey the courses page
+          runs, reused as it stands. */}
       <div ref={worldRef} className={styles.world}>
         {/* `bare`: no card around it. Here the journey is not a panel on a
             page — it is the world the camera has just entered. */}
-        {world === 'cloudversity' ? Journey && <Journey onSelectBrand={showCourses} bare /> : <AyatechWorld />}
+        {Journey && <Journey onSelectBrand={showCourses} bare />}
       </div>
 
       {/* The light the reader passes through, over both of them. Only the
@@ -1119,8 +942,6 @@ export function AyadiHero() {
           <div ref={airRef} aria-hidden="true" className={styles.atmosphere} />
         </>
       )}
-
-      <WorldSwitcher active={world} onSelect={chooseWorld} elementRef={switcherRef} />
     </>
   );
 }

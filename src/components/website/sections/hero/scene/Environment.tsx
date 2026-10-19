@@ -282,32 +282,28 @@ export function Motes({ rig, frame, count }: Props & { count: number }) {
   );
 }
 
-/* The two worlds' colours: Cloudversity's emerald-to-teal, AyaTech's deeper green. */
-const WORLD_GLOWS: [number, number, number][] = [
-  [0.063, 0.725, 0.56],
-  [0.082, 0.502, 0.239],
-];
+/* Cloudversity's emerald-to-teal. */
+const WORLD_GLOW: [number, number, number] = [0.063, 0.725, 0.56];
 
 /*
- * The far side of the portal, where the choice is made: a pale floor with a
- * fine grid running to the horizon, and a soft pool of light behind each of
- * the two world cards. Placed relative to the camera, so the pools sit behind
- * the cards at any aspect — side by side, or stacked on a phone.
+ * The far side of the portal, on the way into the light: a pale floor with a
+ * fine grid running to the horizon, and a soft pool of Cloudversity's light
+ * in the middle of the view. Placed relative to the camera, so it stays
+ * centred at any aspect.
  */
 export function FarSide({ rig }: Props) {
   const floorUniforms = useMemo(() => ({ uArrive: { value: 0 } }), []);
   const glowUniforms = useMemo(
-    () =>
-      WORLD_GLOWS.map((colour) => ({
-        uColor: { value: new THREE.Vector3(...colour) },
-        uStrength: { value: 0 },
-      })),
+    () => ({
+      uColor: { value: new THREE.Vector3(...WORLD_GLOW) },
+      uStrength: { value: 0 },
+    }),
     [],
   );
 
   const group = useRef<THREE.Group>(null);
   const floor = useRef<THREE.ShaderMaterial>(null);
-  const glows = useRef<(THREE.Mesh | null)[]>([]);
+  const glow = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     const holder = group.current;
@@ -322,21 +318,12 @@ export function FarSide({ rig }: Props) {
     const camera = state.camera as THREE.PerspectiveCamera;
     const depth = 11;
     const halfHeight = depth * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const halfWidth = halfHeight * camera.aspect;
-    const sideBySide = camera.aspect >= 0.9;
-
-    glows.current.forEach((glow, index) => {
-      if (!glow) return;
-      const side = index === 0 ? -1 : 1;
-      glow.position.set(
-        sideBySide ? side * halfWidth * 0.42 : 0,
-        sideBySide ? 0.15 : -side * halfHeight * 0.3,
-        camera.position.z - depth,
-      );
-      glow.quaternion.copy(camera.quaternion);
-      glow.scale.setScalar(halfHeight * (sideBySide ? 1.5 : 1.1));
-      (glow.material as THREE.ShaderMaterial).uniforms.uStrength.value = r.arrive * 0.5;
-    });
+    const pool = glow.current;
+    if (!pool) return;
+    pool.position.set(0, 0.15, camera.position.z - depth);
+    pool.quaternion.copy(camera.quaternion);
+    pool.scale.setScalar(halfHeight * 1.5);
+    (pool.material as THREE.ShaderMaterial).uniforms.uStrength.value = r.arrive * 0.5;
   });
 
   return (
@@ -353,24 +340,16 @@ export function FarSide({ rig }: Props) {
         />
       </mesh>
 
-      {glowUniforms.map((uniforms, index) => (
-        <mesh
-          key={index}
-          ref={(mesh) => {
-            glows.current[index] = mesh;
-          }}
-          renderOrder={2}
-        >
-          <planeGeometry args={[1, 1]} />
-          <shaderMaterial
-            uniforms={uniforms}
-            vertexShader={SPRITE_VERTEX}
-            fragmentShader={SPRITE_FRAGMENT}
-            transparent
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
+      <mesh ref={glow} renderOrder={2}>
+        <planeGeometry args={[1, 1]} />
+        <shaderMaterial
+          uniforms={glowUniforms}
+          vertexShader={SPRITE_VERTEX}
+          fragmentShader={SPRITE_FRAGMENT}
+          transparent
+          depthWrite={false}
+        />
+      </mesh>
     </group>
   );
 }

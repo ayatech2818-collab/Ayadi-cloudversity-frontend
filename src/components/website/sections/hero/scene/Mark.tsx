@@ -214,7 +214,14 @@ export function Mark({ rig, frame }: { rig: RefObject<Rig>; frame: RefObject<Fra
        Director wakes the scene outright the moment it does. */
     const wake = r.wake;
     const idle = (1 - r.morph) * wake;
-    group.position.set(0, Math.sin(f.time * 0.8) * 0.035 * idle, r.logoZ);
+    /* The idle float: a slow bob with a little sideways wander, two waves
+       each so it never settles into an obvious loop. */
+    const t = f.time;
+    group.position.set(
+      (Math.sin(t * 0.37) * 0.018 + Math.sin(t * 0.91 + 0.6) * 0.006) * idle,
+      (Math.sin(t * 0.8) * 0.045 + Math.sin(t * 1.7 + 2.1) * 0.008) * idle,
+      r.logoZ,
+    );
 
     /* The mark sits where the artwork has it, slides to the centre as the
        lockup opens, and back out to its place as it rebuilds. */
@@ -225,8 +232,12 @@ export function Mark({ rig, frame }: { rig: RefObject<Rig>; frame: RefObject<Fra
        did; while it is whole, the story's turn and the pointer are eased so
        it still reads as the logo first. */
     const steady = 1 - 0.35 * Math.max(gather, settle);
-    turning.rotation.y = (r.logoSpin * wake + f.px * 0.22 * idle) * steady + Math.sin(f.time * 0.45) * 0.07 * idle;
-    turning.rotation.x = r.logoTilt + Math.sin(f.time * 0.6 + 1.3) * 0.03 * idle + f.py * 0.14 * idle * steady;
+    turning.rotation.y =
+      (r.logoSpin * wake + f.px * 0.22 * idle) * steady +
+      (Math.sin(t * 0.45) * 0.09 + Math.sin(t * 1.1 + 0.8) * 0.012) * idle;
+    turning.rotation.x =
+      r.logoTilt + (Math.sin(t * 0.6 + 1.3) * 0.04 + Math.sin(t * 1.3) * 0.006) * idle + f.py * 0.14 * idle * steady;
+    turning.rotation.z = Math.sin(t * 0.33 + 0.4) * 0.012 * idle;
 
     const u = shader.uniforms;
     u.uKey.value.set(-0.4 + f.px * 0.25, 0.55 - f.py * 0.2, 0.75);

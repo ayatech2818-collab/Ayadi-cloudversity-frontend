@@ -3,7 +3,8 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, ChevronDown, Plus } from 'lucide-react';
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Fragment, useEffect, useLayoutEffect, useRef } from 'react';
 
 import { CARD_CHROME, CardDecor, handleSpotlight } from '@/components/website/ui/card-chrome';
 
@@ -17,10 +18,12 @@ import type { BrandId } from './types';
    before paint or the acts flash stacked. Swap the hook, not the timing. */
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
-/* The parent platform. AyaTech and AGS get their own journeys further down
-   the page — one brand per pinned sequence, so no act has to introduce two
-   things at once. */
+/* Ayadi Cloudversity — the one brand this journey is about. */
 const brand = brandById.ayadi;
+
+/* Act one's headline, a word at a time: each slides out of its own mask, and
+   the last one wears the brand gradient. */
+const headline = brand.tagline.split(' ');
 
 /* ---------- the score ----------
    Positions on the scrubbed timeline, in arbitrary units. HOLD is how long a
@@ -34,7 +37,7 @@ const COLLAGE_IN = HERO_END - 0.3;
 const COLLAGE_OUT = COLLAGE_IN + 2.5;
 const GRID_IN = COLLAGE_OUT + 0.6;
 
-/* Act three shows the six subjects one at a time, each blown up in the middle
+/* Act three shows the four categories one at a time, each blown up in the middle
    of the row, before they all fan out into the grid they belong in.
    GRID_SPOT_STEP is how much scroll one subject owns: it arrives, holds, and
    leaves inside that. */
@@ -43,9 +46,16 @@ const GRID_SPOT_STEP = 0.5;
 const GRID_SPOT_OUT = GRID_SPOT_IN + learningWorlds.length * GRID_SPOT_STEP;
 const TOTAL = GRID_SPOT_OUT + 1.9;
 
+/* How much scroll the sequence owns, as a percentage of the screen. 440% was
+   tuned for a 10.3-unit score (six subjects then); it scales with TOTAL, so
+   every unit of the score — act one's hold included — keeps that pace. */
+const TRAVEL = Math.round((TOTAL * 440) / 10.3);
+
 /* How far a tile blows up while it holds the centre. 1.85 is the most the
-   widest layout takes without the card running past the row it sits in —
-   re-check it if the grid ever loses a column. */
+   widest layout takes without the card running past the grid it sits in —
+   which is why four tiles are a 2×2 grid at the old three-column tile size
+   rather than one row, where a blown-up tile would cover the heading.
+   Re-check it if the grid's shape changes. */
 const TILE_SHOWCASE = 1.85;
 
 /* A tile's comet laps its border on a CSS keyframe — along a path, which no
@@ -90,7 +100,7 @@ const COLLAGE_BOX = 'sm:aspect-[16/10] sm:w-[min(100%,86svh)]';
    The same three acts on the same score, on a stage the size of a phone.
 
    PHONE_TRAVEL is how much scroll the sequence owns there, in small-viewport
-   heights — the same 440% the wide layout pins for.
+   heights — the same TRAVEL the wide layout pins for.
 
    The collage is the same free-floating cluster, in a box that stands upright
    (5:6) because the stage does. Its width is capped against the stage's height
@@ -98,7 +108,7 @@ const COLLAGE_BOX = 'sm:aspect-[16/10] sm:w-[min(100%,86svh)]';
    so it always fits; each card's place in it is `phone` in journey.ts, and the
    script takes the corner those places leave free. The cards drift less, and
    less still in a smaller box, so the cluster holds together. */
-const PHONE_TRAVEL = 440;
+const PHONE_TRAVEL = TRAVEL;
 const PHONE_BOX = { aspectRatio: '5 / 6', width: 'min(100%, calc((100svh - 160px) / 1.2))' };
 
 /* The soft lights behind the acts — a wash in act one, four behind the
@@ -138,10 +148,11 @@ const SPARKS = [
 /*
  * Ayadi Cloudversity, as a pinned three-act sequence.
  *
- * Act one is the platform itself. Act two drops the copy for a floating photo
- * collage. Act three spreads that collage outward and lands on the subject
- * grid. One ScrollTrigger drives all of it with `scrub`, so the scene is
- * wherever the reader's scroll position says it is — nothing autoplays.
+ * Act one is the arrival: one headline and one way in. Act two drops the
+ * copy for a floating photo collage. Act three spreads that collage outward
+ * and lands on the subject grid. One ScrollTrigger drives all of it with
+ * `scrub`, so the scene is wherever the reader's scroll position says it is —
+ * nothing autoplays.
  *
  * The markup ships in normal document flow: three acts stacked down the page,
  * everything visible, no transforms. GSAP stacks them only after checking that
@@ -203,20 +214,13 @@ export function AyadiJourney({
              at rest so there is zero bottom-to-top travel or internal scrub. */
           gsap.set(q('[data-intro]'), { autoAlpha: 1, y: 0 });
           gsap.set(words, { yPercent: 0 });
-          gsap.set(q('[data-intro="rule"]'), { autoAlpha: 1, y: 0, scaleX: 1, transformOrigin: 'left center' });
           gsap.set(q('[data-card]'), { autoAlpha: 1, y: 0, scale: 1 });
           gsap.set(q('[data-mark]'), { autoAlpha: 1, rotationY: -20, rotationX: 7, z: 0 });
-          gsap.set(q('[data-intro="eyebrow"], [data-intro="line"], [data-intro="stat"], [data-intro="ghost"]'), {
-            autoAlpha: 1,
-            y: 0,
-          });
           return;
         }
 
         gsap.set(q('[data-intro]'), { autoAlpha: 0, y: 18 });
         gsap.set(words, { yPercent: 115 });
-        /* Rides in with the eyebrow around it, so it only needs its width. */
-        gsap.set(q('[data-intro="rule"]'), { autoAlpha: 1, y: 0, scaleX: 0, transformOrigin: 'left center' });
         gsap.set(q('[data-mark]'), { autoAlpha: 0, rotationY: -52, rotationX: 16, z: -160 });
 
         gsap
@@ -233,11 +237,8 @@ export function AyadiJourney({
             { autoAlpha: 0, y: 48, scale: 0.97 },
             { autoAlpha: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out' },
           )
-          .to(q('[data-intro="eyebrow"]'), { autoAlpha: 1, y: 0, duration: 0.6 }, '-=0.45')
-          .to(q('[data-intro="rule"]'), { scaleX: 1, duration: 0.7, ease: 'power3.inOut' }, '-=0.35')
-          .to(words, { yPercent: 0, duration: 1.1, stagger: 0.09 }, '-=0.5')
-          .to(q('[data-intro="line"]'), { autoAlpha: 1, y: 0, duration: 0.75, stagger: 0.09 }, '-=0.75')
-          .to(q('[data-intro="stat"]'), { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.08 }, '-=0.45')
+          .to(words, { yPercent: 0, duration: 1.1, stagger: 0.09 }, '-=0.45')
+          .to(q('[data-intro="line"]'), { autoAlpha: 1, y: 0, duration: 0.75 }, '-=0.6')
           .to(q('[data-intro="ghost"]'), { autoAlpha: 1, y: 0, duration: 1.5 }, '-=1.6')
           .to(
             q('[data-mark]'),
@@ -387,17 +388,18 @@ export function AyadiJourney({
           });
           gsap.set(q('[data-stack]'), { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' });
 
-          /* ---------- a phone's acts have to fit ----------
-             The copy and the subject grid are as tall as their text makes
+          /* ---------- the acts have to fit ----------
+             The copy and the category grid are as tall as their text makes
              them; where that is more than a short screen's stage holds, the
-             block is scaled down whole. CSS `scale`, so it sits under whatever
+             block is scaled down whole. On a phone both; on a wide screen
+             only the grid, whose tiles are sized for a tall one. CSS `scale`, so it sits under whatever
              GSAP does to the same element, and measured from layout heights,
              which no transform changes. Again on every refresh.
 
              Fitted to the stage at its shortest — the browser's bars up —
              whatever it is when this runs: fitted to a taller one, an act
              would be cut each time the bars came back. */
-          const fitted = wide ? [] : (q('[data-hero-body], [data-grid-body]') as HTMLElement[]);
+          const fitted = q(wide ? '[data-grid-body]' : '[data-hero-body], [data-grid-body]') as HTMLElement[];
           const fit = () => {
             if (!fitted.length) return;
 
@@ -462,11 +464,12 @@ export function AyadiJourney({
               ? {
                   trigger: sectionEl,
                   start: 'top 84px',
-                  end: '+=440%',
+                  end: `+=${TRAVEL}%`,
                   pin: true,
                   scrub: 1.2,
                   anticipatePin: 1,
                   invalidateOnRefresh: true,
+                  onRefresh: fit,
                 }
               : {
                   /* No pin: the stage is sticky (above). The trigger only maps
@@ -493,7 +496,6 @@ export function AyadiJourney({
              to know what the other left behind. */
           timeline
             .to(q('[data-hero-body]'), { yPercent: -8, duration: HOLD, ease: 'none' }, 0)
-            .to(q('[data-intro="stat"]'), { yPercent: -30, duration: HOLD, ease: 'none' }, 0)
             /* Spins on its own element so it never contends with the
                entrance, which owns the rotation on [data-mark]. */
             .fromTo(
@@ -504,9 +506,10 @@ export function AyadiJourney({
             )
             .fromTo(q('[data-mark-sheen]'), { xPercent: 0 }, { xPercent: 220, duration: HOLD, ease: 'none' }, 0)
             .to(q('[data-mark-travel]'), { yPercent: -5, duration: HOLD, ease: 'none' }, 0)
-            /* Slower than the mark in front of it, which is what makes the
-               two read as separate depths rather than one flat picture. */
-            .to(q('[data-intro="ghost"]'), { x: -110, duration: HOLD, ease: 'none' }, 0)
+            /* The watermark slides left to right behind the mark as the
+               scroll goes on — against the copy's upward drift, and slower
+               than the mark, so the two read as separate depths. */
+            .fromTo(q('[data-intro="ghost"]'), { x: -160 }, { x: 60, duration: HOLD + FADE, ease: 'none' }, 0)
             .to(q('[data-drift="wash"]'), { x: -70, y: 130, duration: HOLD, ease: 'none' }, 0)
             .to(hero, { autoAlpha: 0, yPercent: -8, duration: FADE }, HOLD);
 
@@ -801,83 +804,56 @@ export function AyadiJourney({
               className={`pointer-events-none absolute -right-40 -top-40 -z-10 size-[620px] rounded-full blur-[140px] ${SOFT} ${brand.theme.glow}`}
             />
 
-            {/* The watermark, back where it was but now a layer rather than
-                an overlay: -z-10 drops it behind the content, so the 3D mark
-                stands in front of it instead of being washed over by it. */}
+            {/* The watermark: a layer rather than an overlay — -z-10 drops it
+                behind the content, and the 3D mark stands in front of it
+                instead of being washed over by it. */}
             <span
               data-intro="ghost"
               aria-hidden="true"
-              className="pointer-events-none absolute right-[-2%] top-1/2 -z-10 hidden -translate-y-1/2 whitespace-nowrap text-[12vw] font-bold leading-none tracking-[-0.06em] text-accent/[0.045] lg:block"
+              className="pointer-events-none absolute right-[2%] top-1/2 -z-10 hidden -translate-y-1/2 whitespace-nowrap text-[12vw] font-bold leading-none tracking-[-0.06em] text-accent/[0.045] lg:block"
             >
               {brand.shortName}
             </span>
 
+            {/* The arrival: the hero has just said who this is, so act one
+                only says what it is for — one line and one way in. */}
             <div data-hero-body className={HERO_GRID}>
               <div>
-                {/* "01 ———— Parent platform" */}
-                <span data-intro="eyebrow" className="inline-flex items-center gap-3.5">
-                  <span className="font-mono text-[11px] font-bold tracking-[0.24em] text-muted">{brand.index}</span>
-                  <span data-intro="rule" aria-hidden="true" className={`h-px w-14 ${brand.theme.gradient}`} />
-                  <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${brand.theme.text}`}>
-                    {brand.kind}
-                  </span>
-                </span>
-
-                <h2 className="mt-5 text-[2.2rem] font-semibold leading-[0.98] tracking-[-0.05em] text-accent sm:text-5xl lg:text-[3.4rem]">
-                  {brand.name.split(' ').map((word) => (
+                <h2 className="text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.05em] text-accent sm:text-6xl lg:text-[4.4rem]">
+                  {headline.map((word, index) => (
                     /* The mask the word slides out of. The padding keeps the
-                       descender in "Ayadi" clear of the clip; the matching negative
-                       margin gives the space straight back to the layout. */
-                    <span key={word} className="block overflow-hidden pb-[0.1em] [margin-bottom:-0.1em]">
-                      <span data-intro-word className="block">
-                        {word}
+                       descenders clear of the clip; the matching negative
+                       margin gives the space straight back to the layout.
+                       The space between words sits outside the masks, so the
+                       line can still wrap there. */
+                    <Fragment key={word}>
+                      {index > 0 ? ' ' : null}
+                      <span className="inline-block overflow-hidden pb-[0.1em] align-bottom [margin-bottom:-0.1em]">
+                        <span
+                          data-intro-word
+                          className={`inline-block${index === headline.length - 1 ? ' bg-brand-gradient bg-clip-text text-transparent' : ''}`}
+                        >
+                          {word}
+                        </span>
                       </span>
-                    </span>
+                    </Fragment>
                   ))}
                 </h2>
-
-                <p
-                  data-intro="line"
-                  className={`mt-4 text-lg font-semibold tracking-[-0.02em] sm:text-xl lg:text-[1.35rem] ${brand.theme.text}`}
-                >
-                  {brand.tagline}
-                </p>
-
-                <p
-                  data-intro="line"
-                  className="mt-4 max-w-xl text-[0.95rem] leading-7 text-muted sm:text-base sm:leading-8"
-                >
-                  {brand.lede}
-                </p>
 
                 <button
                   type="button"
                   data-intro="line"
                   onClick={() => onSelectBrand(brand.id)}
-                  className={`group mt-7 inline-flex items-center gap-2.5 rounded-full px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-transform duration-300 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 sm:px-7 ${brand.theme.gradient} ${brand.theme.outline}`}
+                  className={`group mt-9 inline-flex items-center gap-2.5 rounded-full px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-transform duration-300 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 sm:px-7 ${brand.theme.gradient} ${brand.theme.outline}`}
                 >
                   <Icon aria-hidden="true" size={16} strokeWidth={2} />
-                  Explore {brand.shortName} Programmes
+                  Explore programmes
                   <ArrowRight
                     aria-hidden="true"
                     size={16}
                     className="transition-transform duration-300 group-hover:translate-x-1"
                   />
                 </button>
-
-                <ul className="mt-8 grid grid-cols-2 gap-y-5 sm:mt-10 sm:grid-cols-4">
-                  {brand.stats.map((stat, statIndex) => (
-                    <li key={stat.label} data-intro="stat" className={`relative ${statIndex > 0 ? 'sm:pl-7' : ''}`}>
-                      {statIndex > 0 ? (
-                        <span aria-hidden="true" className="absolute left-0 top-1 hidden h-11 w-px bg-border sm:block" />
-                      ) : null}
-
-                      <p className="text-2xl font-semibold tracking-[-0.03em] text-accent sm:text-[1.7rem]">{stat.value}</p>
-
-                      <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-muted">{stat.label}</p>
-                    </li>
-                  ))}
-                </ul>
               </div>
 
               {/* The second column is deliberately empty: the brand mark that
@@ -976,7 +952,9 @@ export function AyadiJourney({
             data-stack
             className={`flex min-h-[70svh] w-full items-center ${ACT_PADDING}`}
           >
-            <div data-grid-body className="mx-auto w-full max-w-[1180px]">
+            {/* Two columns at every width (TILE_SHOWCASE), and from `lg` up
+                no wider than two big tiles. */}
+            <div data-grid-body className="mx-auto w-full max-w-[1180px] lg:max-w-[880px]">
               <span
                 data-grid-head
                 className="inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.22em] text-primary"
@@ -992,7 +970,7 @@ export function AyadiJourney({
                 A brighter tomorrow, by subject.
               </h2>
 
-              <ul className="relative mt-6 grid grid-cols-2 gap-3 max-sm:mt-3.5 max-sm:gap-2.5 sm:gap-4 lg:grid-cols-3">
+              <ul className="relative mt-6 grid grid-cols-2 gap-3 max-sm:mt-3.5 max-sm:gap-2.5 sm:gap-4">
                 {learningWorlds.map((world) => {
                   const WorldIcon = world.icon;
 
@@ -1028,28 +1006,28 @@ export function AyadiJourney({
                         </span>
                       </span>
 
-                      <button
-                        type="button"
-                        onClick={() => onSelectBrand(brand.id)}
+                      {/* Opens the Courses page on this category. */}
+                      <Link
+                        href={`/courses?category=${world.slug}`}
                         onPointerMove={handleSpotlight}
-                        className={`${CARD_CHROME} w-full px-4 py-5 text-center outline-primary focus-visible:outline-2 focus-visible:outline-offset-2 max-sm:px-2.5 max-sm:py-2.5 sm:px-5`}
+                        className={`${CARD_CHROME} block w-full px-5 py-7 text-center outline-primary focus-visible:outline-2 focus-visible:outline-offset-2 max-sm:px-3 max-sm:py-4 sm:px-6 sm:py-8`}
                       >
                         <CardDecor />
 
                         <span
-                          className={`mx-auto flex size-10 items-center justify-center rounded-xl transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-105 max-sm:size-8 ${world.tint}`}
+                          className={`mx-auto flex size-14 items-center justify-center rounded-2xl transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-105 max-sm:size-10 max-sm:rounded-xl ${world.tint}`}
                         >
-                          <WorldIcon aria-hidden="true" size={20} strokeWidth={1.9} />
+                          <WorldIcon aria-hidden="true" className="size-7 max-sm:size-5" strokeWidth={1.8} />
                         </span>
 
-                        <span className="mt-3 block text-base font-bold tracking-[-0.02em] text-accent max-sm:mt-1.5 max-sm:text-sm max-sm:leading-snug sm:text-lg">
+                        <span className="mt-4 block text-lg font-bold leading-snug tracking-[-0.02em] text-accent max-sm:mt-2 max-sm:text-[15px] sm:text-xl lg:text-[1.4rem]">
                           {world.title}
                         </span>
 
-                        <span className="mt-1 block text-xs text-muted max-sm:mt-0.5 max-sm:text-[11px] max-sm:leading-[1.3] sm:text-sm">
+                        <span className="mt-1.5 block text-sm text-muted max-sm:mt-1 max-sm:text-xs max-sm:leading-[1.35] sm:text-base">
                           {world.blurb}
                         </span>
-                      </button>
+                      </Link>
                     </li>
                   );
                 })}

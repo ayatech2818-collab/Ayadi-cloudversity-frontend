@@ -21,8 +21,36 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+/*
+ * Public content the website caches (src/lib/query). A successful write to
+ * any of these — the admin saving a course, a post, a gallery — clears that
+ * cache, so the change shows on the next page view rather than after it
+ * expires. Loaded lazily: this client also runs on the server, where there is
+ * no cache to clear.
+ */
+const PUBLIC_CONTENT_PATH = /^\/?(courses|blogs|blog-authors|galleries)(\/|$|\?)/;
+
+const clearPublicCacheAfterWrite = (config: InternalAxiosRequestConfig) => {
+    const method = (config.method ?? "get").toLowerCase();
+
+    if (
+        typeof window === "undefined" ||
+        method === "get" ||
+        !PUBLIC_CONTENT_PATH.test(config.url ?? "")
+    ) {
+        return;
+    }
+
+    void import("@/lib/query/persister")
+        .then(({ clearPublicContentCache }) => clearPublicContentCache())
+        .catch(() => {});
+};
+
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        clearPublicCacheAfterWrite(response.config);
+        return response;
+    },
 
     async (error: AxiosError) => {
         const originalRequest = error.config as

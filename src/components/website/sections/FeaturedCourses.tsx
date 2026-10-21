@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { motion, useInView, useReducedMotion, type Variants } from 'framer-motion';
 import { ArrowLeft, ArrowRight, BookOpen, Clock3 } from 'lucide-react';
 import Image from 'next/image';
@@ -7,9 +8,17 @@ import Link from 'next/link';
 import { memo, useEffect, useRef, useState, type PointerEvent } from 'react';
 
 import { getCourses, type Course } from '@/lib/api/courses';
+import { publicKeys } from '@/lib/query/client';
 
-/* Six published courses, picked at random by the backend on each visit. */
+/* Six published courses, picked at random by the backend. Cached like the
+   rest of the site's content (src/lib/query), so the pick holds for the
+   cache's freshness window and a new one is drawn after it. */
 const FEATURED_COUNT = 6;
+
+const fetchFeaturedCourses = () =>
+  getCourses({ is_published: true, limit: FEATURED_COUNT, random: true })
+    // Capped here too, in case an older backend ignores `limit`.
+    .then((result) => result.slice(0, FEATURED_COUNT));
 
 const AUTOPLAY_MS = 2500; 
 
@@ -39,8 +48,9 @@ const itemVariants: Variants = {
 
 export default function FeaturedCourses() {
   const reduceMotion = useReducedMotion();
+  const featured = useQuery({ queryKey: publicKeys.featuredCourses, queryFn: fetchFeaturedCourses });
   /* null while loading; an empty list if the request fails or nothing is published. */
-  const [courses, setCourses] = useState<Course[] | null>(null);
+  const courses: Course[] | null = featured.data ?? (featured.isError && !featured.isFetching ? [] : null);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const [perView, setPerView] = useState(4);
@@ -53,19 +63,6 @@ export default function FeaturedCourses() {
   const touchStartX = useRef<number | null>(null);
 
   const inView = useInView(sectionRef, { amount: 0.1 });
-
-  useEffect(() => {
-    let cancelled = false;
-
-    getCourses({ is_published: true, limit: FEATURED_COUNT, random: true })
-      // Capped here too, in case an older backend ignores `limit`.
-      .then((result) => !cancelled && setCourses(result.slice(0, FEATURED_COUNT)))
-      .catch(() => !cancelled && setCourses([]));
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const maxIndex = Math.max(0, (courses?.length ?? 0) - perView);
 
@@ -472,8 +469,8 @@ export default function FeaturedCourses() {
    COURSE CARD
 
    Memoised: autoplay ticks and the hover pause re-render the section every few
-   seconds, and `course` comes from state set once on load, so its identity
-   never changes. Without this, all six cards re-render mid-slide.
+   seconds, and `course` comes from the query cache, whose objects keep their
+   identity until the data itself changes. Without this, all six cards re-render mid-slide.
 -------------------------------------------------- */
 
 const CourseCard = memo(function CourseCard({ course }: { course: Course }) {

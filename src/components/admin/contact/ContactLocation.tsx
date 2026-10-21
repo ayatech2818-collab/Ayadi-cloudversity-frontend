@@ -17,6 +17,15 @@ const LOCATIONS = [
     mapUrl:
       "https://www.google.com/maps/search/?api=1&query=Ayadi,+Shams+Free+Zone,+Sharjah+Media+City,+Sharjah,+UAE",
   },
+  {
+    name: "Mangalore Office",
+    address:
+      "Rahmath Complex Near Spoorthi Polyclinic, Thokkottu, Mangalore",
+    mapEmbedUrl:
+      "https://www.google.com/maps?q=Rahmath+Complex+Near+Spoorthi+Polyclinic,+Thokkottu,+Mangalore&output=embed",
+    mapUrl:
+      "https://www.google.com/maps/search/?api=1&query=Rahmath+Complex+Near+Spoorthi+Polyclinic,+Thokkottu,+Mangalore",
+  },
 ];
 
 export default function ContactLocation() {

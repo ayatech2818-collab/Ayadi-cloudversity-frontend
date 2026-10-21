@@ -14,15 +14,13 @@ import {
 import {
   ArrowUpRight,
   BookOpen,
-  Brain,
   GraduationCap,
-  Heart,
-  Lightbulb,
   MapPin,
   Play,
   Quote,
   Users,
 } from 'lucide-react';
+import Image from 'next/image';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
@@ -42,31 +40,32 @@ const pathways = [
 
 const values = [
   {
-    icon: Lightbulb,
-    title: 'Curiosity',
-    text: 'We encourage learners to ask questions, explore ideas, and discover new possibilities.',
+    title: 'Diversity',
+    text: 'Celebrating a rich tapestry of backgrounds, perspectives and talents.',
+    image: '/images/about/values/diversity.webp',
   },
   {
-    icon: Brain,
-    title: 'Critical thinking',
-    text: 'Our learning experiences help students think independently.',
+    title: 'Innovation',
+    text: 'Fostering creativity and breakthrough thinking in education.',
+    image: '/images/about/values/innovation.png',
   },
   {
-    icon: Heart,
-    title: 'Personal growth',
-    text: 'We nurture character, confidence, creativity, and the skills needed to grow beyond the classroom.',
+    title: 'Excellence',
+    text: 'Striving for the highest standards in everything we do.',
+    image: '/images/about/values/excellence.png',
   },
 ];
 
 const stats = [
-  { to: 3000, suffix: '+', label: 'Current students', icon: GraduationCap },
-  { to: 120, suffix: '', label: 'Learning communities', icon: Users },
-  { to: 8000, suffix: '+', label: 'Lifelong learners', icon: BookOpen },
+  { to: 30000, suffix: '+', label: 'Undergraduate & Graduate students', icon: GraduationCap },
+  { to: 150, suffix: '+', label: 'A Thriving Learning Community', icon: Users },
+  { to: 100000, suffix: '+', label: 'A Vibrant Network of Lifelong Learners', icon: BookOpen },
 ];
 
 const locations = [
   { city: 'Calicut, India', detail: 'Orbits Complex, Jafarkhan Colony Road' },
   { city: 'Sharjah, UAE', detail: 'Shams Free Zone, Sharjah Media City' },
+  { city: 'Mangalore, India', detail: 'Rahmath Complex Near Spoorthi Polyclinic, Thokkottu' },
 ];
 
 /* ==================================================
@@ -101,6 +100,7 @@ const lineUp: Variants = {
 export default function AboutContent() {
   const reduceMotion = useReducedMotion();
   const start = reduceMotion ? 'visible' : 'hidden';
+  const [activeValue, setActiveValue] = useState(0);
 
   return (
     <main>
@@ -245,72 +245,98 @@ export default function AboutContent() {
           VALUES
       ========================================================= */}
 
-        <section className="px-4 py-12 sm:px-8 sm:py-24 lg:px-16 lg:py-32">
-          <div className="mx-auto max-w-[1180px]">
+        <section className="px-2.5 py-10 sm:px-5 sm:py-20 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-[1360px]">
             <motion.div
               variants={stagger}
               initial={start}
               whileInView="visible"
               viewport={{ once: true }}
-              className="max-w-2xl"
+              className="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#fbfdfc] via-[#eef8f2] to-[#e9eef8] px-4 py-6 shadow-[0_24px_70px_-42px_rgba(20,29,63,0.35)] ring-1 ring-inset ring-[#d8e6de] sm:rounded-3xl sm:px-7 sm:py-9 lg:px-8 lg:py-10"
             >
-              <motion.div variants={fadeUp}>
-                <Eyebrow>What we value</Eyebrow>
-              </motion.div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-28 top-1/3 size-72 rounded-full bg-emerald-400/18 blur-[110px]"
+              />
 
-              <motion.h2
-                variants={fadeUp}
-                className="mt-3 text-2xl font-semibold leading-[1.1] tracking-[-0.035em] text-text sm:mt-5 sm:text-4xl"
-              >
-                Building learners for the real world.
-              </motion.h2>
-            </motion.div>
+              <div className="relative grid items-center gap-6 lg:grid-cols-[0.58fr_1.42fr] lg:gap-8">
+                <motion.div variants={fadeUp} className="max-w-lg">
+                  <h2 className="bg-linear-to-r from-primary via-brand-start to-brand-teal bg-clip-text text-2xl font-semibold leading-[1.08] tracking-[-0.035em] text-transparent sm:text-4xl lg:text-5xl">
+                    Our Values
+                  </h2>
 
-            <motion.ul
-              variants={stagger}
-              initial={start}
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.15 }}
-              className="mt-8 grid grid-cols-1 gap-3 sm:mt-14 sm:grid-cols-2 sm:gap-4 md:grid-cols-3"
-            >
-              {values.map((value, index) => {
-                const Icon = value.icon;
+                  <p className="mt-4 text-xs leading-6 text-accent-soft/85 sm:mt-5 sm:text-base sm:leading-7 lg:text-lg lg:leading-8">
+                    Our classrooms, teaching methods, and learning resources are thoughtfully designed to inspire
+                    confidence, encourage critical thinking, and prepare learners for real-world challenges and
+                    opportunities.
+                  </p>
 
-                return (
-                  <motion.li key={value.title} variants={fadeUp} className="min-w-0">
-                    <div
-                      onPointerMove={handleSpotlight}
-                      className={`${CARD_CHROME} h-full p-4 sm:p-7`}
-                    >
-                      <CardDecor />
+                  <div aria-hidden="true" className="mt-5 h-px w-16 bg-linear-to-r from-primary/70 to-transparent sm:mt-7 sm:w-20" />
+                </motion.div>
 
-                      <div className="flex items-start justify-between">
-                        <div className="scale-90 origin-top-left sm:scale-100">
-                          <IconTile icon={Icon} size="lg" delay={index * 0.7} />
-                        </div>
+                <motion.div
+                  variants={fadeUp}
+                  className="flex h-[19rem] min-w-0 gap-1.5 sm:h-[24rem] sm:gap-2.5 lg:h-[32rem] lg:gap-3"
+                >
+                  {values.map((value, index) => {
+                    const isActive = activeValue === index;
 
-                        <span className="mt-1 font-mono text-[10px] font-bold tracking-[0.15em] text-muted/60 transition-colors duration-500 group-hover:text-primary sm:text-[11px] sm:tracking-[0.18em]">
-                          0{index + 1}
+                    return (
+                      <motion.button
+                        key={value.title}
+                        type="button"
+                        aria-pressed={isActive}
+                        onClick={() => setActiveValue(index)}
+                        onFocus={() => setActiveValue(index)}
+                        onHoverStart={() => setActiveValue(index)}
+                        animate={{ flexGrow: isActive ? 2.2 : 0.6 }}
+                        transition={{ duration: reduceMotion ? 0 : 0.38, ease: EASE }}
+                        className="group relative min-w-0 basis-0 cursor-pointer overflow-hidden rounded-xl text-left ring-1 ring-inset ring-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#87e837] sm:rounded-2xl sm:focus-visible:outline-offset-4"
+                      >
+                        <Image
+                          src={value.image}
+                          alt=""
+                          fill
+                          sizes="(min-width: 1024px) 42vw, (min-width: 640px) 60vw, 65vw"
+                          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                        />
+
+                        <span
+                          aria-hidden="true"
+                          className={`absolute inset-0 bg-linear-to-t transition-opacity duration-500 ${
+                            isActive
+                              ? 'from-[#071127]/95 via-[#071127]/38 to-transparent opacity-100'
+                              : 'from-[#071127]/80 via-[#071127]/20 to-black/5 opacity-85'
+                          }`}
+                        />
+
+                        <span
+                          className={`absolute inset-x-0 bottom-0 block p-3 transition-[opacity,transform] duration-400 sm:p-5 lg:p-6 ${
+                            isActive ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+                          }`}
+                        >
+                          <span className="block text-sm font-semibold text-[#87e837] sm:text-xl lg:text-2xl">
+                            {value.title}
+                          </span>
+                          <span className="mt-1 block max-w-sm text-[10px] leading-[1.45] text-white/82 sm:mt-2 sm:text-xs sm:leading-5 lg:text-sm lg:leading-6">
+                            {value.text}
+                          </span>
                         </span>
-                      </div>
 
-                      <h3 className="mt-4 text-base font-bold leading-5 text-text sm:mt-6 sm:text-lg sm:leading-normal">
-                        {value.title}
-                      </h3>
-
-                      <p className="mt-2 text-xs leading-5 text-muted sm:mt-2.5 sm:text-sm sm:leading-7">
-                        {value.text}
-                      </p>
-
-                      <span
-                        aria-hidden="true"
-                        className="mt-4 block h-[3px] w-8 rounded-full bg-linear-to-r from-primary to-brand-start transition-[width] duration-500 ease-out group-hover:w-14 sm:mt-6 sm:w-10 sm:group-hover:w-20"
-                      />
-                    </div>
-                  </motion.li>
-                );
-              })}
-            </motion.ul>
+                        <span
+                          aria-hidden="true"
+                          className={`absolute bottom-4 left-1/2 block -translate-x-1/2 text-[10px] font-semibold tracking-[0.03em] text-[#87e837] transition-opacity duration-300 [writing-mode:vertical-rl] sm:bottom-6 sm:text-base lg:bottom-7 lg:text-lg ${
+                            isActive ? 'opacity-0' : 'opacity-100'
+                          }`}
+                        >
+                          {value.title}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </motion.div>
+              </div>
+            </motion.div>
 
             <motion.blockquote
               variants={fadeUp}
@@ -326,7 +352,7 @@ export default function AboutContent() {
               />
 
               <p className="mt-3 text-base font-medium leading-7 text-accent-soft sm:mt-5 sm:max-w-4xl sm:text-2xl sm:leading-9">
-                We believe that when curiosity meets direction, students unlock their fullest potential — and we are
+                We believe that when curiosity meets direction, students unlock their fullest potential, and we are
                 dedicated to guiding them every step of the way.
               </p>
             </motion.blockquote>
@@ -483,8 +509,15 @@ export default function AboutContent() {
             variants={fadeUp}
             className="mx-auto mt-7 grid max-w-xl grid-cols-2 items-start gap-3 text-left sm:mt-12 sm:flex sm:justify-center sm:gap-12"
           >
-            {locations.map((location) => (
-              <li key={location.city} className="flex min-w-0 items-start gap-1.5 sm:gap-2.5">
+            {locations.map((location, index) => (
+              <li
+                key={location.city}
+                className={`flex min-w-0 items-start gap-1.5 sm:gap-2.5 ${
+                  index === 2
+                    ? 'max-sm:col-span-2 max-sm:mx-auto max-sm:w-[calc(50%-0.375rem)]'
+                    : ''
+                }`}
+              >
                 <MapPin
                   aria-hidden="true"
                   size={14}
@@ -589,7 +622,7 @@ function CountUp({ to, suffix }: { to: number; suffix: string }) {
   const reduceMotion = useReducedMotion();
 
   const count = useMotionValue(0);
-  const display = useTransform(count, (value) => Math.round(value).toLocaleString('en-US'));
+  const display = useTransform(count, (value) => Math.round(value).toLocaleString('en-IN'));
 
   useEffect(() => {
     if (!isInView) return;
@@ -607,7 +640,7 @@ function CountUp({ to, suffix }: { to: number; suffix: string }) {
   return (
     <span ref={ref}>
       <span className="sr-only">
-        {to.toLocaleString('en-US')}
+        {to.toLocaleString('en-IN')}
         {suffix}
       </span>
 

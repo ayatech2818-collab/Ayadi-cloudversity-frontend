@@ -2,78 +2,122 @@
 
 import {
   motion,
+  useMotionTemplate,
   useMotionValue,
+  useMotionValueEvent,
   useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
   type MotionValue,
 } from 'framer-motion';
-import { ArrowDown, ArrowRight, Compass, GraduationCap, Sparkles, Trophy, type LucideIcon } from 'lucide-react';
-import Image from 'next/image';
-import { memo, useMemo, useRef, type PointerEvent } from 'react';
+import { ArrowDown, ArrowRight, Compass, Hammer, Heart, Rocket, Sprout, Sun, type LucideIcon } from 'lucide-react';
+import { memo, useCallback, useMemo, useRef, type PointerEvent } from 'react';
+
+import {
+  AmbientLayer,
+  fallbackColors,
+  glowStyle,
+  toAccent,
+  useAmbientColors,
+  type AmbientColors,
+  type RGB,
+} from './JourneyAmbient';
+import { JourneyVideo } from './JourneyVideo';
 
 type Step = {
   number: string;
   title: string;
-  subtitle: string;
-  description: string;
-  image: string;
+  text: string;
+  /** Muted, looping clip on the step's card. */
+  video: string;
   icon: LucideIcon;
+  /** The step's two colours: the card, badge and backdrop until the video
+      has a frame. */
+  glow: [string, string];
+  /** Accent until the video's own colour is read. */
+  accent: RGB;
 };
 
-// Placeholder artwork for now — swap each `image` for a real photo later.
-const PLACEHOLDER_IMAGE = '/images/journey-step.svg';
+/*
+ * Videos live in public/videos/journey/, one per step, named after it
+ * (nurture.mp4 … flourish.mp4). Until a file is there — or while it loads —
+ * the card shows the step's colours. Keep them short, silent and small:
+ * 5–10 s, 16:9, ~720p H.264.
+ */
+const video = (name: string) => `/videos/journey/${name}.mp4`;
 
 const steps: Step[] = [
   {
     number: '01',
-    title: 'Discover',
-    subtitle: 'Find your direction.',
-    description:
-      'Explore courses designed around your interests, goals and ambitions. Find something that sparks your curiosity.',
-    image: PLACEHOLDER_IMAGE,
-    icon: Compass,
+    title: 'Nurture',
+    text: 'Early childhood filled with love, care, and gentle curiosity.',
+    video: video('nurture'),
+    icon: Heart,
+    glow: ['#f472b6', '#fb923c'],
+    accent: toAccent([251, 182, 206]),
   },
   {
     number: '02',
-    title: 'Enroll',
-    subtitle: 'Take the first step.',
-    description:
-      'Choose the learning path that fits you and get access to everything you need to begin your journey.',
-    image: PLACEHOLDER_IMAGE,
-    icon: GraduationCap,
+    title: 'Foundation',
+    text: 'Strong roots in values, language, and the joy of learning.',
+    video: video('foundation'),
+    icon: Sprout,
+    glow: ['#10b981', '#84cc16'],
+    accent: toAccent([190, 242, 100]),
   },
   {
     number: '03',
-    title: 'Learn',
-    subtitle: 'Turn knowledge into ability.',
-    description:
-      'Learn from expert-led content, practical experiences and carefully designed learning resources.',
-    image: PLACEHOLDER_IMAGE,
-    icon: Sparkles,
+    title: 'Discover',
+    text: 'Finding hidden talents through creativity, play, and exploration.',
+    video: video('discover'),
+    icon: Compass,
+    glow: ['#8b5cf6', '#06b6d4'],
+    accent: toAccent([196, 181, 253]),
   },
   {
     number: '04',
-    title: 'Grow',
-    subtitle: "Become what's next.",
-    description: 'Apply what you learn, build confidence and turn your new skills into real opportunities.',
-    image: PLACEHOLDER_IMAGE,
-    icon: Trophy,
+    title: 'Build',
+    text: 'Growing real skills, good habits, and steady confidence.',
+    video: video('build'),
+    icon: Hammer,
+    glow: ['#f59e0b', '#ef4444'],
+    accent: toAccent([253, 216, 120]),
+  },
+  {
+    number: '05',
+    title: 'Launch',
+    text: 'Stepping into higher learning and careers with clear purpose.',
+    video: video('launch'),
+    icon: Rocket,
+    glow: ['#3b82f6', '#22d3ee'],
+    accent: toAccent([147, 197, 253]),
+  },
+  {
+    number: '06',
+    title: 'Flourish',
+    text: 'Becoming a happy, kind, and successful human who lifts others too.',
+    video: video('flourish'),
+    icon: Sun,
+    glow: ['#facc15', '#ec4899'],
+    accent: toAccent([253, 230, 138]),
   },
 ];
+
+const SUMMARY = 'One journey. Six stages, from first steps to a flourishing life.';
 
 /*
  * Scroll choreography
  * -------------------
  * 0          → INTRO_END : the intro title holds, then lifts away.
- * INTRO_END  → 1         : split evenly between the four steps.
+ * INTRO_END  → 1         : split evenly between the six steps.
  *
- * Colour grade: the stage travels from deep green to daylight white, so the
- * journey ends where "Grow" belongs. The flip happens inside GRADE_START →
- * GRADE_END, which sits in the gap after step 03 has faded out and before
- * step 04 has faded in — text is never caught mid-transition on a low
- * contrast background.
+ * Backdrop: each step's own video, shrunk and stretched into a soft wash of
+ * colour behind the stage (JourneyAmbient). A step's backdrop fades in over
+ * the previous one, which only goes once it is covered, so the colour blends
+ * from clip to clip with no dark gap. The stage stays dark throughout; the
+ * accents and the icon badge's gradient take on the colours of the video
+ * playing.
  *
  * Every animation is driven by MotionValues, so scrolling the section causes
  * zero React re-renders — framer-motion writes the styles directly.
@@ -81,23 +125,41 @@ const steps: Step[] = [
 const INTRO_END = 0.1;
 const STEP_SPAN = (1 - INTRO_END) / steps.length;
 const FADE = STEP_SPAN * 0.32;
-const GRADE_START = INTRO_END + STEP_SPAN * 3;
-const GRADE_END = GRADE_START + FADE * 0.8;
+
+/* Opacity keyframes for each step's backdrop. The first is already half up
+   behind the intro, and the last stays to the end. */
+const AMBIENT_KEYS = steps.map((_, index) => {
+  const start = INTRO_END + index * STEP_SPAN;
+  const end = start + STEP_SPAN;
+  const fadeIn = [start - FADE * 0.6, start + FADE * 0.6];
+
+  if (index === 0) return { input: [0, fadeIn[1], end + FADE * 0.7, end + FADE * 0.75], output: [0.55, 1, 1, 0] };
+  if (index === steps.length - 1) return { input: fadeIn, output: [0, 1] };
+  return { input: [...fadeIn, end + FADE * 0.7, end + FADE * 0.75], output: [0, 1, 1, 0] };
+});
+
+/* Each step's own colours, for the badge before its video has a frame. */
+const STEP_COLORS: AmbientColors[] = steps.map((step) => fallbackColors(step.glow));
+
+/* Film grain over the backdrop: hides what is left of the stretched pixels. */
+const GRAIN =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+
+const ACCENT_SPRING = { stiffness: 40, damping: 18, mass: 1 };
+
+type Tone = string | MotionValue<string>;
 
 type Palette = {
-  ink: MotionValue<string>;
-  inkMuted: MotionValue<string>;
-  inkFaint: MotionValue<string>;
-  accent: MotionValue<string>;
-  chipBg: MotionValue<string>;
-  chipText: MotionValue<string>;
-  hairline: MotionValue<string>;
-  watermark: MotionValue<string>;
-  dot: MotionValue<string>;
-  dotRingBg: MotionValue<string>;
-  markerShadow: MotionValue<string>;
-  spark: MotionValue<string>;
-  sparkGlow: MotionValue<string>;
+  ink: Tone;
+  inkFaint: Tone;
+  accent: Tone;
+  chipBg: Tone;
+  hairline: Tone;
+  watermark: Tone;
+  dotRingBg: Tone;
+  markerShadow: Tone;
+  sparkGlow: Tone;
+  badge: Tone;
 };
 
 export default function HowItWorks() {
@@ -129,73 +191,71 @@ function CinematicJourney() {
     restDelta: 0.001,
   });
 
-  // ---- colour grade: deep green → daylight -------------------------------
-  const stageBg = useTransform(
-    progress,
-    [0, 0.3, 0.6, GRADE_START, GRADE_END],
-    ['#021712', '#04241c', '#0a4a40', '#0d5a4e', '#f3faf6'],
+  // ---- accent: follows the colour of the video on stage --------------------
+  // Springs, so a new colour glides in, and cost nothing while it holds.
+  const accentR = useSpring(steps[0].accent[0], ACCENT_SPRING);
+  const accentG = useSpring(steps[0].accent[1], ACCENT_SPRING);
+  const accentB = useSpring(steps[0].accent[2], ACCENT_SPRING);
+
+  const setAccent = useCallback(
+    ([r, g, b]: RGB) => {
+      accentR.set(r);
+      accentG.set(g);
+      accentB.set(b);
+    },
+    [accentR, accentG, accentB],
   );
 
-  const grade: [number, number] = [GRADE_START, GRADE_END];
-  const ink = useTransform(progress, grade, ['#ffffff', '#06281f']);
-  const inkMuted = useTransform(progress, grade, ['rgba(236,253,245,0.72)', 'rgba(6,40,31,0.72)']);
-  const inkFaint = useTransform(progress, grade, ['rgba(236,253,245,0.55)', 'rgba(6,40,31,0.55)']);
-  const accent = useTransform(progress, grade, ['rgba(217,249,157,0.92)', '#047857']);
-  const chipBg = useTransform(progress, grade, ['rgba(255,255,255,0.1)', 'rgba(5,150,105,0.1)']);
-  const chipText = useTransform(progress, grade, ['#d9f99d', '#047857']);
-  const hairline = useTransform(progress, grade, ['rgba(255,255,255,0.16)', 'rgba(6,40,31,0.14)']);
-  const watermark = useTransform(progress, grade, ['rgba(255,255,255,0.06)', 'rgba(4,120,87,0.09)']);
-  const dot = useTransform(progress, grade, ['#bef264', '#059669']);
-  const dotRingBg = useTransform(progress, grade, ['#04241c', '#ffffff']);
-  const markerShadow = useTransform(progress, grade, [
-    '0 0 0 1px rgba(190,242,100,0.7)',
-    '0 0 0 1px rgba(5,150,105,0.45)',
-  ]);
+  const accent = useMotionTemplate`rgb(${accentR} ${accentG} ${accentB})`;
+  const markerShadow = useMotionTemplate`0 0 0 1px rgb(${accentR} ${accentG} ${accentB} / 0.7)`;
+  const sparkGlow = useMotionTemplate`0 0 14px 3px rgb(${accentR} ${accentG} ${accentB} / 0.75)`;
 
-  // Gold spark: deepens to amber so it stays visible once the stage turns white.
-  const spark = useTransform(progress, grade, ['#fde047', '#d97706']);
-  const sparkGlow = useTransform(progress, grade, [
-    '0 0 14px 3px rgba(253,224,71,0.75)',
-    '0 0 14px 3px rgba(217,119,6,0.45)',
-  ]);
+  // ---- badge gradient: three colours read from the video on stage ----------
+  const ambient = useAmbientColors(STEP_COLORS[0]);
+  const [glowA, glowB, glowC] = ambient.colors;
+  const badge = useMotionTemplate`radial-gradient(70% 70% at 25% 20%, ${glowA}, transparent 72%), radial-gradient(70% 70% at 80% 85%, ${glowB}, transparent 72%), linear-gradient(135deg, ${glowC}, ${glowA})`;
 
   const palette = useMemo<Palette>(
     () => ({
-      ink,
-      inkMuted,
-      inkFaint,
+      ink: '#ffffff',
+      inkFaint: 'rgba(255,255,255,0.6)',
       accent,
-      chipBg,
-      chipText,
-      hairline,
-      watermark,
-      dot,
-      dotRingBg,
+      chipBg: 'rgba(255,255,255,0.12)',
+      hairline: 'rgba(255,255,255,0.18)',
+      watermark: 'rgba(255,255,255,0.08)',
+      dotRingBg: 'rgba(0,0,0,0.55)',
       markerShadow,
-      spark,
       sparkGlow,
+      badge,
     }),
-    [
-      ink,
-      inkMuted,
-      inkFaint,
-      accent,
-      chipBg,
-      chipText,
-      hairline,
-      watermark,
-      dot,
-      dotRingBg,
-      markerShadow,
-      spark,
-      sparkGlow,
-    ],
+    [accent, markerShadow, sparkGlow, badge],
   );
 
-  // Glow, vignette and cursor light are dark-mode devices — they fade out as
-  // the stage turns white, and a soft daylight wash takes over.
-  const darkDecor = useTransform(progress, [GRADE_START - FADE, GRADE_END], [1, 0]);
-  const lightDecor = useTransform(progress, [GRADE_START, GRADE_END], [0, 1]);
+  const activeIndex = useTransform(progress, (value) =>
+    Math.min(steps.length - 1, Math.max(0, Math.floor((value - INTRO_END) / STEP_SPAN))),
+  );
+
+  // A new step starts from its own colours; its video's take over as soon
+  // as its backdrop reads a frame.
+  useMotionValueEvent(activeIndex, 'change', (index) => {
+    ambient.set(STEP_COLORS[index]);
+    setAccent(steps[index].accent);
+  });
+
+  const onColors = useCallback(
+    (colors: AmbientColors, color: RGB) => {
+      ambient.set(colors);
+      setAccent(color);
+    },
+    [ambient, setAccent],
+  );
+
+  // The card videos, which the backdrop paints from.
+  const videos = useRef<(HTMLVideoElement | null)[]>([]);
+  const getVideo = useCallback((index: number) => videos.current[index] ?? null, []);
+  const registerVideo = useCallback((index: number, video: HTMLVideoElement | null) => {
+    videos.current[index] = video;
+  }, []);
 
   const introOpacity = useTransform(progress, [0, INTRO_END * 0.8], [1, 0]);
   const introY = useTransform(progress, [0, INTRO_END * 0.8], [0, -90]);
@@ -204,17 +264,9 @@ function CinematicJourney() {
 
   // Timeline fill uses scaleX — a transform, so it never triggers layout.
   const lineScaleX = useTransform(progress, [INTRO_END, 0.97], [0, 1]);
-  const lineColor = useTransform(progress, grade, ['#bef264', '#059669']);
-
-  const glowOneY = useTransform(progress, [0, 1], ['0%', '38%']);
-  const glowTwoY = useTransform(progress, [0, 1], ['0%', '-28%']);
-  const floorY = useTransform(progress, [0, 1], ['0%', '-14%']);
 
   // Rendered straight from a MotionValue — the counter updates without React.
-  const activeNumber = useTransform(progress, (value) => {
-    const index = Math.floor((value - INTRO_END) / STEP_SPAN) + 1;
-    return String(Math.min(steps.length, Math.max(1, index))).padStart(2, '0');
-  });
+  const activeNumber = useTransform(activeIndex, (index) => String(index + 1).padStart(2, '0'));
 
   /*
    * Cursor light. The rect is cached on enter instead of measured on every
@@ -240,18 +292,17 @@ function CinematicJourney() {
   const handlePointerLeave = () => spotOpacity.set(0);
 
   return (
-    <section ref={sectionRef} aria-labelledby="how-it-works-title" className="relative h-[460vh] bg-emerald-950">
+    <section ref={sectionRef} aria-labelledby="how-it-works-title" className="relative h-[660vh] bg-emerald-950">
       {/* The stage below is a decorative retelling of this list, so assistive
           tech reads the journey here once, in order, without any animation. */}
       <div className="sr-only">
         <h2 id="how-it-works-title">Your learning journey, simplified</h2>
-        <p>One journey. Four moments that move you from curiosity to confidence.</p>
+        <p>{SUMMARY}</p>
         <ol>
           {steps.map((step) => (
             <li key={step.number}>
               <h3>{`Step ${step.number}: ${step.title}`}</h3>
-              <p>{step.subtitle}</p>
-              <p>{step.description}</p>
+              <p>{step.text}</p>
             </li>
           ))}
         </ol>
@@ -262,47 +313,37 @@ function CinematicJourney() {
           foot of the stage is behind them, so what stands at the foot — the
           label and the progress rail, below — is placed from the foot of the
           small viewport instead (100lvh − 100svh is nothing on a desktop). */}
-      <motion.div
+      <div
         aria-hidden="true"
-        style={{ backgroundColor: stageBg }}
         onPointerEnter={handlePointerEnter}
         onPointerMove={handlePointerMove}
         onPointerLeave={handlePointerLeave}
-        className="sticky top-0 isolate h-screen overflow-hidden"
+        className="sticky top-0 isolate h-screen overflow-hidden bg-[#03100c]"
       >
-        {/* ---------------- DARK BACKDROP ---------------- */}
-        <motion.div style={{ opacity: darkDecor }} className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.14)_1px,transparent_1px)] bg-size-[26px_26px] [mask-image:radial-gradient(ellipse_at_center,black_10%,transparent_70%)]" />
+        {/* ---------------- AMBIENT BACKDROP ---------------- */}
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          {/* Oversized so the swirl never shows an edge. One transform on one
+              layer — compositor work only. */}
+          <div className="absolute -inset-[18%] will-change-transform motion-safe:animate-[ambient-drift_32s_ease-in-out_infinite]">
+            {steps.map((step, index) => (
+              <AmbientLayer
+                key={step.number}
+                index={index}
+                progress={progress}
+                input={AMBIENT_KEYS[index].input}
+                output={AMBIENT_KEYS[index].output}
+                activeIndex={activeIndex}
+                getVideo={getVideo}
+                glow={step.glow}
+                onColors={onColors}
+              />
+            ))}
+          </div>
 
-          {/* will-change on the three that drift with the scroll: each is a
-              large blurred or masked shape, and without a layer of its own
-              every step of that drift repaints the whole backdrop — which,
-              measured, was most of what this stage cost a laptop's GPU. On
-              its own layer it is painted once and only moved. */}
-          <motion.div
-            style={{ y: glowOneY }}
-            className="absolute -left-40 top-[-10%] size-[560px] rounded-full bg-emerald-400/20 blur-3xl will-change-transform"
-          />
-          <motion.div
-            style={{ y: glowTwoY }}
-            className="absolute -right-32 bottom-[-15%] size-[520px] rounded-full bg-lime-300/15 blur-3xl will-change-transform"
-          />
-
-          {/* Perspective floor — the horizon that sells the 3D depth */}
-          <motion.div
-            style={{ y: floorY }}
-            className="
-              absolute
-              inset-x-[-40%]
-              bottom-[-30%]
-              h-[70%]
-              [transform:perspective(680px)_rotateX(72deg)]
-              [mask-image:linear-gradient(to_top,black,transparent_72%)]
-              bg-[linear-gradient(to_right,rgba(190,242,100,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(190,242,100,0.12)_1px,transparent_1px)]
-              bg-size-[80px_80px]
-              will-change-transform
-            "
-          />
+          {/* Scrim and vignette: white text always reads, however bright the clip. */}
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(2,10,7,0.75))]" />
+          <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: GRAIN }} />
 
           <motion.div
             style={{ x: spotX, y: spotY, opacity: spotOpacity }}
@@ -314,21 +355,12 @@ function CinematicJourney() {
               -translate-x-1/2
               -translate-y-1/2
               rounded-full
-              bg-[radial-gradient(circle,rgba(190,242,100,0.16),transparent_65%)]
+              bg-[radial-gradient(circle,rgba(255,255,255,0.08),transparent_65%)]
               transition-opacity
               duration-500
             "
           />
-
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(2,28,22,0.75))]" />
-        </motion.div>
-
-        {/* ---------------- DAYLIGHT BACKDROP ---------------- */}
-        <motion.div style={{ opacity: lightDecor }} className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_20%,rgba(16,185,129,0.14),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(rgba(6,95,70,0.1)_1px,transparent_1px)] bg-size-[26px_26px] [mask-image:radial-gradient(ellipse_at_center,black_10%,transparent_70%)]" />
-          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-emerald-100/50 to-transparent" />
-        </motion.div>
+        </div>
 
         {/* ---------------- INTRO ---------------- */}
         <motion.div
@@ -372,7 +404,7 @@ function CinematicJourney() {
           </h2>
 
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-emerald-50/70 md:mt-6 md:text-lg">
-            One journey. Four moments that move you from curiosity to confidence.
+            {SUMMARY}
           </p>
 
           <div className="mt-10 flex justify-center">
@@ -389,7 +421,14 @@ function CinematicJourney() {
         {/* ---------------- STEPS ---------------- */}
         <div className="absolute inset-x-0 top-1/2 z-10 -translate-y-1/2 px-3 md:px-6 lg:px-12">
           {steps.map((step, index) => (
-            <CinematicStep key={step.number} step={step} index={index} progress={progress} palette={palette} />
+            <CinematicStep
+              key={step.number}
+              step={step}
+              index={index}
+              progress={progress}
+              palette={palette}
+              onVideoElement={registerVideo}
+            />
           ))}
         </div>
 
@@ -413,7 +452,7 @@ function CinematicJourney() {
         <div className="absolute inset-x-6 bottom-[calc(100lvh-100svh+6.5rem)] z-20 lg:inset-x-12">
           <motion.div style={{ backgroundColor: palette.hairline }} className="relative h-px">
             <motion.div
-              style={{ scaleX: lineScaleX, backgroundColor: lineColor }}
+              style={{ scaleX: lineScaleX, backgroundColor: palette.accent }}
               className="absolute inset-0 h-px origin-left"
             />
 
@@ -424,7 +463,7 @@ function CinematicJourney() {
             </div>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
@@ -442,11 +481,13 @@ const CinematicStep = memo(function CinematicStep({
   index,
   progress,
   palette,
+  onVideoElement,
 }: {
   step: Step;
   index: number;
   progress: MotionValue<number>;
   palette: Palette;
+  onVideoElement: (index: number, video: HTMLVideoElement | null) => void;
 }) {
   const Icon = step.icon;
 
@@ -475,7 +516,7 @@ const CinematicStep = memo(function CinematicStep({
   const textY = useTransform(progress, [start, end], [24, -24]);
   const ringProgress = useTransform(progress, [start + FADE * 0.5, end - FADE], [0, 1]);
 
-  // Negative delays stagger the four cards so they never drift in lockstep;
+  // Negative delays stagger the cards so they never drift in lockstep;
   // the tail trails the head by a fifth of a second.
   const idleDelay = `${-index * 2.1}s`;
   const sparkHeadDelay = `${-(index * 1.6 + 0.2)}s`;
@@ -496,14 +537,18 @@ const CinematicStep = memo(function CinematicStep({
           items-center
           gap-4
           md:gap-8
-          lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]
-          lg:gap-20
+          lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)]
+          lg:gap-14
+          xl:grid-cols-[minmax(0,580px)_minmax(0,1fr)]
+          xl:gap-16
+          2xl:grid-cols-[minmax(0,660px)_minmax(0,1fr)]
+          2xl:gap-20
         "
       >
         {/* ---------- ART ---------- */}
         <motion.div
           style={{ y: artY }}
-          className="relative mx-auto w-full max-w-[420px] [perspective:1000px] lg:mx-0"
+          className="relative mx-auto w-full max-w-[420px] [perspective:1000px] lg:mx-0 lg:max-w-none"
         >
           <motion.span
             style={{ color: palette.watermark }}
@@ -518,21 +563,20 @@ const CinematicStep = memo(function CinematicStep({
             style={{ animationDelay: idleDelay }}
             className="relative motion-safe:animate-[idle-tilt_9s_ease-in-out_infinite]"
           >
-            <div className="relative mx-auto aspect-square w-full max-w-[270px] overflow-hidden rounded-2xl shadow-[0_40px_90px_-45px_rgba(2,44,34,0.85)] md:mx-0 md:max-w-none md:aspect-auto md:h-[24vh] md:rounded-[2rem] lg:h-auto lg:aspect-[4/5]">
-              {/* Slow push-in across the step — the classic cinematic move */}
+            <div className="relative mx-auto aspect-square w-full max-w-[270px] overflow-hidden rounded-2xl shadow-[0_40px_90px_-45px_rgba(2,44,34,0.85)] md:mx-0 md:max-w-none md:aspect-auto md:h-[24vh] md:rounded-[2rem] lg:h-auto lg:aspect-video">
+              {/* Slow push-in across the step — the classic cinematic move. The
+                  video plays only while the step is on the stage. */}
               <motion.div style={{ scale: artScale }} className="absolute inset-0">
-                <Image
-                  src={step.image}
-                  alt=""
-                  fill
-                  unoptimized
-                  sizes="(min-width: 1024px) 420px, 90vw"
-                  className="object-cover"
+                <JourneyVideo
+                  src={step.video}
+                  glow={step.glow}
+                  onScreen={visibility}
+                  onVideoElement={(video) => onVideoElement(index, video)}
                 />
               </motion.div>
 
-              {/* Wash keeps every photo inside the brand palette */}
-              <div className="absolute inset-0 bg-linear-to-t from-emerald-950/80 via-emerald-950/15 to-transparent" />
+              {/* Soft shade at the foot, under the icon badge */}
+              <div className="absolute inset-0 bg-linear-to-t from-black/50 via-black/5 to-transparent" />
 
               <div className="absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-white/15" />
             </div>
@@ -544,11 +588,11 @@ const CinematicStep = memo(function CinematicStep({
               className="pointer-events-none absolute inset-0 opacity-0 supports-[offset-path:inset(0_round_2rem)]:opacity-100"
             >
               <motion.span
-                style={{ backgroundColor: palette.spark, opacity: 0.45, animationDelay: sparkTailDelay }}
+                style={{ backgroundColor: palette.accent, opacity: 0.45, animationDelay: sparkTailDelay }}
                 className="absolute left-0 top-0 size-1.5 rounded-full blur-[2px] [offset-path:inset(0_round_2rem)] [offset-rotate:0deg] motion-safe:animate-[spark-travel_6s_linear_infinite]"
               />
               <motion.span
-                style={{ backgroundColor: palette.spark, boxShadow: palette.sparkGlow, animationDelay: sparkHeadDelay }}
+                style={{ backgroundColor: palette.accent, boxShadow: palette.sparkGlow, animationDelay: sparkHeadDelay }}
                 className="absolute left-0 top-0 size-2.5 rounded-full [offset-path:inset(0_round_2rem)] [offset-rotate:0deg] motion-safe:animate-[spark-travel_6s_linear_infinite]"
               />
             </div>
@@ -563,27 +607,23 @@ const CinematicStep = memo(function CinematicStep({
                   cy="50"
                   r="48"
                   fill="none"
-                  stroke="#bef264"
                   strokeWidth="2"
                   strokeLinecap="round"
-                  style={{ pathLength: ringProgress }}
+                  style={{ pathLength: ringProgress, stroke: palette.accent }}
                 />
               </svg>
             </div>
 
-            <div
-              className="
-                flex
-                size-full
-                items-center
-                justify-center
-                rounded-full
-                bg-brand-gradient
-                shadow-[0_18px_40px_-14px_rgba(16,185,129,0.85),inset_0_1px_0_rgba(255,255,255,0.35)]
-              "
-            >
-              <Icon size={32} strokeWidth={1.5} className="text-white drop-shadow-[0_3px_8px_rgba(2,44,34,0.45)]" />
-              </div>
+            {/* Glass in the colours of the clip on stage: a gradient of three
+                colours read from the video, gliding as it changes. */}
+            <div className="relative isolate flex size-full items-center justify-center overflow-hidden rounded-full shadow-[0_18px_40px_-14px_rgba(0,0,0,0.75)]">
+              <motion.div className="absolute inset-0 -z-10" style={{ backgroundImage: palette.badge }} />
+              {/* Sheen across the top and a hairline rim — what makes it glass. */}
+              <div className="absolute inset-0 -z-10 bg-[radial-gradient(120%_80%_at_30%_0%,rgba(255,255,255,0.45),transparent_55%)]" />
+              <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/35" />
+
+              <Icon size={32} strokeWidth={1.5} className="text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.45)]" />
+            </div>
             </div>
           </div>
         </motion.div>
@@ -591,7 +631,7 @@ const CinematicStep = memo(function CinematicStep({
         {/* ---------- TEXT ---------- */}
         <motion.div style={{ y: textY }} className="max-w-xl">
           <motion.span
-            style={{ backgroundColor: palette.chipBg, color: palette.chipText }}
+            style={{ backgroundColor: palette.chipBg, color: palette.accent }}
             className="inline-flex items-center rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.25em]"
           >
             Step {step.number}
@@ -599,23 +639,16 @@ const CinematicStep = memo(function CinematicStep({
 
           <motion.h3
             style={{ color: palette.ink }}
-            className="mt-3 text-3xl font-bold leading-[0.95] tracking-[-0.045em] md:mt-6 md:text-6xl lg:text-7xl"
+            className="mt-3 text-3xl font-bold leading-[0.95] tracking-[-0.045em] md:mt-6 md:text-6xl xl:text-7xl"
           >
             {step.title}
           </motion.h3>
 
           <motion.p
             style={{ color: palette.accent }}
-            className="mt-2 text-base font-semibold tracking-[-0.01em] md:mt-4 md:text-2xl"
+            className="mt-3 max-w-lg text-base font-semibold leading-snug tracking-[-0.01em] md:mt-5 md:text-2xl"
           >
-            {step.subtitle}
-          </motion.p>
-
-          <motion.p
-            style={{ color: palette.inkMuted }}
-            className="mt-3 max-w-lg text-sm leading-relaxed md:mt-5 md:text-lg"
-          >
-            {step.description}
+            {step.text}
           </motion.p>
 
           <motion.div
@@ -660,7 +693,7 @@ const TimelineMarker = memo(function TimelineMarker({
         style={{ backgroundColor: palette.dotRingBg, boxShadow: palette.markerShadow }}
         className="flex size-4 items-center justify-center rounded-full"
       >
-        <motion.span style={{ backgroundColor: palette.dot }} className="size-1.5 rounded-full" />
+        <motion.span style={{ backgroundColor: palette.accent }} className="size-1.5 rounded-full" />
       </motion.span>
 
       <motion.span
@@ -688,7 +721,7 @@ function StaticJourney() {
   return (
     <section
       aria-labelledby="how-it-works-title"
-      className="bg-linear-to-b from-emerald-950 via-emerald-900 to-[#f3faf6] px-4 py-20 md:px-8 lg:px-16 lg:py-28"
+      className="bg-[#03100c] px-4 py-20 md:px-8 lg:px-16 lg:py-28"
     >
       <div className="mx-auto max-w-[1400px]">
         <div className="mx-auto max-w-2xl text-center">
@@ -707,52 +740,48 @@ function StaticJourney() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-emerald-50/70 md:text-lg">
-            One journey. Four moments that move you from curiosity to confidence.
+            {SUMMARY}
           </p>
         </div>
 
-        <ol className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
-          {steps.map((step, index) => {
+        <ol className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {steps.map((step) => {
             const Icon = step.icon;
-            // Cards lighten as the list descends, matching the scroll grade.
-            const isLight = index >= 2;
 
             return (
               <li
                 key={step.number}
-                className={`relative overflow-hidden rounded-3xl p-8 ring-1 ring-inset ${
-                  isLight ? 'bg-white/85 ring-emerald-900/10' : 'bg-white/[0.06] ring-white/15'
-                }`}
+                className="relative isolate overflow-hidden rounded-3xl bg-white/[0.06] p-8 ring-1 ring-inset ring-white/15"
               >
+                {/* The step's colours, still — the cinematic backdrop at rest. */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 -z-10 opacity-40"
+                  style={{
+                    background: `radial-gradient(70% 60% at 20% 0%, ${step.glow[0]}, transparent 70%), radial-gradient(70% 60% at 90% 100%, ${step.glow[1]}, transparent 70%)`,
+                  }}
+                />
+
                 <div className="relative h-44 w-full overflow-hidden rounded-2xl">
-                  <Image
-                    src={step.image}
-                    alt=""
-                    fill
-                    unoptimized
-                    sizes="(min-width: 768px) 45vw, 90vw"
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-emerald-950/70 to-transparent" />
+                  <JourneyVideo src={step.video} glow={step.glow} />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
                 </div>
 
-                <div className="mt-6 flex size-14 items-center justify-center rounded-full bg-brand-gradient shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
-                  <Icon aria-hidden="true" size={24} strokeWidth={1.5} className="text-white" />
-                </div>
-
-                <h3
-                  className={`mt-5 text-3xl font-bold tracking-[-0.03em] ${isLight ? 'text-emerald-950' : 'text-white'}`}
+                <div
+                  style={glowStyle(step.glow, true)}
+                  className="relative mt-6 flex size-14 items-center justify-center overflow-hidden rounded-full ring-1 ring-inset ring-white/35"
                 >
+                  <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_30%_0%,rgba(255,255,255,0.45),transparent_55%)]" />
+                  <Icon aria-hidden="true" size={24} strokeWidth={1.5} className="relative text-white" />
+                </div>
+
+                <h3 className="mt-5 text-3xl font-bold tracking-[-0.03em] text-white">
                   <span className="sr-only">{`Step ${step.number}: `}</span>
                   {step.title}
                 </h3>
 
-                <p className={`mt-2 text-lg font-semibold ${isLight ? 'text-emerald-700' : 'text-lime-200/90'}`}>
-                  {step.subtitle}
-                </p>
-
-                <p className={`mt-4 text-base leading-relaxed ${isLight ? 'text-emerald-950/75' : 'text-emerald-50/70'}`}>
-                  {step.description}
+                <p className="mt-2 text-lg font-semibold text-white/80">
+                  {step.text}
                 </p>
               </li>
             );

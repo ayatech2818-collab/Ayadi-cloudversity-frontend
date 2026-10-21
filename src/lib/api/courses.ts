@@ -54,6 +54,10 @@ export interface CourseFilters {
     /** Matched against the course title by the backend. */
     search?: string;
     is_published?: boolean;
+    /** At most this many courses (1–50). */
+    limit?: number;
+    /** Random order instead of the admin's display order. */
+    random?: boolean;
 }
 
 const buildCourseFormData = (

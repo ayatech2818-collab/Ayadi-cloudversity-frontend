@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { ArrowUpRight, BookOpen, GraduationCap, Lightbulb, type LucideIcon } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState, type CSSProperties, type FocusEvent, type MouseEvent, type PointerEvent } from 'react';
 
@@ -37,6 +38,8 @@ type Pathway = {
   subtitle: string;
   description: string;
   icon: LucideIcon;
+  /** Fills the bottom-right corner once the panel is open. */
+  image: string;
   theme: PathwayTheme;
 };
 
@@ -47,6 +50,7 @@ const pathways: Pathway[] = [
     subtitle: 'Courses',
     description: '200+ Courses',
     icon: BookOpen,
+    image: '/images/home/courses.png',
     theme: {
       panel: 'bg-linear-to-br from-emerald-950 via-emerald-900 to-teal-800',
       restShadow: 'shadow-[0_30px_70px_-35px_rgba(2,44,34,0.8)]',
@@ -67,6 +71,7 @@ const pathways: Pathway[] = [
     subtitle: 'Your Pace',
     description: 'Flexible Learning',
     icon: GraduationCap,
+    image: '/images/home/learn.png',
     theme: {
       panel: 'bg-accent-gradient',
       restShadow: 'shadow-[0_30px_70px_-35px_rgba(10,16,40,0.85)]',
@@ -87,6 +92,7 @@ const pathways: Pathway[] = [
     subtitle: 'Skills',
     description: 'Practical Knowledge',
     icon: Lightbulb,
+    image: '/images/home/skills.png',
     /* Teal→navy, run to the top-right so the navy end lands under
        the text. White on `brand-end` is only 3.7:1, which the chip and the
        "Explore" label would fail. */
@@ -325,14 +331,28 @@ function PathwayPanel({ pathway, index, isActive, onActivate }: PathwayPanelProp
           }}
         />
 
-        {/* Ghost icon — fills the width an open panel gains on a wide screen */}
+        {/* Artwork — fills the width an open panel gains on a wide screen.
+            Its width is whatever the panel has left beside the copy (30rem),
+            so it never runs under the text, and it follows the panel as it
+            grows. Rises in once the panel is open, then floats. */}
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute -bottom-10 -right-10 -z-10 hidden text-white/[0.055] transition-opacity duration-700 lg:block ${
-            isActive ? 'opacity-100 delay-150' : 'opacity-0'
+          className={`pointer-events-none absolute bottom-3 right-3 -z-10 hidden aspect-[3/2] w-[clamp(0px,calc(100%-30rem),560px)] transition-[opacity,translate,scale] duration-700 ease-out lg:block ${
+            isActive ? 'translate-y-0 scale-100 opacity-100 delay-200' : 'translate-y-6 scale-95 opacity-0'
           }`}
         >
-          <Icon size={300} strokeWidth={0.5} />
+          <span
+            className="relative block size-full motion-safe:animate-[icon-float_6s_ease-in-out_infinite]"
+            style={{ animationDelay: `${index * 0.9}s` }}
+          >
+            <Image
+              src={pathway.image}
+              alt=""
+              fill
+              sizes="560px"
+              className="object-contain"
+            />
+          </span>
         </span>
 
         {/* Corner ring — inset shadow, since the global `* { border-color }` rule would override a border colour */}

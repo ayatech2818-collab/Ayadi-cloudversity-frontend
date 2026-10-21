@@ -216,6 +216,24 @@ body {
   }
 }
 
+/*
+ * The slow swirl under the How It Works ambient backdrop. Transform only, on
+ * one layer, so the blurred colour keeps moving even when the video holds
+ * still without anything being repainted.
+ */
+@keyframes ambient-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate3d(3%, -2%, 0) scale(1.12) rotate(5deg);
+  }
+  66% {
+    transform: translate3d(-2%, 3%, 0) scale(1.06) rotate(-4deg);
+  }
+}
+
 /* Premium admin sidebar scrollbar — slim, frosted, unobtrusive */
 .admin-sidebar-nav {
   scrollbar-width: thin;

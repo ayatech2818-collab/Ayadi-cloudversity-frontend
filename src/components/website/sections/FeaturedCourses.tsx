@@ -1,76 +1,15 @@
 'use client';
 
 import { motion, useInView, useReducedMotion, type Variants } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Clock3, Star } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Clock3 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { memo, useEffect, useRef, useState, type PointerEvent } from 'react';
 
-type Course = {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  level: string;
-  duration: string;
-  rating: string;
-};
+import { getCourses, type Course } from '@/lib/api/courses';
 
-const courses: Course[] = [
-  {
-    id: 1,
-    title: 'Python Full Stack Development',
-    description: 'Build real-world web applications with Python and modern technologies.',
-    image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=1200&q=80',
-    level: 'Advanced',
-    duration: '12 Weeks',
-    rating: '4.9',
-  },
-  {
-    id: 2,
-    title: 'Digital Marketing Mastery',
-    description: 'Learn modern digital marketing strategies and grow your online presence.',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80',
-    level: 'Intermediate',
-    duration: '8 Weeks',
-    rating: '4.8',
-  },
-  {
-    id: 3,
-    title: 'UI/UX Design',
-    description: 'Create beautiful digital experiences with modern UI/UX principles.',
-    image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=80',
-    level: 'Beginner',
-    duration: '6 Weeks',
-    rating: '4.9',
-  },
-  {
-    id: 4,
-    title: 'Data Science & Analytics',
-    description: 'Turn data into meaningful insights using modern analytical tools.',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80',
-    level: 'Intermediate',
-    duration: '10 Weeks',
-    rating: '4.8',
-  },
-  {
-    id: 5,
-    title: 'Artificial Intelligence',
-    description: 'Understand AI concepts and build intelligent applications.',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80',
-    level: 'Advanced',
-    duration: '12 Weeks',
-    rating: '4.9',
-  },
-  {
-    id: 6,
-    title: 'Communication Skills',
-    description: 'Develop confident communication skills for academic and professional growth.',
-    image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=80',
-    level: 'Beginner',
-    duration: '4 Weeks',
-    rating: '4.7',
-  },
-];
+/* Six published courses, picked at random by the backend on each visit. */
+const FEATURED_COUNT = 6;
 
 const AUTOPLAY_MS = 2500; 
 
@@ -100,6 +39,8 @@ const itemVariants: Variants = {
 
 export default function FeaturedCourses() {
   const reduceMotion = useReducedMotion();
+  /* null while loading; an empty list if the request fails or nothing is published. */
+  const [courses, setCourses] = useState<Course[] | null>(null);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const [perView, setPerView] = useState(4);
@@ -113,7 +54,20 @@ export default function FeaturedCourses() {
 
   const inView = useInView(sectionRef, { amount: 0.1 });
 
-  const maxIndex = Math.max(0, courses.length - perView);
+  useEffect(() => {
+    let cancelled = false;
+
+    getCourses({ is_published: true, limit: FEATURED_COUNT, random: true })
+      // Capped here too, in case an older backend ignores `limit`.
+      .then((result) => !cancelled && setCourses(result.slice(0, FEATURED_COUNT)))
+      .catch(() => !cancelled && setCourses([]));
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const maxIndex = Math.max(0, (courses?.length ?? 0) - perView);
 
   // How many cards fit at the current breakpoint — keeps the slide step in sync
   // with the card widths below (2 / 2 / 4). A phone shows two as well, with the
@@ -151,25 +105,25 @@ export default function FeaturedCourses() {
 
   return (
     <section
-  ref={sectionRef}
-  aria-labelledby="featured-courses-title"
-  style={{
-  background:
-  "linear-gradient(to bottom, #e7f8ef 0%, #e7f8ef 18%, #e4f5eb 32%, #d4eadc 45%, #a8d3ba 60%, #78b893 72%, #a0cdb0 82%, #cce5d4 92%, #e7f8ef 100%)",
-}}
-  className="
-    relative
-    isolate
-    overflow-hidden
-    px-4
-    pb-30
-    sm:pb-40
-    md:pb-60
-    md:px-8
-    lg:px-16
-    lg:pb-38
-  "
->
+      ref={sectionRef}
+      aria-labelledby="featured-courses-title"
+      style={{
+      background:
+      "linear-gradient(to bottom, #e7f8ef 100%)",
+    }}
+      className="
+        relative
+        isolate
+        overflow-hidden
+        px-4
+        pb-30
+        sm:pb-40
+        md:pb-60
+        md:px-8
+        lg:px-16
+        lg:pb-38
+      "
+    >
       {/* Decorative background */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         {/* Dark dots ground the light editorial area; white dots emerge in the green lower half. */}
@@ -383,21 +337,27 @@ export default function FeaturedCourses() {
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="flex"
           >
-            {courses.map((course, index) => {
-              const isVisible = index >= activeIndex && index < activeIndex + perView;
+            {courses === null
+              ? Array.from({ length: perView }, (_, index) => (
+                  <div key={index} aria-hidden="true" className="w-1/2 shrink-0 px-2.5 max-md:px-1.5 lg:w-1/4">
+                    <CourseCardSkeleton />
+                  </div>
+                ))
+              : courses.map((course, index) => {
+                  const isVisible = index >= activeIndex && index < activeIndex + perView;
 
-              return (
-                <div
-                  key={course.id}
-                  // Off-screen slides must not be focusable or read by screen readers.
-                  inert={!isVisible}
-                  aria-hidden={!isVisible}
-                  className="w-1/2 shrink-0 px-2.5 max-md:px-1.5 lg:w-1/4"
-                >
-                  <CourseCard course={course} />
-                </div>
-              );
-            })}
+                  return (
+                    <div
+                      key={course.id}
+                      // Off-screen slides must not be focusable or read by screen readers.
+                      inert={!isVisible}
+                      aria-hidden={!isVisible}
+                      className="w-1/2 shrink-0 px-2.5 max-md:px-1.5 lg:w-1/4"
+                    >
+                      <CourseCard course={course} />
+                    </div>
+                  );
+                })}
           </motion.div>
         </motion.div>
 
@@ -425,7 +385,7 @@ export default function FeaturedCourses() {
                       ${
                         isPast
                           ? 'bg-[#b8f94a]/60'
-                          : 'bg-white/20'
+                          : 'bg-black/20'
                       }
                     `}
                   >
@@ -483,7 +443,7 @@ export default function FeaturedCourses() {
 
               <span className="text-black/35">/</span>
 
-              <span className="text-white/55">
+              <span className="text-black/55">
                 {String(maxIndex + 1).padStart(2, '0')}
               </span>
             </div>
@@ -491,7 +451,7 @@ export default function FeaturedCourses() {
 
 
           {/* VIEW ALL */}
-          <a
+          <Link
             href="/courses"
                   className="group/all inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-gradient px-2.5 py-2 text-[9px] font-bold whitespace-nowrap text-white ring-1 ring-inset ring-emerald-300/30 backdrop-blur-sm transition duration-300 hover:ring-emerald-400/70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-300 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm"       >
             View All Courses
@@ -500,7 +460,7 @@ export default function FeaturedCourses() {
               size={14}
               className="transition-transform duration-300 group-hover/all:translate-x-1 sm:size-[17px]"
             />
-          </a>
+          </Link>
         </div>
       </div>
       
@@ -512,11 +472,13 @@ export default function FeaturedCourses() {
    COURSE CARD
 
    Memoised: autoplay ticks and the hover pause re-render the section every few
-   seconds, and `course` comes from a module-level constant, so its identity
+   seconds, and `course` comes from state set once on load, so its identity
    never changes. Without this, all six cards re-render mid-slide.
 -------------------------------------------------- */
 
 const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
+  const description = course.short_description || course.description;
+
   // Feeds the cursor position to the spotlight overlay without re-rendering.
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -562,13 +524,20 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
 
       {/* IMAGE */}
       <div className="relative aspect-[4/3] overflow-hidden">
-        <Image
-          src={course.image}
-          alt=""
-          fill
-          sizes="(min-width: 1024px) 25vw, 50vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.07]"
-        />
+        {course.thumbnail_url ? (
+          <Image
+            src={course.thumbnail_url}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 25vw, 50vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.07]"
+          />
+        ) : (
+          /* No thumbnail uploaded yet: a branded tile rather than an empty box. */
+          <div aria-hidden="true" className="absolute inset-0 flex items-center justify-center bg-brand-gradient">
+            <BookOpen size={40} strokeWidth={1.4} className="text-white/70" />
+          </div>
+        )}
 
         {/* Emerald wash so every photo sits in the same palette */}
         <div
@@ -584,6 +553,7 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
         />
 
         {/* LEVEL */}
+        {course.level && (
         <span
           className="
             absolute
@@ -610,62 +580,33 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
         >
           {course.level}
         </span>
-
-        {/* RATING */}
-        {/* On a phone's narrower card it sits in the photo's lower corner, so
-            it can never meet the level badge. */}
-        <span
-          className="
-            absolute
-            right-4
-            top-4
-            max-md:bottom-2
-            max-md:right-2
-            max-md:top-auto
-            max-md:px-2
-            max-md:py-1
-            max-md:text-[10px]
-            inline-flex
-            items-center
-            gap-1
-            rounded-full
-            bg-[#063f32]/88
-            px-2.5
-            py-1.5
-            text-xs
-            font-bold
-            text-white
-            ring-1
-            ring-inset
-            ring-[#62e62b]/25
-          "
-        >
-          <Star aria-hidden="true" size={13} className="fill-[#b8f94a] text-[#b8f94a]" />
-          {course.rating}
-          <span className="sr-only">out of 5</span>
-        </span>
+        )}
       </div>
 
       {/* CONTENT */}
       {/* z-20 keeps the text above the spotlight wash */}
       <div className="relative z-20 flex flex-1 flex-col p-6 max-md:p-2.5">
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-black/65 max-md:text-[10px]">
-          <Clock3 aria-hidden="true" size={13} />
-          {course.duration}
-        </span>
+        {course.duration && (
+          <span className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-black/65 max-md:mb-1 max-md:text-[10px]">
+            <Clock3 aria-hidden="true" size={13} />
+            {course.duration}
+          </span>
+        )}
 
-        <h3 className="mt-3 text-lg font-semibold leading-snug tracking-[-0.02em] text-accent max-md:mt-1 max-md:text-[13px]">
+        <h3 className="text-lg font-semibold leading-snug tracking-[-0.02em] text-accent max-md:text-[13px]">
           {course.title}
         </h3>
 
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-black/80 max-md:mt-1 max-md:text-[11px] max-md:leading-snug">
-          {course.description}
-        </p>
+        {description && (
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-black/80 max-md:mt-1 max-md:text-[11px] max-md:leading-snug">
+            {description}
+          </p>
+        )}
 
         {/* LEARN MORE */}
         <div className="mt-auto pt-6 max-md:pt-2.5">
-          <a
-            href="/courses"
+          <Link
+            href={`/courses/${course.id}`}
             className="
               relative
               isolate
@@ -707,9 +648,24 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
             Learn More
             <span className="sr-only">about {course.title}</span>
             <ArrowRight aria-hidden="true" size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
-          </a>
+          </Link>
         </div>
       </div>
     </article>
   );
 });
+
+/* The card's shape while the courses load, so the section does not jump. */
+function CourseCardSkeleton() {
+  return (
+    <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-white/70 ring-1 ring-inset ring-white/40 max-md:rounded-2xl">
+      <div className="aspect-[4/3] animate-pulse bg-emerald-900/10" />
+      <div className="flex flex-1 flex-col gap-3 p-6 max-md:gap-1.5 max-md:p-2.5">
+        <div className="h-3 w-20 animate-pulse rounded-full bg-black/10" />
+        <div className="h-5 w-4/5 animate-pulse rounded-full bg-black/10 max-md:h-3.5" />
+        <div className="h-3 w-full animate-pulse rounded-full bg-black/8" />
+        <div className="mt-auto h-11 animate-pulse rounded-xl bg-emerald-900/10 max-md:h-7 max-md:rounded-lg" />
+      </div>
+    </div>
+  );
+}

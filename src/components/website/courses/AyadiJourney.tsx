@@ -93,8 +93,10 @@ const CARD =
 
 /* The collage's box, shared by the 3D plane and the flat overlay that sits on
    top of it. Both have to measure the same or the script and the sparks drift
-   off the cluster. */
-const COLLAGE_BOX = 'sm:aspect-[16/10] sm:w-[min(100%,86svh)]';
+   off the cluster. Wide (12:5) so nine cards get room and air across the
+   stage, as wide as a laptop or a wide monitor allows; capped at 156svh wide,
+   which is 65svh tall, so it still fits a pinned act with its padding. */
+const COLLAGE_BOX = 'sm:aspect-[12/5] sm:w-[min(100%,156svh)]';
 
 /* ---------- on a phone ----------
    The same three acts on the same score, on a stage the size of a phone.
@@ -103,13 +105,13 @@ const COLLAGE_BOX = 'sm:aspect-[16/10] sm:w-[min(100%,86svh)]';
    heights — the same TRAVEL the wide layout pins for.
 
    The collage is the same free-floating cluster, in a box that stands upright
-   (5:6) because the stage does. Its width is capped against the stage's height
+   (5:7) because the stage does. Its width is capped against the stage's height
    — the navbar's 84px, the act's own padding and a little air come off first —
    so it always fits; each card's place in it is `phone` in journey.ts, and the
-   script takes the corner those places leave free. The cards drift less, and
+   script runs centred across the top, above them. The cards drift less, and
    less still in a smaller box, so the cluster holds together. */
 const PHONE_TRAVEL = TRAVEL;
-const PHONE_BOX = { aspectRatio: '5 / 6', width: 'min(100%, calc((100svh - 160px) / 1.2))' };
+const PHONE_BOX = { aspectRatio: '5 / 7', width: 'min(100%, calc((100svh - 160px) / 1.4))' };
 
 /* The soft lights behind the acts — a wash in act one, four behind the
    collage — are plain shapes under a very large CSS blur. Safari only blurs
@@ -124,7 +126,7 @@ const PHONE_BOX = { aspectRatio: '5 / 6', width: 'min(100%, calc((100svh - 160px
    first subject on the way up. `will-change` gives each a layer, and the blur
    goes to the GPU. On a phone's stage only; nothing else is asked to change. */
 const SOFT = 'max-md:will-change-transform';
-const PHONE_SCRIPT = { left: '64%', top: '6%', width: '34%' };
+const PHONE_SCRIPT = { left: '0%', top: '2%', width: '100%' };
 const PHONE_DRIFT = 0.5;
 /** The box width the phone places and that drift were laid out at, px. */
 const PHONE_BOX_AT = 350;
@@ -140,7 +142,7 @@ const PHONE_MARK = { opacity: 0.22, across: { xPercent: -6, scale: 1.45, opacity
    percentages of the collage box, not the section. */
 const SPARKS = [
   { position: 'sm:left-[19%] sm:top-[26%]', size: 14, delay: '0s' },
-  { position: 'sm:left-[64%] sm:top-[60%]', size: 11, delay: '0.9s' },
+  { position: 'sm:left-[91%] sm:top-[80%]', size: 11, delay: '0.9s' },
   { position: 'sm:left-[95%] sm:top-[18%]', size: 13, delay: '1.6s' },
   { position: 'sm:left-[31%] sm:top-[92%]', size: 10, delay: '2.3s' },
 ];
@@ -365,7 +367,7 @@ export function AyadiJourney({
               justifyContent: 'center',
             });
             gsap.set(q('[data-script-box]'), PHONE_BOX);
-            gsap.set(script, { position: 'absolute', textAlign: 'left', ...PHONE_SCRIPT });
+            gsap.set(script, { position: 'absolute', textAlign: 'center', ...PHONE_SCRIPT });
 
             /* The mark: its layer is only laid out from `lg` up, where it has
                a column to stand in. Here it is laid out as well, behind
@@ -528,7 +530,10 @@ export function AyadiJourney({
                    front and a back after it has landed. */
                 z: (index: number) => collageItems[index]?.depth ?? 0,
                 duration: 1,
-                stagger: 0.12,
+                /* A total rather than a step, so the last card lands at the
+                   same moment however many there are and the hold keeps its
+                   length. */
+                stagger: { amount: 0.56 },
                 ease: 'power3.out',
               },
               COLLAGE_IN,
@@ -868,10 +873,10 @@ export function AyadiJourney({
             data-stack
             className={`flex min-h-[70svh] w-full items-center ${ACT_PADDING}`}
           >
-            <div className="mx-auto w-full max-w-[1180px]">
+            <div className="mx-auto w-full max-w-[1520px]">
               {/* The camera. One shared vanishing point for the whole cluster, so
                   the cards read as one object seen in perspective rather than
-                  five separately skewed rectangles. */}
+                  nine separately skewed rectangles. */}
               <div data-collage-area className="relative isolate [perspective:1400px]">
                 {/* Light behind the glass */}
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
@@ -885,7 +890,7 @@ export function AyadiJourney({
                     drift — two layers so the two never write the same property. */}
                 <div data-plane className="[transform-style:preserve-3d]">
                   {/* A free-floating cluster from `sm` up, its width capped
-                      against the viewport height (99svh wide at 16:10 is 62svh
+                      against the viewport height (156svh wide at 12:5 is 65svh
                       tall) so it always fits a pinned act. Below that the
                       classes leave a grid, which is what a phone shows without
                       motion; with it, GSAP stands the same cluster in an
@@ -923,7 +928,7 @@ export function AyadiJourney({
                       data-script
                       className="text-center sm:absolute sm:left-[66%] sm:top-[8%] sm:w-[30%] sm:text-left"
                     >
-                      <span className="font-serif text-[1.6rem] italic leading-[1.15] tracking-[-0.01em] text-accent max-sm:text-[1.2rem] sm:text-[1.9rem] lg:text-[2.4rem]">
+                      <span className="font-serif text-[1.6rem] italic leading-[1.15] tracking-[-0.01em] text-accent max-sm:text-[1.35rem] sm:text-[1.9rem] lg:text-[2.4rem]">
                         Skills
                         <span className="block text-primary">for a better</span>
                         tomorrow

@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import {
   ArrowUpRight,
@@ -12,6 +13,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { getPublicBlogs, type Blog } from '@/lib/api/blogs';
+import { publicKeys } from '@/lib/query/client';
 import { releaseScroll } from '@/lib/smooth-scroll';
 
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
@@ -94,6 +96,19 @@ function mapBlogToPost(blog: Blog): PublicBlogPost {
   };
 }
 
+const NO_BLOGS: Blog[] = [];
+
+/*
+ * Published blogs, newest first. Category filtering is intentionally sent to
+ * the backend; each category is its own cache entry (src/lib/query), so
+ * switching back to one already seen is instant.
+ */
+const fetchBlogs = (category: string) =>
+  getPublicBlogs({
+    sort_by: 'newest',
+    ...(category !== 'All' ? { category } : {}),
+  });
+
 export default function BlogList() {
   const reduceMotion = useReducedMotion();
   const start = reduceMotion ? 'visible' : 'hidden';
@@ -106,89 +121,45 @@ export default function BlogList() {
    */
   const featuredTilt = useCardTilt(3);
 
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [categories, setCategories] = useState<string[]>(['All']);
-
   const [category, setCategory] = useState('All');
   const [page, setPage] = useState(1);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const blogsQuery = useQuery({
+    queryKey: publicKeys.blogs(category),
+    queryFn: () => fetchBlogs(category),
+  });
+
+  /* The category list comes from "All" — the same cache entry the page
+     opens on, so this costs no extra request. */
+  const allBlogsQuery = useQuery({
+    queryKey: publicKeys.blogs('All'),
+    queryFn: () => fetchBlogs('All'),
+  });
+
+  const blogs = blogsQuery.data ?? NO_BLOGS;
+  const loading = blogsQuery.isPending || (blogsQuery.isFetching && !blogsQuery.data);
+  /* A failed background refresh keeps the cached list on screen. */
+  const error =
+    blogsQuery.isError && !blogsQuery.data && !blogsQuery.isFetching
+      ? 'Unable to load articles right now. Please try again later.'
+      : null;
+
+  useEffect(() => {
+    if (blogsQuery.error && !blogsQuery.data) console.error('Failed to load blogs:', blogsQuery.error);
+  }, [blogsQuery.error, blogsQuery.data]);
 
   /*
-   * Load published blogs from the backend.
-   *
-   * Category filtering is intentionally sent to the backend.
+   * Build the category list from all published blogs.
    */
-  useEffect(() => {
-    let cancelled = false;
+  const categories = useMemo(() => {
+    const unique = new Set(
+      (allBlogsQuery.data ?? NO_BLOGS)
+        .map((blog) => blog.category)
+        .filter((value): value is string => Boolean(value && value.trim())),
+    );
 
-    const loadBlogs = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const data = await getPublicBlogs({
-          sort_by: 'newest',
-          ...(category !== 'All'
-            ? {
-                category,
-              }
-            : {}),
-        });
-
-        if (cancelled) {
-          return;
-        }
-
-        setBlogs(data);
-
-        /*
-         * Build the category list from all published blogs.
-         *
-         * We only need to discover categories when viewing "All".
-         * When a specific category is selected, the backend already
-         * filtered the result.
-         */
-        if (category === 'All') {
-          const uniqueCategories = Array.from(
-            new Set(
-              data
-                .map((blog) => blog.category)
-                .filter(
-                  (value): value is string =>
-                    Boolean(value && value.trim())
-                )
-            )
-          );
-
-          setCategories(['All', ...uniqueCategories]);
-        }
-      } catch (err) {
-        if (cancelled) {
-          return;
-        }
-
-        console.error('Failed to load blogs:', err);
-
-        setError(
-          'Unable to load articles right now. Please try again later.'
-        );
-
-        setBlogs([]);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadBlogs();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [category]);
+    return ['All', ...unique];
+  }, [allBlogsQuery.data]);
 
   /*
    * Convert backend blogs into the existing public-card shape.
@@ -570,7 +541,7 @@ export default function BlogList() {
               <button
                 type="button"
                 onClick={() => {
-                  setCategory(category);
+                  void blogsQuery.refetch();
                 }}
                 className="mt-3 text-xs font-bold text-primary hover:underline sm:mt-4 sm:text-sm"
               >

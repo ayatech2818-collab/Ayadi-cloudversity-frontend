@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
@@ -8,6 +9,7 @@ import { getCategories } from '@/lib/api/course-categories';
 import { getSubcategories } from '@/lib/api/course-subcategories';
 import { getCourses } from '@/lib/api/courses';
 import { getApiErrorMessage } from '@/lib/api/errors';
+import { publicKeys } from '@/lib/query/client';
 
 import { countByCategory, countBySubcategory, filterCourses } from './filterCourses';
 import {
@@ -55,6 +57,77 @@ function findSubcategoryInList(
   );
 }
 
+type CatalogueData = {
+  categories: CatalogueCategory[];
+  subcategories: CatalogueSubcategory[];
+  courses: CatalogueCourse[];
+};
+
+const NO_CATEGORIES: CatalogueCategory[] = [];
+const NO_SUBCATEGORIES: CatalogueSubcategory[] = [];
+const NO_COURSES: CatalogueCourse[] = [];
+
+/*
+ * Everything the catalogue shows, in one request chain: the active Ayadi
+ * Cloudversity brand, then its categories, subcategories and published
+ * courses. Cached as one entry (src/lib/query), so the page opens from the
+ * cache on a later visit or refresh.
+ */
+async function loadCatalogue(): Promise<CatalogueData> {
+  // 1. Fetch active brands and dynamically resolve Ayadi Cloudversity
+  const brands = await getCourseBrands();
+  const activeBrands = brands.filter((b) => b.is_active);
+
+  // Preferred match is slug 'ayadicloudveristy' (verified DB slug), with fallbacks
+  const ayadiBrand = activeBrands.find(
+    (b) =>
+      b.slug === 'ayadicloudveristy' ||
+      b.slug === 'ayadi' ||
+      b.name.toLowerCase().includes('cloudversity'),
+  );
+
+  if (!ayadiBrand) {
+    throw new Error('Ayadi Cloudversity brand not found or inactive.');
+  }
+
+  // 2. Concurrently fetch categories, subcategories, and published courses
+  const [fetchedCategories, fetchedSubcategories, fetchedCourses] = await Promise.all([
+    getCategories(ayadiBrand.id),
+    getSubcategories(),
+    getCourses({ brand_id: ayadiBrand.id, is_published: true }),
+  ]);
+
+  // Filter active categories for this brand and sort by display_order
+  const categories: CatalogueCategory[] = fetchedCategories
+    .filter((c) => c.is_active && c.brand_id === ayadiBrand.id)
+    .sort((a, b) => a.display_order - b.display_order)
+    .map((c) => ({
+      id: c.id,
+      slug: c.slug,
+      name: c.name,
+      description: c.description,
+      display_order: c.display_order,
+    }));
+
+  const activeCategoryIds = new Set(categories.map((c) => c.id));
+
+  // Filter active subcategories belonging to active categories
+  const subcategories: CatalogueSubcategory[] = fetchedSubcategories
+    .filter((s) => s.is_active && activeCategoryIds.has(s.category_id))
+    .sort((a, b) => a.display_order - b.display_order)
+    .map((s) => ({
+      id: s.id,
+      category_id: s.category_id,
+      slug: s.slug,
+      name: s.name,
+      description: s.description,
+      display_order: s.display_order,
+    }));
+
+  // Normalize courses to CatalogueCourse
+  return { categories, subcategories, courses: fetchedCourses.map(mapCourseToCatalogueCourse) };
+}
+
 /*
  * The catalogue's state, powered by the live FastAPI backend.
  *
@@ -68,128 +141,65 @@ export function useCourseCatalogue() {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [activeSubcategoryId, setActiveSubcategoryId] = useState<string | null>(null);
 
-  const [categories, setCategories] = useState<CatalogueCategory[]>([]);
-  const [allSubcategories, setAllSubcategories] = useState<CatalogueSubcategory[]>([]);
-  const [rawCourses, setRawCourses] = useState<CatalogueCourse[]>([]);
+  const catalogue = useQuery({ queryKey: publicKeys.catalogue, queryFn: loadCatalogue });
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
+  const categories = catalogue.data?.categories ?? NO_CATEGORIES;
+  const allSubcategories = catalogue.data?.subcategories ?? NO_SUBCATEGORIES;
+  const rawCourses = catalogue.data?.courses ?? NO_COURSES;
+
+  /* Nothing to show yet — restoring from the cache, the first fetch, or a retry. */
+  const loading = catalogue.isPending || (catalogue.isFetching && !catalogue.data);
+  /* A failed background refresh keeps the cached catalogue on screen; only a
+     catalogue that never loaded is an error. */
+  const error =
+    catalogue.isError && !catalogue.data && !catalogue.isFetching
+      ? getApiErrorMessage(catalogue.error, 'Unable to load course catalogue. Please try again.')
+      : null;
 
   const categoriesRef = useRef<CatalogueCategory[]>([]);
   const subcategoriesRef = useRef<CatalogueSubcategory[]>([]);
+  const [resolvedInitialParams, setResolvedInitialParams] = useState(false);
 
   const search = query.trim();
 
   /* =========================================================
-     FETCH LIVE DATA FROM BACKEND
+     CATALOGUE LOADED
   ========================================================= */
 
   useEffect(() => {
-    let cancelled = false;
+    if (catalogue.error && !catalogue.data) console.error('Failed to load course catalogue:', catalogue.error);
+  }, [catalogue.error, catalogue.data]);
 
-    const loadCatalogueData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  useEffect(() => {
+    if (!catalogue.data) return;
+    categoriesRef.current = catalogue.data.categories;
+    subcategoriesRef.current = catalogue.data.subcategories;
+  }, [catalogue.data]);
 
-        // 1. Fetch active brands and dynamically resolve Ayadi Cloudversity
-        const brands = await getCourseBrands();
-        const activeBrands = brands.filter((b) => b.is_active);
+  /* Resolve any initial URL parameters the first time the catalogue is there —
+     adjusted during render rather than in an effect, so the first painted frame
+     already shows the linked category. The data only ever arrives in the
+     browser, so `window` is safe here. */
+  if (catalogue.data && !resolvedInitialParams) {
+    setResolvedInitialParams(true);
 
-        // Preferred match is slug 'ayadicloudveristy' (verified DB slug), with fallbacks
-        const ayadiBrand = activeBrands.find(
-          (b) =>
-            b.slug === 'ayadicloudveristy' ||
-            b.slug === 'ayadi' ||
-            b.name.toLowerCase().includes('cloudversity'),
+    const currentParams = new URL(window.location.href).searchParams;
+    const initialCategorySlug = currentParams.get(CATEGORY_PARAM);
+    const initialSubcategorySlug = currentParams.get(SUBCATEGORY_PARAM);
+
+    if (initialCategorySlug) {
+      const matchedCategory = findCategoryInList(catalogue.data.categories, initialCategorySlug);
+      if (matchedCategory) {
+        setActiveCategoryId(matchedCategory.id);
+        const matchedSub = findSubcategoryInList(
+          catalogue.data.subcategories,
+          matchedCategory.id,
+          initialSubcategorySlug,
         );
-
-        if (!ayadiBrand) {
-          throw new Error('Ayadi Cloudversity brand not found or inactive.');
-        }
-
-        // 2. Concurrently fetch categories, subcategories, and published courses
-        const [fetchedCategories, fetchedSubcategories, fetchedCourses] = await Promise.all([
-          getCategories(ayadiBrand.id),
-          getSubcategories(),
-          getCourses({ brand_id: ayadiBrand.id, is_published: true }),
-        ]);
-
-        if (cancelled) return;
-
-        // Filter active categories for this brand and sort by display_order
-        const activeCategories: CatalogueCategory[] = fetchedCategories
-          .filter((c) => c.is_active && c.brand_id === ayadiBrand.id)
-          .sort((a, b) => a.display_order - b.display_order)
-          .map((c) => ({
-            id: c.id,
-            slug: c.slug,
-            name: c.name,
-            description: c.description,
-            display_order: c.display_order,
-          }));
-
-        const activeCategoryIds = new Set(activeCategories.map((c) => c.id));
-
-        // Filter active subcategories belonging to active categories
-        const activeSubcategories: CatalogueSubcategory[] = fetchedSubcategories
-          .filter((s) => s.is_active && activeCategoryIds.has(s.category_id))
-          .sort((a, b) => a.display_order - b.display_order)
-          .map((s) => ({
-            id: s.id,
-            category_id: s.category_id,
-            slug: s.slug,
-            name: s.name,
-            description: s.description,
-            display_order: s.display_order,
-          }));
-
-        // Normalize courses to CatalogueCourse
-        const normalizedCourses = fetchedCourses.map(mapCourseToCatalogueCourse);
-
-        categoriesRef.current = activeCategories;
-        subcategoriesRef.current = activeSubcategories;
-
-        setCategories(activeCategories);
-        setAllSubcategories(activeSubcategories);
-        setRawCourses(normalizedCourses);
-        setError(null);
-
-        // Resolve any initial URL parameters on first load
-        if (typeof window !== 'undefined') {
-          const currentParams = new URL(window.location.href).searchParams;
-          const initialCategorySlug = currentParams.get(CATEGORY_PARAM);
-          const initialSubcategorySlug = currentParams.get(SUBCATEGORY_PARAM);
-
-          if (initialCategorySlug) {
-            const matchedCategory = findCategoryInList(activeCategories, initialCategorySlug);
-            if (matchedCategory) {
-              setActiveCategoryId(matchedCategory.id);
-              const matchedSub = findSubcategoryInList(
-                activeSubcategories,
-                matchedCategory.id,
-                initialSubcategorySlug,
-              );
-              setActiveSubcategoryId(matchedSub?.id ?? null);
-            }
-          }
-        }
-      } catch (err) {
-        if (cancelled) return;
-        console.error('Failed to load course catalogue:', err);
-        setError(getApiErrorMessage(err, 'Unable to load course catalogue. Please try again.'));
-      } finally {
-        if (!cancelled) setLoading(false);
+        setActiveSubcategoryId(matchedSub?.id ?? null);
       }
-    };
-
-    loadCatalogueData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [reloadToken]);
+    }
+  }
 
   /* Available subcategories under the currently selected main category */
   const subcategories = useMemo(
@@ -294,9 +304,10 @@ export function useCourseCatalogue() {
     selectCategory(null);
   }, [selectCategory]);
 
+  const { refetch } = catalogue;
   const retry = useCallback(() => {
-    setReloadToken((t) => t + 1);
-  }, []);
+    void refetch();
+  }, [refetch]);
 
   return {
     categories,

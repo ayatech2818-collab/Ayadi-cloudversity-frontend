@@ -28,21 +28,21 @@ export default function GetStartedCta() {
  <section
       aria-labelledby="get-started-title"
       className="
-        relative
-        z-20
-        -mt-44
-        -mb-44
-        px-3
-        sm:-mt-45
-        sm:-mb-45
-        sm:px-6
-        md:-mt-65
-        md:-mb-65
-        md:px-8
-        lg:-mt-55
-        lg:-mb-70
-        lg:px-16
-      "
+  relative
+  z-20
+  -mt-44
+  -mb-44
+  px-3
+  sm:mt-0
+  sm:-mb-45
+  sm:px-6
+  md:mt-0
+  md:-mb-10
+  md:px-8
+  lg:-mt-55
+  lg:-mb-70
+  lg:px-16
+"
   >
       <motion.div
         initial={reduceMotion ? false : { opacity: 0, y: 40 }}

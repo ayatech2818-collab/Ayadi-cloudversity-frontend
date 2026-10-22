@@ -13,6 +13,7 @@ import EnquiryAnalytics, {
 import KpiCards from "@/components/admin/dashboard/KpiCards";
 import QuickActions from "@/components/admin/dashboard/QuickActions";
 import RecentEnquiries from "@/components/admin/dashboard/RecentEnquiries";
+import RecentFeedback from "@/components/admin/dashboard/RecentFeedback";
 import Reveal from "@/components/admin/dashboard/Reveal";
 import { CHART_COLORS } from "@/components/admin/dashboard/styles";
 import EmptyState from "@/components/admin/ui/EmptyState";
@@ -26,8 +27,10 @@ import {
   type EnquiryAnalytics as EnquiryAnalyticsData,
 } from "@/lib/api/dashboard";
 import { getApiErrorMessage } from "@/lib/api/errors";
+import { getRecentAdminFeedback, type Feedback } from "@/lib/api/feedback";
 
 const RECENT_LIMIT = 7;
+const RECENT_FEEDBACK_LIMIT = 4;
 
 /**
  * The dashboard home. Everything on it comes from the dashboard API.
@@ -52,6 +55,9 @@ export default function AdminDashboard() {
   );
   const [recentError, setRecentError] = useState<string | null>(null);
 
+  const [feedback, setFeedback] = useState<Feedback[] | null>(null);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+
   const [range, setRange] = useState<AnalyticsRange>(7);
   const [analytics, setAnalytics] =
     useState<EnquiryAnalyticsData | null>(null);
@@ -69,9 +75,8 @@ export default function AdminDashboard() {
   // =========================================================
 
   /**
-   * The summary and the recent enquiries, side by side. Neither waits for the
-   * other, and one failing leaves the other alone. With the analytics request
-   * below, a load is three requests at once.
+   * The summary, recent enquiries, and recent feedback. None waits for the
+   * other, and one failing leaves the others alone.
    */
   useEffect(() => {
     let cancelled = false;
@@ -122,8 +127,32 @@ export default function AdminDashboard() {
       }
     };
 
+    const loadFeedback = async () => {
+      try {
+        setFeedbackError(null);
+
+        const data = await getRecentAdminFeedback(RECENT_FEEDBACK_LIMIT);
+
+        if (cancelled) return;
+
+        setFeedback(data);
+      } catch (fetchError) {
+        if (cancelled) return;
+
+        console.error("Failed to fetch recent feedback:", fetchError);
+
+        setFeedbackError(
+          getApiErrorMessage(
+            fetchError,
+            "Something went wrong while fetching recent feedback."
+          )
+        );
+      }
+    };
+
     loadSummary();
     loadRecent();
+    loadFeedback();
 
     return () => {
       cancelled = true;
@@ -179,7 +208,7 @@ export default function AdminDashboard() {
     setAnalyticsToken((current) => current + 1);
 
   /**
-   * Asks again for the summary and the recent enquiries, and for the chart
+   * Asks again for the summary, recent enquiries, and recent feedback, and for the chart
    * too if that had failed.
    */
   const retry = () => {
@@ -246,6 +275,12 @@ export default function AdminDashboard() {
                 <QuickActions />
                 <CourseOverview
                   courses={summary?.courses ?? null}
+                  className="xl:grow"
+                />
+                <RecentFeedback
+                  feedback={feedback}
+                  error={feedbackError}
+                  onRetry={retry}
                   className="xl:grow"
                 />
                 <ContentOverview

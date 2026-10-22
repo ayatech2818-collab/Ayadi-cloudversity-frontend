@@ -10,7 +10,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import GetStartedCta from '@/components/website/sections/GetStartedCta';
-import { getPublicBlog, getPublicBlogs, type Blog } from '@/lib/api/blogs';
+import {
+  getPublicBlog,
+  getPublicBlogs,
+  type PublicBlog,
+} from '@/lib/api/blogs';
 
 import BlogCover from '../BlogCover';
 import PostCard, { type PublicBlogPost } from '../PostCard';
@@ -138,7 +142,7 @@ function parseArticleContent(content?: string | null): ArticleSection[] {
    Backend → public UI mapping
 --------------------------------------------------------- */
 
-function mapBlogToPost(blog: Blog): PublicBlogPost {
+function mapBlogToPost(blog: PublicBlog): PublicBlogPost {
   const date = blog.published_at ?? blog.created_at ?? '';
 
   return {
@@ -150,7 +154,7 @@ function mapBlogToPost(blog: Blog): PublicBlogPost {
     date,
     displayDate: formatDate(date),
     readTime: formatReadTime(blog.reading_time_minutes),
-    author: blog.author?.trim() || 'Ayadi Cloudversity',
+    author: blog.author ?? null,
     image: blog.cover_image || '/images/blog/placeholder.svg',
   };
 }
@@ -164,7 +168,7 @@ function mapBlogToPost(blog: Blog): PublicBlogPost {
  * it is published; an unknown or unpublished slug is a 404, which rejects here
  * and is handled by each caller.
  */
-async function getPublishedBlogBySlug(slug: string): Promise<Blog | null> {
+async function getPublishedBlogBySlug(slug: string): Promise<PublicBlog | null> {
   return getPublicBlog(slug);
 }
 
@@ -173,7 +177,7 @@ async function getPublishedBlogBySlug(slug: string): Promise<Blog | null> {
 --------------------------------------------------------- */
 
 async function getRelatedBlogPosts(
-  currentBlog: Blog,
+  currentBlog: PublicBlog,
 ): Promise<PublicBlogPost[]> {
   const blogs = await getPublicBlogs({
     sort_by: 'newest',
@@ -241,7 +245,7 @@ export default async function BlogDetailPage({
 }) {
   const { slug } = await params;
 
-  let post: Blog | null = null;
+  let post: PublicBlog | null = null;
 
   try {
     post = await getPublishedBlogBySlug(slug);
@@ -338,7 +342,7 @@ export default async function BlogDetailPage({
                 />
 
                 <span className="font-semibold text-accent">
-                  {publicPost.author}
+                  {publicPost.author?.name || 'Ayadi Cloudversity'}
                 </span>
               </span>
             </div>

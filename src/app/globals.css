@@ -252,3 +252,34 @@ body {
 .admin-sidebar-nav::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.28);
 }
+
+
+/*
+ * Continuously auto-scrolling feedback track.
+ * Hardware-accelerated transform only, runs on compositor.
+ */
+@keyframes feedback-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-feedback-marquee {
+  animation: feedback-marquee 40s linear infinite;
+  will-change: transform;
+}
+
+.animate-blog-marquee {
+  animation: feedback-marquee 35s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-feedback-marquee,
+  .animate-blog-marquee {
+    animation: none !important;
+  }
+}

@@ -20,6 +20,7 @@ export const publicKeys = {
   featuredCourses: [PUBLIC_SCOPE, 'courses', 'featured'] as const,
   blogs: (category: string) => [PUBLIC_SCOPE, 'blogs', category] as const,
   galleries: [PUBLIC_SCOPE, 'galleries'] as const,
+  feedback: [PUBLIC_SCOPE, 'feedback'] as const,
 };
 
 function makeQueryClient() {

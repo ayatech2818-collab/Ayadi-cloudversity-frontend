@@ -12,7 +12,8 @@ import {
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import { getPublicBlogs, type Blog } from '@/lib/api/blogs';
+import type { Author } from '@/lib/api/authors';
+import { getPublicBlogs, type PublicBlog } from '@/lib/api/blogs';
 import { publicKeys } from '@/lib/query/client';
 import { releaseScroll } from '@/lib/smooth-scroll';
 
@@ -24,6 +25,8 @@ import {
 } from '@/components/website/ui/card-chrome';
 
 import BlogCover from './BlogCover';
+import AuthorAvatar from './AuthorAvatar';
+import AuthorsSection from './AuthorsSection';
 import PostCard, {
   type PublicBlogPost,
 } from './PostCard';
@@ -73,7 +76,7 @@ const lineUp: Variants = {
  * Convert backend Blog data into the shape expected by the
  * existing public PostCard component.
  */
-function mapBlogToPost(blog: Blog): PublicBlogPost {
+function mapBlogToPost(blog: PublicBlog): PublicBlogPost {
   const publishedDate = blog.published_at ?? blog.created_at;
 
   return {
@@ -91,12 +94,12 @@ function mapBlogToPost(blog: Blog): PublicBlogPost {
     readTime: blog.reading_time_minutes
       ? `${blog.reading_time_minutes} min read`
       : '5 min read',
-    author: blog.author ?? 'Ayadi Cloudversity',
+    author: blog.author ?? null,
     image: blog.cover_image ?? '/images/blog/placeholder.svg',
   };
 }
 
-const NO_BLOGS: Blog[] = [];
+const NO_BLOGS: PublicBlog[] = [];
 
 /*
  * Published blogs, newest first. Category filtering is intentionally sent to
@@ -159,6 +162,18 @@ export default function BlogList() {
     );
 
     return ['All', ...unique];
+  }, [allBlogsQuery.data]);
+
+  const authors = useMemo(() => {
+    const unique = new Map<string, Author>();
+
+    for (const blog of allBlogsQuery.data ?? NO_BLOGS) {
+      if (blog.author?.is_active) {
+        unique.set(blog.author.id, blog.author);
+      }
+    }
+
+    return Array.from(unique.values());
   }, [allBlogsQuery.data]);
 
   /*
@@ -442,18 +457,26 @@ export default function BlogList() {
                     </span>
                   </div>
 
-                  {/* Read article */}
-                  <span
-                    aria-hidden="true"
-                    className="mt-4 flex items-center gap-1.5 text-xs font-bold text-primary sm:mt-7 sm:gap-2 sm:text-sm"
-                  >
-                    Read article
+                  <div className="mt-4 flex items-end justify-between gap-3 sm:mt-7">
+                    <span
+                      aria-hidden="true"
+                      className="flex items-center gap-1.5 text-xs font-bold text-primary sm:gap-2 sm:text-sm"
+                    >
+                      Read article
 
-                    <ArrowUpRight
-                      size={14}
-                      className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 sm:size-4"
+                      <ArrowUpRight
+                        size={14}
+                        className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 sm:size-4"
+                      />
+                    </span>
+
+                    <AuthorAvatar
+                      src={featured.author?.profile_image}
+                      name={featured.author?.name}
+                      sizes="44px"
+                      className="size-9 sm:size-11"
                     />
-                  </span>
+                  </div>
                 </div>
               </motion.article>
             </motion.div>
@@ -467,7 +490,11 @@ export default function BlogList() {
 
       <section
         aria-labelledby="articles-heading"
-        className="px-3 pb-60 sm:px-8 sm:pb-24 lg:px-16 lg:pb-82"
+        className={`px-3 sm:px-8 lg:px-16 ${
+          authors.length > 0
+            ? 'pb-16 sm:pb-20 lg:pb-24'
+            : 'pb-60 sm:pb-24 lg:pb-82'
+        }`}
       >
         <div
           ref={gridRef}
@@ -685,6 +712,8 @@ export default function BlogList() {
           ) : null}
         </div>
       </section>
+
+      <AuthorsSection authors={authors} />
 
       <GetStartedCta />
     </main>

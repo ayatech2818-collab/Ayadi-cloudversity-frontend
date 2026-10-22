@@ -26,7 +26,7 @@ export default function BlogMeta({ blog }: { blog: Blog }) {
       {blog.author && (
         <span className="inline-flex min-w-0 max-w-full items-center gap-0.5 min-[360px]:gap-1">
           <UserRound className="size-2.5 shrink-0 min-[360px]:size-3 sm:size-3" />
-          <span className="truncate">{blog.author}</span>
+          <span className="truncate">{blog.author.name}</span>
         </span>
       )}
     </div>

@@ -16,6 +16,7 @@ import {
   PinOff,
   User,
   MessageSquare,
+  Star,
   GitBranch,
   ListTree
 } from "lucide-react";
@@ -73,6 +74,11 @@ const navigation = [
     label: "enquiries",
     href: "/admin/enquiries",
     icon: MessageSquare,
+  },
+  {
+    label: "Feedback",
+    href: "/admin/feedback",
+    icon: Star,
   },
 ];
 

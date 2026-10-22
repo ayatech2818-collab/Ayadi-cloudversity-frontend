@@ -1,4 +1,5 @@
 import { api } from "./client";
+import type { Author } from "./authors";
 
 export type BlogStatus = "draft" | "published";
 
@@ -14,7 +15,7 @@ export interface Blog {
   category: string | null;
   tags?: string[] | null;
   author_id?: string | null;
-  author?: string | null;
+  author?: Author | null;
   created_by?: string | null;
   status: BlogStatus;
   is_featured: boolean;
@@ -31,6 +32,9 @@ export interface Blog {
   readTime?: string;
   image?: string;
 }
+
+/** Public endpoints return the same nested author relationship. */
+export type PublicBlog = Blog;
 
 export interface BlogFormData {
   title: string;
@@ -156,8 +160,8 @@ export const createBlog = async (
 
 export const getPublicBlogs = async (
   filters?: Omit<BlogFilters, "status">
-): Promise<Blog[]> => {
-  const response = await api.get<Blog[]>("/blogs/public", {
+): Promise<PublicBlog[]> => {
+  const response = await api.get<PublicBlog[]>("/blogs/public", {
     params: filters,
   });
 
@@ -166,8 +170,8 @@ export const getPublicBlogs = async (
 
 export const getPublicBlog = async (
   slug: string
-): Promise<Blog> => {
-  const response = await api.get<Blog>(
+): Promise<PublicBlog> => {
+  const response = await api.get<PublicBlog>(
     `/blogs/public/${encodeURIComponent(slug)}`
   );
 

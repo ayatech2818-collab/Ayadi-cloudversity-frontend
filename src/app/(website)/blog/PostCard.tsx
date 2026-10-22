@@ -8,7 +8,9 @@ import {
   CardDecor,
   handleSpotlight,
 } from '@/components/website/ui/card-chrome';
+import type { Author } from '@/lib/api/authors';
 
+import AuthorAvatar from './AuthorAvatar';
 import BlogCover from './BlogCover';
 
 export type PublicBlogPost = {
@@ -20,7 +22,7 @@ export type PublicBlogPost = {
   date: string;
   displayDate: string;
   readTime: string;
-  author: string;
+  author: Author | null;
   image: string;
 };
 
@@ -97,17 +99,26 @@ export default function PostCard({
           {post.excerpt}
         </p>
 
-        <span
-          aria-hidden="true"
-          className="mt-auto flex items-center gap-2 pt-6 text-sm font-bold text-primary"
-        >
-          Read article
+        <div className="mt-auto flex items-end justify-between gap-3 pt-6">
+          <span
+            aria-hidden="true"
+            className="flex items-center gap-2 text-sm font-bold text-primary"
+          >
+            Read article
 
-          <ArrowUpRight
-            size={16}
-            className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            <ArrowUpRight
+              size={16}
+              className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            />
+          </span>
+
+          <AuthorAvatar
+            src={post.author?.profile_image}
+            name={post.author?.name}
+            sizes="40px"
+            className="size-9 sm:size-10"
           />
-        </span>
+        </div>
       </div>
     </article>
   );

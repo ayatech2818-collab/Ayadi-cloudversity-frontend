@@ -112,13 +112,15 @@ export default function FeaturedCourses() {
         relative
         isolate
         overflow-hidden
-        px-4
+        px-6
         pb-30
+        sm:px-10
         sm:pb-40
         md:pb-60
-        md:px-8
-        lg:px-16
-        lg:pb-38
+        md:px-14
+        lg:px-20
+        lg:pb-52
+        xl:px-24
       "
     >
       {/* Decorative background */}
@@ -137,7 +139,7 @@ export default function FeaturedCourses() {
         <div className="absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent via-emerald-300/25 to-transparent" />
       </div>
 
-      <div className="mx-auto max-w-[1665px] pt-24 sm:pt-28 md:pt-32 lg:pt-36 mb-24">
+      <div className="mx-auto w-full max-w-[1440px] pt-24 sm:pt-28 md:pt-32 lg:pt-36 mb-24">
         {/* HEADER */}
         <motion.div
           initial={reduceMotion ? false : 'hidden'}
@@ -152,12 +154,12 @@ export default function FeaturedCourses() {
                 className="
                   inline-flex
                   items-center
-                  gap-2.5
+                  gap-2
                   rounded-full
                   bg-white/35
-                  px-4
-                  py-1.5
-                  text-xs
+                  px-3
+                  py-1
+                  text-[10px]
                   font-bold
                   uppercase
                   tracking-[0.2em]
@@ -169,7 +171,7 @@ export default function FeaturedCourses() {
                   max-md:gap-2
                   max-md:px-3
                   max-md:py-1
-                  max-md:text-[10px]
+                  max-md:text-[9px]
                 "
               >
                 <span aria-hidden="true" className="relative flex size-2">
@@ -184,17 +186,17 @@ export default function FeaturedCourses() {
               id="featured-courses-title"
               variants={itemVariants}
               className="
-                mt-6
+                mt-4
                 max-w-2xl
-                text-4xl
+                text-3xl
                 font-bold
                 leading-[1.08]
                 tracking-[-0.04em]
-                md:text-5xl
-                lg:text-6xl
+                md:text-4xl
+                lg:text-5xl
                 text-accent
-                max-md:mt-4
-                max-md:text-[1.75rem]
+                max-md:mt-3
+                max-md:text-2xl
               "
             >
               Discover your next{' '}
@@ -212,7 +214,7 @@ export default function FeaturedCourses() {
 
             <motion.p
               variants={itemVariants}
-              className="mt-5 max-w-xl text-base leading-relaxed text-[#182653]/65 max-md:mt-3 max-md:text-sm md:text-lg"
+              className="mt-3 max-w-xl text-sm leading-relaxed text-[#182653]/65 max-md:mt-2 max-md:text-xs md:text-base"
             >
               Explore 200+ courses designed to help you learn something new and move forward.
             </motion.p>
@@ -220,7 +222,7 @@ export default function FeaturedCourses() {
 
           {/* NAVIGATION */}
           <motion.div variants={itemVariants} className="flex items-center gap-5 max-md:gap-3">
-            <span className="text-sm font-bold tabular-nums text-[#182653] max-md:text-xs">
+            <span className="text-xs font-bold tabular-nums text-[#182653] max-md:text-[10px]">
               {String(activeIndex + 1).padStart(2, '0')}
               <span className="mx-1 text-[#182653]/35">/</span>
               <span className="text-[#182653]/60">{String(maxIndex + 1).padStart(2, '0')}</span>
@@ -233,8 +235,8 @@ export default function FeaturedCourses() {
                 aria-label="Previous courses"
                 className="
                   flex
-                  size-12
-                  max-md:size-10
+                  size-10
+                  max-md:size-9
                   items-center
                   justify-center
                   rounded-full
@@ -255,7 +257,7 @@ export default function FeaturedCourses() {
                   active:scale-95
                 "
               >
-                <ArrowLeft aria-hidden="true" size={19} />
+                <ArrowLeft aria-hidden="true" size={17} />
               </button>
 
               <button
@@ -264,8 +266,8 @@ export default function FeaturedCourses() {
                 aria-label="Next courses"
                 className="
                   flex
-                  size-12
-                  max-md:size-10
+                  size-10
+                  max-md:size-9
                   items-center
                   justify-center
                   rounded-full
@@ -285,7 +287,7 @@ export default function FeaturedCourses() {
                   active:scale-95
                 "
               >
-                <ArrowRight aria-hidden="true" size={19} />
+                <ArrowRight aria-hidden="true" size={17} />
               </button>
             </div>
           </motion.div>
@@ -323,7 +325,7 @@ export default function FeaturedCourses() {
                 setPaused(false);
               }}
           aria-label="Featured courses"
-          className="-mx-2.5 touch-pan-y overflow-hidden max-md:-mx-1.5"
+          className="touch-pan-y overflow-hidden"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onFocusCapture={() => setPaused(true)}
@@ -332,11 +334,11 @@ export default function FeaturedCourses() {
           <motion.div
             animate={{ x: `-${activeIndex * (100 / perView)}%` }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="flex"
+            className={`flex ${courses !== null && courses.length <= perView ? 'justify-center' : ''}`}
           >
             {courses === null
               ? Array.from({ length: perView }, (_, index) => (
-                  <div key={index} aria-hidden="true" className="w-1/2 shrink-0 px-2.5 max-md:px-1.5 lg:w-1/4">
+                  <div key={index} aria-hidden="true" className="w-1/2 shrink-0 px-2 sm:px-3 lg:w-1/4">
                     <CourseCardSkeleton />
                   </div>
                 ))
@@ -349,7 +351,7 @@ export default function FeaturedCourses() {
                       // Off-screen slides must not be focusable or read by screen readers.
                       inert={!isVisible}
                       aria-hidden={!isVisible}
-                      className="w-1/2 shrink-0 px-2.5 max-md:px-1.5 lg:w-1/4"
+                      className="w-1/2 shrink-0 px-2 sm:px-3 lg:w-1/4"
                     >
                       <CourseCard course={course} />
                     </div>
@@ -450,12 +452,12 @@ export default function FeaturedCourses() {
           {/* VIEW ALL */}
           <Link
             href="/courses"
-                  className="group/all inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-gradient px-2.5 py-2 text-[9px] font-bold whitespace-nowrap text-white ring-1 ring-inset ring-emerald-300/30 backdrop-blur-sm transition duration-300 hover:ring-emerald-400/70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-300 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm"       >
+                  className="group/all inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-gradient px-2.5 py-1.5 text-[9px] font-bold whitespace-nowrap text-white ring-1 ring-inset ring-emerald-300/30 backdrop-blur-sm transition duration-300 hover:ring-emerald-400/70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-300 sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs"       >
             View All Courses
             <ArrowRight
               aria-hidden="true"
-              size={14}
-              className="transition-transform duration-300 group-hover/all:translate-x-1 sm:size-[17px]"
+              size={13}
+              className="transition-transform duration-300 group-hover/all:translate-x-1 sm:size-[15px]"
             />
           </Link>
         </div>
@@ -494,33 +496,37 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
         h-full
         flex-col
         overflow-hidden
-        rounded-3xl
-        max-md:rounded-2xl
-        bg-white
+        rounded-2xl
+        bg-[#073f34]
         ring-1
         ring-inset
-        ring-white/22
-        
+        ring-[#075c48]/35
+        shadow-[0_18px_45px_rgba(7,63,52,0.14)]
         transition-[translate,box-shadow,ring-color]
         duration-500
         ease-out
         hover:-translate-y-2
-        hover:ring-[#b8f94a]/45
-        hover:shadow-[0_24px_56px_rgba(6,63,50,0.25)]
+        hover:ring-[#8fd85b]/60
+        hover:shadow-[0_28px_64px_rgba(6,63,50,0.28)]
       "
     >
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-8 top-0 z-30 h-px bg-linear-to-r from-transparent via-[#d8ff9a]/80 to-transparent"
+      />
+
       {/* Cursor spotlight */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
           background:
-            'radial-gradient(320px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgba(190, 242, 100, 0.14), transparent 70%)',
+            'radial-gradient(340px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgba(216, 255, 154, 0.16), transparent 68%)',
         }}
       />
 
       {/* IMAGE */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[16/11] overflow-hidden">
         {course.thumbnail_url ? (
           <Image
             src={course.thumbnail_url}
@@ -536,17 +542,17 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
           </div>
         )}
 
-        {/* Emerald wash so every photo sits in the same palette */}
+        {/* Emerald wash keeps varied course images inside the section palette. */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-linear-to-t from-[#063f32]/70 via-[#063f32]/10 to-transparent"
+          className="absolute inset-0 bg-linear-to-t from-[#073f34] via-[#073f34]/12 to-transparent"
         />
         {/* Plain alpha, not mix-blend-multiply: a blend mode forces the
             compositor to read the backdrop for all six cards on every frame of
             a slide, the same cost as a backdrop-filter. */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[#0b3b33]/20 transition-opacity duration-500 group-hover:opacity-40"
+          className="absolute inset-0 bg-[#062f28]/10 transition-opacity duration-500 group-hover:opacity-35"
         />
 
         {/* LEVEL */}
@@ -557,94 +563,82 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
             left-4
             top-4
             rounded-full
-            bg-[#063f32]/88
+            bg-[#d8ff9a]
             px-3
             py-1.5
-            text-[11px]
+            text-[10px]
             font-bold
             uppercase
             tracking-[0.12em]
-            text-[#d8ff9a]
+            text-[#073f34]
             ring-1
             ring-inset
-            ring-[#62e62b]/25
+            ring-white/45
+            shadow-[0_6px_18px_rgba(7,63,52,0.22)]
             max-md:left-2
             max-md:top-2
             max-md:px-2
             max-md:py-1
-            max-md:text-[9px]
+            max-md:text-[8px]
           "
         >
           {course.level}
         </span>
         )}
+
+        {course.duration && (
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-[#062f28]/85 px-2.5 py-1 text-[10px] font-semibold text-white ring-1 ring-inset ring-white/20 backdrop-blur-md max-md:bottom-2 max-md:right-2 max-md:gap-1 max-md:px-2 max-md:text-[8px]">
+            <Clock3 aria-hidden="true" size={12} />
+            {course.duration}
+          </span>
+        )}
       </div>
 
       {/* CONTENT */}
       {/* z-20 keeps the text above the spotlight wash */}
-      <div className="relative z-20 flex flex-1 flex-col p-6 max-md:p-2.5">
-        {course.duration && (
-          <span className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-black/65 max-md:mb-1 max-md:text-[10px]">
-            <Clock3 aria-hidden="true" size={13} />
-            {course.duration}
-          </span>
-        )}
-
-        <h3 className="text-lg font-semibold leading-snug tracking-[-0.02em] text-accent max-md:text-[13px]">
+      <div className="relative z-20 flex flex-1 flex-col p-5 pt-4 max-md:p-2.5">
+        <h3 className="text-base font-semibold leading-snug tracking-[-0.02em] text-white max-md:text-[12px]">
           {course.title}
         </h3>
 
         {description && (
-          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-black/80 max-md:mt-1 max-md:text-[11px] max-md:leading-snug">
+          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-white/62 max-md:mt-1 max-md:text-[9px] max-md:leading-snug">
             {description}
           </p>
         )}
 
         {/* LEARN MORE */}
-        <div className="mt-auto pt-6 max-md:pt-2.5">
+        <div className="mt-auto pt-4 max-md:pt-2.5">
           <Link
             href={`/courses/${course.id}`}
             className="
-              relative
-              isolate
               flex
               w-full
               items-center
-              justify-center
-              gap-2
-              overflow-hidden
-              rounded-xl
-              bg-white/10
-              px-5
-              py-3
-              text-sm
-              font-bold
-              text-white/80
-              ring-1
-              ring-inset
-              ring-white/20
-              transition-[color,background-color,transform]
+              justify-between
+              gap-3
+              border-t
+              border-white/12
+              pt-4
+              text-xs
+              font-semibold
+              text-[#d8ff9a]
+              transition-colors
               duration-300
-              group-hover:scale-[1.02]
               group-hover:text-white
               focus-visible:outline-2
               focus-visible:outline-offset-4
               focus-visible:outline-lime-300
-              max-md:gap-1
-              max-md:rounded-lg
-              max-md:px-2
-              max-md:py-1.5
-              max-md:text-[11px]
+              max-md:gap-1.5
+              max-md:pt-2.5
+              max-md:text-[9px]
             "
           >
-            {/* Fills with lime when the card is hovered */}
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 -z-10 bg-brand-gradient opacity-80 transition-opacity duration-300 group-hover:opacity-100" 
-            />
             Learn More
             <span className="sr-only">about {course.title}</span>
-            <ArrowRight aria-hidden="true" size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#d8ff9a] text-[#073f34] shadow-[0_6px_16px_rgba(0,0,0,0.16)] transition-transform duration-300 group-hover:translate-x-1 group-hover:scale-105 max-md:size-5">
+              <ArrowRight aria-hidden="true" size={14} className="max-md:size-2.5" />
+            </span>
           </Link>
         </div>
       </div>
@@ -655,13 +649,13 @@ const CourseCard = memo(function CourseCard({ course }: { course: Course }) {
 /* The card's shape while the courses load, so the section does not jump. */
 function CourseCardSkeleton() {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-white/70 ring-1 ring-inset ring-white/40 max-md:rounded-2xl">
-      <div className="aspect-[4/3] animate-pulse bg-emerald-900/10" />
-      <div className="flex flex-1 flex-col gap-3 p-6 max-md:gap-1.5 max-md:p-2.5">
-        <div className="h-3 w-20 animate-pulse rounded-full bg-black/10" />
-        <div className="h-5 w-4/5 animate-pulse rounded-full bg-black/10 max-md:h-3.5" />
-        <div className="h-3 w-full animate-pulse rounded-full bg-black/8" />
-        <div className="mt-auto h-11 animate-pulse rounded-xl bg-emerald-900/10 max-md:h-7 max-md:rounded-lg" />
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-[#073f34] ring-1 ring-inset ring-[#075c48]/25 shadow-[0_18px_45px_rgba(7,63,52,0.12)]">
+      <div className="aspect-[16/11] animate-pulse bg-white/12" />
+      <div className="flex flex-1 flex-col gap-2.5 p-5 max-md:gap-1.5 max-md:p-2.5">
+        <div className="h-4 w-4/5 animate-pulse rounded-full bg-white/16 max-md:h-3" />
+        <div className="h-3 w-full animate-pulse rounded-full bg-white/10" />
+        <div className="h-3 w-3/4 animate-pulse rounded-full bg-white/8" />
+        <div className="mt-auto h-9 animate-pulse border-t border-white/10 pt-3 max-md:h-7" />
       </div>
     </div>
   );

@@ -15,6 +15,11 @@ export const metadata: Metadata = {
     template: "%s | Ayadi Cloudversity",
   },
   description: "Learning for tomorrow's cloud professionals.",
+  icons: {
+    icon: "/images/ayadi-mark.png",
+    shortcut: "/images/ayadi-mark.png",
+    apple: "/images/ayadi-mark.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

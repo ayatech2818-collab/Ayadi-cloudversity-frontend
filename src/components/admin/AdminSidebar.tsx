@@ -18,7 +18,8 @@ import {
   MessageSquare,
   Star,
   GitBranch,
-  ListTree
+  ListTree,
+  Layers
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -64,6 +65,11 @@ const navigation = [
     label: "Sub-Category",
     href: "/admin/sub-category",
     icon: GitBranch,
+  },
+  {
+    label: "Mini-Category",
+    href: "/admin/mini-category",
+    icon: Layers,
   },
   {
     label: "Courses",

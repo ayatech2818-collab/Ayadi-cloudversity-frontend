@@ -16,7 +16,9 @@ import { usePathname } from 'next/navigation';
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
+  type PointerEvent as ReactPointerEvent,
   type SVGProps,
 } from 'react';
 import {
@@ -32,6 +34,12 @@ import {
   LazyEnrollmentModal,
   preloadEnrollment,
 } from '@/components/website/enrollment/LazyEnrollmentModal';
+import {
+  LazyCoursesMenu,
+  LazyCoursesSheet,
+  preloadCoursesMenu,
+  preloadCoursesSheet,
+} from './LazyCoursesMenu';
 
 import { MoreHorizontal } from 'lucide-react';
 
@@ -119,6 +127,11 @@ const navigation = [
 const COMPACT_ENTER = 96;
 const COMPACT_EXIT = 40;
 
+/* The Courses menu: a pass over the link does not open it, and the pointer has
+   a moment to get from the link to the menu before it closes. */
+const COURSES_MENU_OPEN_MS = 80;
+const COURSES_MENU_CLOSE_MS = 160;
+
 const EASE = 'ease-[cubic-bezier(0.22,1,0.36,1)]';
 
 
@@ -161,6 +174,54 @@ export function Navbar() {
 
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
+  const [isCoursesSheetOpen, setIsCoursesSheetOpen] = useState(false);
+  const closeCoursesSheet = useCallback(() => setIsCoursesSheetOpen(false), []);
+
+  const [isCoursesOpen, setIsCoursesOpen] = useState(false);
+  const coursesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearCoursesTimer = useCallback(() => {
+    if (coursesTimer.current) clearTimeout(coursesTimer.current);
+  }, []);
+
+  const closeCoursesMenu = useCallback(() => {
+    clearCoursesTimer();
+    setIsCoursesOpen(false);
+  }, [clearCoursesTimer]);
+
+  const leaveCoursesMenu = useCallback(() => {
+    clearCoursesTimer();
+    coursesTimer.current = setTimeout(() => setIsCoursesOpen(false), COURSES_MENU_CLOSE_MS);
+  }, [clearCoursesTimer]);
+
+  /* A mouse only: on touch the Courses link stays a plain link. */
+  const coursesLinkHover = {
+    onPointerEnter: (event: ReactPointerEvent) => {
+      if (event.pointerType !== 'mouse') return;
+
+      preloadCoursesMenu();
+      clearCoursesTimer();
+      coursesTimer.current = setTimeout(() => setIsCoursesOpen(true), COURSES_MENU_OPEN_MS);
+    },
+    onPointerLeave: (event: ReactPointerEvent) => {
+      if (event.pointerType === 'mouse') leaveCoursesMenu();
+    },
+    onClick: closeCoursesMenu,
+  };
+
+  useEffect(() => clearCoursesTimer, [clearCoursesTimer]);
+
+  useEffect(() => {
+    if (!isCoursesOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeCoursesMenu();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCoursesOpen, closeCoursesMenu]);
+
   const progressScaleX = useSpring(scrollYProgress, {
     stiffness: 120,
     damping: 30,
@@ -192,7 +253,11 @@ export function Navbar() {
     setIsMenuOpen(false);
   }, [pathname]);
 
-  const collapsible = isCompact
+  /* The compact bar only stays wide while hovered, and the pointer leaves it on
+     its way into the Courses menu — so the open menu holds it wide. */
+  const isCollapsed = isCompact && !isCoursesOpen;
+
+  const collapsible = isCollapsed
     ? 'max-w-0 opacity-0 group-hover:max-w-[180px] group-hover:opacity-100'
     : 'max-w-[180px] opacity-100';
 
@@ -217,7 +282,7 @@ export function Navbar() {
             transition-[max-width,border-radius,box-shadow,background-color]
             duration-500 will-change-transform ${EASE}
             ${
-              isCompact
+              isCollapsed
                 ? 'max-w-[1180px] shadow-[0_16px_50px_rgba(4,76,59,0.16)] md:max-w-[620px] md:rounded-full md:hover:max-w-[1180px]'
                 : 'max-w-[1180px] shadow-[0_10px_40px_rgba(4,76,59,0.10)]'
             }
@@ -239,7 +304,7 @@ export function Navbar() {
               transition-[height] duration-500 ${EASE}
               sm:gap-4 sm:px-4 md:px-6
               ${
-                isCompact
+                isCollapsed
                   ? 'h-14 md:h-[58px] md:group-hover:h-[68px]'
                   : 'h-14 md:h-[72px]'
               }
@@ -261,7 +326,7 @@ export function Navbar() {
                 className={`
                   w-auto object-contain transition-[height] duration-500 ${EASE}
                   ${
-                    isCompact
+                    isCollapsed
                       ? 'h-[30px] md:h-8 md:group-hover:h-11'
                       : 'h-8 sm:h-9 md:h-11'
                   }
@@ -281,7 +346,8 @@ export function Navbar() {
                       key={href}
                       href={href}
                       aria-current={isActive ? 'page' : undefined}
-                      title={isCompact ? label : undefined}
+                      title={isCollapsed ? label : undefined}
+                      {...(href === '/courses' ? coursesLinkHover : undefined)}
                       className={`
                         group/nav relative flex items-center gap-2 rounded-full
                         px-3 py-2 text-sm font-semibold
@@ -341,7 +407,7 @@ export function Navbar() {
                 focus-visible:outline-accent
                 sm:gap-2 sm:px-4 sm:text-sm
                 md:px-5 md:py-2.5
-                ${isCompact ? 'md:px-4 md:py-2 md:text-[13px]' : ''}
+                ${isCollapsed ? 'md:px-4 md:py-2 md:text-[13px]' : ''}
               `}
             >
               <span className="whitespace-nowrap">Enroll Now</span>
@@ -360,14 +426,27 @@ export function Navbar() {
             `}
           />
         </nav>
+
+        {/* Outside the nav, which clips its contents to its rounded edge */}
+        <div className="relative mx-auto max-w-[1180px]">
+          <LazyCoursesMenu
+            isOpen={isCoursesOpen}
+            onClose={closeCoursesMenu}
+            onPointerEnter={clearCoursesTimer}
+            onPointerLeave={leaveCoursesMenu}
+          />
+        </div>
       </motion.header>
 
-      
+
 
 {/* MOBILE BOTTOM NAVIGATION */}
 <nav
   aria-label="Mobile navigation"
-  className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(8px,env(safe-area-inset-bottom))] md:hidden"
+  /* Stays on top of the Courses sheet, which runs behind it */
+  className={`fixed inset-x-0 bottom-0 px-3 pb-[max(8px,env(safe-area-inset-bottom))] md:hidden ${
+    isCoursesSheetOpen ? 'z-[70]' : 'z-50'
+  }`}
 >
 
   {/* Simple More popup — test without animations */}
@@ -458,18 +537,15 @@ export function Navbar() {
         { href: "/courses", label: "Courses", Icon: CoursesIcon },
         { href: "/contact", label: "Contact", Icon: Phone },
       ].map(({ href, label, Icon }) => {
+        const isCourses = href === "/courses";
         const active =
           href === "/"
             ? pathname === "/"
-            : pathname === href || pathname.startsWith(`${href}/`);
+            : pathname === href ||
+              pathname.startsWith(`${href}/`) ||
+              (isCourses && isCoursesSheetOpen);
 
-        return (
-          <Link
-            key={href}
-            href={href}
-            aria-label={label}
-            aria-current={active ? "page" : undefined}
-            className={`
+        const tabClass = `
               relative flex min-w-[66px] shrink-0 snap-start
               flex-col items-center justify-center gap-1
               rounded-full px-2 py-2.5
@@ -478,8 +554,10 @@ export function Navbar() {
                   ? "bg-white/80 text-primary shadow-[0_2px_12px_rgba(4,76,59,0.10)] ring-1 ring-inset ring-emerald-100"
                   : "text-slate-600"
               }
-            `}
-          >
+            `;
+
+        const tabContent = (
+          <>
             {/* Static active indicator */}
             {active && (
               <span
@@ -497,8 +575,37 @@ export function Navbar() {
                 {label}
               </span>
             </span>
+          </>
+        );
+
+        /* No hover on a phone, so Courses opens its menu from the bottom */
+        return isCourses ? (
+          <button
+            key={href}
+            type="button"
+            aria-label={label}
+            aria-haspopup="dialog"
+            aria-expanded={isCoursesSheetOpen}
+            onPointerDown={preloadCoursesSheet}
+            onClick={() => {
+              setIsMoreOpen(false);
+              setIsCoursesSheetOpen((open) => !open);
+            }}
+            className={tabClass}
+          >
+            {tabContent}
+          </button>
+        ) : (
+          <Link
+            key={href}
+            href={href}
+            aria-label={label}
+            aria-current={active ? "page" : undefined}
+            onClick={closeCoursesSheet}
+            className={tabClass}
+          >
+            {tabContent}
           </Link>
-          
         );
       })}
 
@@ -508,7 +615,10 @@ export function Navbar() {
           type="button"
           aria-label="More navigation options"
           aria-expanded={isMoreOpen}
-          onClick={() => setIsMoreOpen((open) => !open)}
+          onClick={() => {
+            closeCoursesSheet();
+            setIsMoreOpen((open) => !open);
+          }}
           className={`
             relative flex min-w-[66px] shrink-0 snap-start
             flex-col items-center justify-center gap-1
@@ -551,6 +661,11 @@ export function Navbar() {
 </nav>
 
 
+
+      <LazyCoursesSheet
+        isOpen={isCoursesSheetOpen}
+        onClose={closeCoursesSheet}
+      />
 
       <LazyEnrollmentModal
         isOpen={isEnrollOpen}

@@ -13,7 +13,16 @@ import type { CourseFieldsProps } from "./course-form";
 interface CourseBasicFieldsProps extends CourseFieldsProps {
   /** True while the slug still follows the course name. */
   autoSlug: boolean;
+  /** True while the course code still follows the course name. */
+  autoCode: boolean;
 }
+
+const AUTO_GENERATING = (
+  <span className="inline-flex items-center gap-1 font-medium text-primary">
+    <Sparkles size={11} />
+    Auto-generating
+  </span>
+);
 
 /** What the course is called and how it is described. */
 export default function CourseBasicFields({
@@ -21,6 +30,7 @@ export default function CourseBasicFields({
   errors,
   disabled,
   autoSlug,
+  autoCode,
   onChange,
 }: CourseBasicFieldsProps) {
   return (
@@ -50,6 +60,7 @@ export default function CourseBasicFields({
           label="Course code"
           htmlFor="course-code"
           required
+          aside={autoCode && AUTO_GENERATING}
           hint="Must be different for every course."
           error={errors.courseCode}
         >
@@ -60,7 +71,7 @@ export default function CourseBasicFields({
             onChange={(event) =>
               onChange("courseCode", event.target.value)
             }
-            placeholder="e.g. AC-PY-001"
+            placeholder="e.g. PYTHON-001"
             maxLength={50}
             disabled={disabled}
             aria-invalid={Boolean(errors.courseCode)}
@@ -72,14 +83,7 @@ export default function CourseBasicFields({
           label="Slug"
           htmlFor="course-slug"
           required
-          aside={
-            autoSlug && (
-              <span className="inline-flex items-center gap-1 font-medium text-primary">
-                <Sparkles size={11} />
-                Auto-generating
-              </span>
-            )
-          }
+          aside={autoSlug && AUTO_GENERATING}
           error={errors.slug}
         >
           <SlugInput

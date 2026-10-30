@@ -31,6 +31,11 @@ import CoursePlacementFields from "./CoursePlacementFields";
 import CourseSettingsFields from "./CourseSettingsFields";
 import CourseThumbnailField from "./CourseThumbnailField";
 import {
+  fetchCourseCodes,
+  isCourseCodeTaken,
+  nextCourseCode,
+} from "./course-code";
+import {
   brandUsesCategories,
   toCoursePayload,
   toFormValues,
@@ -61,6 +66,9 @@ interface CourseModalProps {
   onClose: () => void;
   onSubmit: (data: CourseFormData) => Promise<void>;
 }
+
+/** Saves tried with a generated code before the "taken" error is shown. */
+const MAX_CODE_ATTEMPTS = 3;
 
 export default function CourseModal({
   open,
@@ -103,6 +111,18 @@ function CourseForm({
   // A new course takes its slug from the name until the slug is typed by hand.
   const [slugEdited, setSlugEdited] = useState(isEdit);
 
+  // Likewise its code, numbered after the codes already in use. An existing
+  // course keeps the code it has.
+  const [codeEdited, setCodeEdited] = useState(isEdit);
+  const [existingCodes, setExistingCodes] = useState<string[]>([]);
+
+  const formValues = codeEdited
+    ? values
+    : {
+        ...values,
+        courseCode: nextCourseCode(values.title, existingCodes),
+      };
+
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<
     string | null
@@ -122,6 +142,26 @@ function CourseForm({
     return () => URL.revokeObjectURL(thumbnailPreview);
   }, [thumbnailPreview]);
 
+  // The codes the suggestion is numbered after. Saving fetches them again, so
+  // a failure here only leaves the preview at -001.
+  useEffect(() => {
+    if (isEdit) return;
+
+    let cancelled = false;
+
+    fetchCourseCodes()
+      .then((codes) => {
+        if (!cancelled) setExistingCodes(codes);
+      })
+      .catch((loadError) => {
+        console.error("Failed to load the course codes:", loadError);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isEdit]);
+
   const handleChange: CourseFieldsProps["onChange"] = (
     field,
     value
@@ -138,6 +178,9 @@ function CourseForm({
       field === "brandId" ||
       field === "categoryId" ||
       field === "subcategoryId";
+
+    // Typing in the box takes over from the suggestion it was showing.
+    if (field === "courseCode") setCodeEdited(true);
 
     setValues((current) => {
       const next = { ...current, [field]: value };
@@ -156,6 +199,7 @@ function CourseForm({
       ...current,
       [field]: undefined,
       ...(followsTitle && { slug: undefined }),
+      ...(field === "title" && !codeEdited && { courseCode: undefined }),
       ...(clearsCategory && { categoryId: undefined }),
       ...(clearsSubcategory && { subcategoryId: undefined }),
       ...(clearsMiniCategory && { miniCategoryId: undefined }),
@@ -188,6 +232,35 @@ function CourseForm({
     bodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  /**
+   * Saves under the next free code, numbered from the codes as they are now
+   * rather than when the modal opened. If another course takes that code
+   * first, the backend turns it down and the next number is tried.
+   */
+  const saveWithNextCode = async (
+    save: (courseCode: string) => Promise<void>
+  ) => {
+    const tried: string[] = [];
+
+    for (let attempt = 1; ; attempt += 1) {
+      const codes = await fetchCourseCodes().catch(() => existingCodes);
+      setExistingCodes(codes);
+
+      const courseCode = nextCourseCode(values.title, [...codes, ...tried]);
+
+      try {
+        await save(courseCode);
+        return;
+      } catch (error) {
+        const taken = isCourseCodeTaken(getApiErrorMessage(error));
+
+        if (!taken || attempt >= MAX_CODE_ATTEMPTS) throw error;
+
+        tried.push(courseCode);
+      }
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -195,7 +268,7 @@ function CourseForm({
     if (saving) return;
 
     const nextErrors = validateCourseForm(
-      values,
+      formValues,
       categories,
       subcategories
     );
@@ -207,18 +280,25 @@ function CourseForm({
       return;
     }
 
+    const usesCategories = brandUsesCategories(categories, values.brandId);
+
+    // The page closes the modal once the request succeeds.
+    const save = (courseCode: string) =>
+      onSubmit(
+        toCoursePayload(
+          { ...values, courseCode },
+          thumbnail,
+          usesCategories
+        )
+      );
+
     try {
       setSaving(true);
       setFormError("");
 
-      // The page closes the modal once the request succeeds.
-      await onSubmit(
-        toCoursePayload(
-          values,
-          thumbnail,
-          brandUsesCategories(categories, values.brandId)
-        )
-      );
+      // A code typed by hand is saved as it is, never renumbered.
+      if (codeEdited) await save(values.courseCode);
+      else await saveWithNextCode(save);
     } catch (error) {
       console.error("Failed to save course:", error);
 
@@ -234,7 +314,7 @@ function CourseForm({
   };
 
   const fields: CourseFieldsProps = {
-    values,
+    values: formValues,
     errors,
     disabled: saving,
     onChange: handleChange,
@@ -274,7 +354,11 @@ function CourseForm({
               subcategories={subcategories}
             />
 
-            <CourseBasicFields {...fields} autoSlug={!slugEdited} />
+            <CourseBasicFields
+              {...fields}
+              autoSlug={!slugEdited}
+              autoCode={!codeEdited}
+            />
           </div>
 
           <div className="space-y-5">

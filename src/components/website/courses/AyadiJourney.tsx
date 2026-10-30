@@ -924,16 +924,16 @@ export function AyadiJourney({
                   className="pointer-events-none mt-5 sm:absolute sm:inset-0 sm:mt-0 sm:flex sm:items-start sm:justify-center"
                 >
                   <div data-script-box className={`relative w-full ${COLLAGE_BOX}`}>
-                    <p
-                      data-script
-                      className="text-center sm:absolute sm:left-[66%] sm:top-[8%] sm:w-[30%] sm:text-left"
-                    >
-                      <span className="font-serif text-[1.6rem] italic leading-[1.15] tracking-[-0.01em] text-accent max-sm:text-[1.35rem] sm:text-[1.9rem] lg:text-[2.4rem]">
-                        Skills
-                        <span className="block text-primary">for a better</span>
-                        tomorrow
-                      </span>
-                    </p>
+                <p
+                  data-script
+                  className="text-center sm:absolute sm:left-[66%] sm:top-[8%] sm:w-[30%] sm:text-left"
+                >
+                  <span className="font-serif text-[1.6rem] italic leading-[1.15] tracking-[-0.01em] text-accent max-sm:text-[1.35rem] sm:text-[1.9rem] lg:text-[2.4rem]">
+                    A place to celebrate
+                    <span className="block text-primary">culture, creativity</span>
+                    and community
+                  </span>
+                </p>
 
                     {SPARKS.map((spark) => (
                       <span

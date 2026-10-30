@@ -1,4 +1,5 @@
 import type { CourseCategory } from '@/lib/api/course-categories';
+import type { CourseMiniCategory } from '@/lib/api/course-mini-categories';
 import type { CourseSubcategory } from '@/lib/api/course-subcategories';
 import type { Course, CourseFilters } from '@/lib/api/courses';
 
@@ -33,16 +34,24 @@ export type CatalogueSubcategory = Pick<
   'id' | 'category_id' | 'slug' | 'name' | 'description' | 'display_order'
 >;
 
+/** The part of a backend mini-category the public catalogue shows. */
+export type CatalogueMiniCategory = Pick<
+  CourseMiniCategory,
+  'id' | 'subcategory_id' | 'slug' | 'name' | 'description' | 'display_order'
+>;
+
 /** A course that points at its category (`categoryId` →
-    `CatalogueCategory.id`) and optional subcategory (`subcategoryId` →
-    `CatalogueSubcategory.id`). */
+    `CatalogueCategory.id`), optional subcategory (`subcategoryId` →
+    `CatalogueSubcategory.id`) and optional mini-category (`miniCategoryId` →
+    `CatalogueMiniCategory.id`). */
 export type CatalogueCourse = Omit<DummyCourseItem, 'category'> & {
   categoryId: string;
   subcategoryId?: string;
+  miniCategoryId?: string;
 };
 
 /** The backend course filters the catalogue offers. */
-export type CatalogueFilters = Pick<CourseFilters, 'category_id' | 'subcategory_id' | 'search'>;
+export type CatalogueFilters = Pick<CourseFilters, 'category_id' | 'subcategory_id' | 'mini_category_id' | 'search'>;
 
 /** Converts a backend API Course object into the shape expected by the public catalogue. */
 export function mapCourseToCatalogueCourse(course: Course): CatalogueCourse {
@@ -51,6 +60,7 @@ export function mapCourseToCatalogueCourse(course: Course): CatalogueCourse {
     title: course.title,
     categoryId: course.category_id ?? '',
     subcategoryId: course.subcategory_id ?? undefined,
+    miniCategoryId: course.mini_category_id ?? undefined,
     level: course.level?.trim() || 'All Levels',
     duration: course.duration?.trim() || 'Flexible',
     description: course.short_description?.trim() || course.description?.trim() || '',

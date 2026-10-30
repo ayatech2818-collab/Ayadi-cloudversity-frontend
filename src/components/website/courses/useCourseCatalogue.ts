@@ -6,16 +6,18 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 
 import { getCourseBrands } from '@/lib/api/course-brands';
 import { getCategories } from '@/lib/api/course-categories';
+import { getMiniCategories } from '@/lib/api/course-mini-categories';
 import { getSubcategories } from '@/lib/api/course-subcategories';
 import { getCourses } from '@/lib/api/courses';
 import { getApiErrorMessage } from '@/lib/api/errors';
 import { publicKeys } from '@/lib/query/client';
 
-import { countByCategory, countBySubcategory, filterCourses } from './filterCourses';
+import { countByCategory, countByMiniCategory, countBySubcategory, filterCourses } from './filterCourses';
 import {
   mapCourseToCatalogueCourse,
   type CatalogueCategory,
   type CatalogueCourse,
+  type CatalogueMiniCategory,
   type CatalogueSubcategory,
 } from './types';
 
@@ -25,6 +27,13 @@ const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffec
 /* The query parameters used by URL deep-linking */
 const CATEGORY_PARAM = 'category';
 const SUBCATEGORY_PARAM = 'subcategory';
+const MINI_CATEGORY_PARAM = 'mini';
+
+type CatalogueParams = {
+  categorySlug: string | null;
+  subcategorySlug: string | null;
+  miniCategorySlug: string | null;
+};
 
 function findCategoryInList(categories: CatalogueCategory[], slug: string | null): CatalogueCategory | null {
   if (!slug) return null;
@@ -57,21 +66,37 @@ function findSubcategoryInList(
   );
 }
 
+function findMiniCategoryInList(
+  miniCategories: CatalogueMiniCategory[],
+  subcategoryId: string,
+  miniSlug: string | null,
+): CatalogueMiniCategory | null {
+  if (!miniSlug) return null;
+  const lower = miniSlug.toLowerCase();
+  return (
+    miniCategories.find(
+      (m) => m.subcategory_id === subcategoryId && (m.slug.toLowerCase() === lower || m.id === miniSlug),
+    ) ?? null
+  );
+}
+
 type CatalogueData = {
   categories: CatalogueCategory[];
   subcategories: CatalogueSubcategory[];
+  miniCategories: CatalogueMiniCategory[];
   courses: CatalogueCourse[];
 };
 
 const NO_CATEGORIES: CatalogueCategory[] = [];
 const NO_SUBCATEGORIES: CatalogueSubcategory[] = [];
+const NO_MINI_CATEGORIES: CatalogueMiniCategory[] = [];
 const NO_COURSES: CatalogueCourse[] = [];
 
 /*
  * Everything the catalogue shows, in one request chain: the active Ayadi
- * Cloudversity brand, then its categories, subcategories and published
- * courses. Cached as one entry (src/lib/query), so the page opens from the
- * cache on a later visit or refresh.
+ * Cloudversity brand, then its categories, subcategories, mini-categories and
+ * published courses. Cached as one entry (src/lib/query), so the page opens
+ * from the cache on a later visit or refresh.
  */
 async function loadCatalogue(): Promise<CatalogueData> {
   // 1. Fetch active brands and dynamically resolve Ayadi Cloudversity
@@ -90,10 +115,11 @@ async function loadCatalogue(): Promise<CatalogueData> {
     throw new Error('Ayadi Cloudversity brand not found or inactive.');
   }
 
-  // 2. Concurrently fetch categories, subcategories, and published courses
-  const [fetchedCategories, fetchedSubcategories, fetchedCourses] = await Promise.all([
+  // 2. Concurrently fetch categories, subcategories, mini-categories, and published courses
+  const [fetchedCategories, fetchedSubcategories, fetchedMiniCategories, fetchedCourses] = await Promise.all([
     getCategories(ayadiBrand.id),
     getSubcategories(),
+    getMiniCategories(),
     getCourses({ brand_id: ayadiBrand.id, is_published: true }),
   ]);
 
@@ -124,8 +150,23 @@ async function loadCatalogue(): Promise<CatalogueData> {
       display_order: s.display_order,
     }));
 
+  const activeSubcategoryIds = new Set(subcategories.map((s) => s.id));
+
+  // Filter active mini-categories belonging to active subcategories
+  const miniCategories: CatalogueMiniCategory[] = fetchedMiniCategories
+    .filter((m) => m.is_active && activeSubcategoryIds.has(m.subcategory_id))
+    .sort((a, b) => a.display_order - b.display_order)
+    .map((m) => ({
+      id: m.id,
+      subcategory_id: m.subcategory_id,
+      slug: m.slug,
+      name: m.name,
+      description: m.description,
+      display_order: m.display_order,
+    }));
+
   // Normalize courses to CatalogueCourse
-  return { categories, subcategories, courses: fetchedCourses.map(mapCourseToCatalogueCourse) };
+  return { categories, subcategories, miniCategories, courses: fetchedCourses.map(mapCourseToCatalogueCourse) };
 }
 
 /*
@@ -140,11 +181,13 @@ export function useCourseCatalogue() {
   const [query, setQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [activeSubcategoryId, setActiveSubcategoryId] = useState<string | null>(null);
+  const [activeMiniCategoryId, setActiveMiniCategoryId] = useState<string | null>(null);
 
   const catalogue = useQuery({ queryKey: publicKeys.catalogue, queryFn: loadCatalogue });
 
   const categories = catalogue.data?.categories ?? NO_CATEGORIES;
   const allSubcategories = catalogue.data?.subcategories ?? NO_SUBCATEGORIES;
+  const allMiniCategories = catalogue.data?.miniCategories ?? NO_MINI_CATEGORIES;
   const rawCourses = catalogue.data?.courses ?? NO_COURSES;
 
   /* Nothing to show yet — restoring from the cache, the first fetch, or a retry. */
@@ -158,6 +201,7 @@ export function useCourseCatalogue() {
 
   const categoriesRef = useRef<CatalogueCategory[]>([]);
   const subcategoriesRef = useRef<CatalogueSubcategory[]>([]);
+  const miniCategoriesRef = useRef<CatalogueMiniCategory[]>([]);
   const [resolvedInitialParams, setResolvedInitialParams] = useState(false);
 
   const search = query.trim();
@@ -174,6 +218,7 @@ export function useCourseCatalogue() {
     if (!catalogue.data) return;
     categoriesRef.current = catalogue.data.categories;
     subcategoriesRef.current = catalogue.data.subcategories;
+    miniCategoriesRef.current = catalogue.data.miniCategories ?? NO_MINI_CATEGORIES;
   }, [catalogue.data]);
 
   /* Resolve any initial URL parameters the first time the catalogue is there —
@@ -186,6 +231,7 @@ export function useCourseCatalogue() {
     const currentParams = new URL(window.location.href).searchParams;
     const initialCategorySlug = currentParams.get(CATEGORY_PARAM);
     const initialSubcategorySlug = currentParams.get(SUBCATEGORY_PARAM);
+    const initialMiniCategorySlug = currentParams.get(MINI_CATEGORY_PARAM);
 
     if (initialCategorySlug) {
       const matchedCategory = findCategoryInList(catalogue.data.categories, initialCategorySlug);
@@ -197,6 +243,14 @@ export function useCourseCatalogue() {
           initialSubcategorySlug,
         );
         setActiveSubcategoryId(matchedSub?.id ?? null);
+        const matchedMini = matchedSub
+          ? findMiniCategoryInList(
+              catalogue.data.miniCategories ?? NO_MINI_CATEGORIES,
+              matchedSub.id,
+              initialMiniCategorySlug,
+            )
+          : null;
+        setActiveMiniCategoryId(matchedMini?.id ?? null);
       }
     }
   }
@@ -205,6 +259,12 @@ export function useCourseCatalogue() {
   const subcategories = useMemo(
     () => (activeCategoryId ? allSubcategories.filter((s) => s.category_id === activeCategoryId) : []),
     [activeCategoryId, allSubcategories],
+  );
+
+  /* Available mini-categories under the currently selected subcategory */
+  const miniCategories = useMemo(
+    () => (activeSubcategoryId ? allMiniCategories.filter((m) => m.subcategory_id === activeSubcategoryId) : []),
+    [activeSubcategoryId, allMiniCategories],
   );
 
   /* =========================================================
@@ -223,13 +283,25 @@ export function useCourseCatalogue() {
   /* Live course counts per subcategory under the active category */
   const subcategoryCounts = useMemo(() => countBySubcategory(categoryMatches), [categoryMatches]);
 
-  /* Final courses displayed in the catalogue grid: both category and subcategory applied */
-  const courses = useMemo(
+  /* Courses matching search within the active subcategory (before mini-category filter) */
+  const subcategoryMatches = useMemo(
     () =>
       filterCourses(categoryMatches, categories, {
         subcategory_id: activeSubcategoryId ?? undefined,
       }),
     [categoryMatches, categories, activeSubcategoryId],
+  );
+
+  /* Live course counts per mini-category under the active subcategory */
+  const miniCategoryCounts = useMemo(() => countByMiniCategory(subcategoryMatches), [subcategoryMatches]);
+
+  /* Final courses displayed in the catalogue grid: category, subcategory and mini-category applied */
+  const courses = useMemo(
+    () =>
+      filterCourses(subcategoryMatches, categories, {
+        mini_category_id: activeMiniCategoryId ?? undefined,
+      }),
+    [subcategoryMatches, categories, activeMiniCategoryId],
   );
 
   const counts = useMemo(() => countByCategory(searchMatches), [searchMatches]);
@@ -241,6 +313,7 @@ export function useCourseCatalogue() {
   const selectCategory = useCallback((category: CatalogueCategory | null) => {
     setActiveCategoryId(category?.id ?? null);
     setActiveSubcategoryId(null);
+    setActiveMiniCategoryId(null);
 
     const url = new URL(window.location.href);
 
@@ -248,54 +321,60 @@ export function useCourseCatalogue() {
     else url.searchParams.delete(CATEGORY_PARAM);
 
     url.searchParams.delete(SUBCATEGORY_PARAM);
+    url.searchParams.delete(MINI_CATEGORY_PARAM);
 
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
   }, []);
 
   const selectSubcategory = useCallback((subcategory: CatalogueSubcategory | null) => {
     setActiveSubcategoryId(subcategory?.id ?? null);
+    setActiveMiniCategoryId(null);
 
     const url = new URL(window.location.href);
 
     if (subcategory) url.searchParams.set(SUBCATEGORY_PARAM, subcategory.slug);
     else url.searchParams.delete(SUBCATEGORY_PARAM);
 
+    url.searchParams.delete(MINI_CATEGORY_PARAM);
+
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
   }, []);
 
-  const applyParams = useCallback(
-    ({ categorySlug, subcategorySlug }: { categorySlug: string | null; subcategorySlug: string | null }) => {
-      if (!categorySlug) {
-        setActiveCategoryId(null);
-        setActiveSubcategoryId(null);
-        return;
-      }
+  const selectMiniCategory = useCallback((miniCategory: CatalogueMiniCategory | null) => {
+    setActiveMiniCategoryId(miniCategory?.id ?? null);
 
-      const matchedCategory = findCategoryInList(categoriesRef.current, categorySlug);
-      if (matchedCategory) {
-        setActiveCategoryId(matchedCategory.id);
-        const matchedSub = findSubcategoryInList(
-          subcategoriesRef.current,
-          matchedCategory.id,
-          subcategorySlug,
-        );
-        setActiveSubcategoryId(matchedSub?.id ?? null);
-      } else {
-        setActiveCategoryId(null);
-        setActiveSubcategoryId(null);
-      }
-    },
-    [],
-  );
+    const url = new URL(window.location.href);
+
+    if (miniCategory) url.searchParams.set(MINI_CATEGORY_PARAM, miniCategory.slug);
+    else url.searchParams.delete(MINI_CATEGORY_PARAM);
+
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  }, []);
+
+  const applyParams = useCallback(({ categorySlug, subcategorySlug, miniCategorySlug }: CatalogueParams) => {
+    const matchedCategory = categorySlug ? findCategoryInList(categoriesRef.current, categorySlug) : null;
+    const matchedSub = matchedCategory
+      ? findSubcategoryInList(subcategoriesRef.current, matchedCategory.id, subcategorySlug)
+      : null;
+    const matchedMini = matchedSub
+      ? findMiniCategoryInList(miniCategoriesRef.current, matchedSub.id, miniCategorySlug)
+      : null;
+
+    setActiveCategoryId(matchedCategory?.id ?? null);
+    setActiveSubcategoryId(matchedSub?.id ?? null);
+    setActiveMiniCategoryId(matchedMini?.id ?? null);
+  }, []);
 
   const applyCategorySlug = useCallback(
     (slug: string | null) => {
-      applyParams({ categorySlug: slug, subcategorySlug: null });
+      applyParams({ categorySlug: slug, subcategorySlug: null, miniCategorySlug: null });
     },
     [applyParams],
   );
 
   const clearSubcategory = useCallback(() => selectSubcategory(null), [selectSubcategory]);
+
+  const clearMiniCategory = useCallback(() => selectMiniCategory(null), [selectMiniCategory]);
 
   const clearSearch = useCallback(() => setQuery(''), []);
 
@@ -312,28 +391,37 @@ export function useCourseCatalogue() {
   return {
     categories,
     subcategories,
+    /** Mini-categories of the active subcategory — empty when it has none. */
+    miniCategories,
     /** What the grid shows: all filters applied. */
     courses,
     /** Matches for the current search in each category, by category id. */
     counts,
     /** Matches for the current search in each subcategory, by subcategory id. */
     subcategoryCounts,
+    /** Matches for the current search in each mini-category, by mini-category id. */
+    miniCategoryCounts,
     /** Matches for the current search across every category. */
     matchCount: searchMatches.length,
     /** Matches for the current search in the active main category (subcategory 'All' count). */
     activeCategoryTotalCount: categoryMatches.length,
+    /** Matches for the current search in the active subcategory (mini-category 'All' count). */
+    activeSubcategoryTotalCount: subcategoryMatches.length,
     query,
     setQuery,
     /** `query`, trimmed — empty when there is nothing to search for. */
     search,
     activeCategory: categories.find((c) => c.id === activeCategoryId) ?? null,
     activeSubcategory: allSubcategories.find((s) => s.id === activeSubcategoryId) ?? null,
+    activeMiniCategory: allMiniCategories.find((m) => m.id === activeMiniCategoryId) ?? null,
     loading,
     error,
     retry,
     selectCategory,
     selectSubcategory,
+    selectMiniCategory,
     clearSubcategory,
+    clearMiniCategory,
     applyCategorySlug,
     applyParams,
     clearSearch,
@@ -342,27 +430,24 @@ export function useCourseCatalogue() {
 }
 
 /*
- * Carries `/courses?category=…&subcategory=…` into the catalogue — on arrival,
- * and again whenever a link changes it while the page is open.
+ * Carries `/courses?category=…&subcategory=…&mini=…` into the catalogue — on
+ * arrival, and again whenever a link changes it while the page is open.
  *
  * A component rather than part of the hook so it can sit in a Suspense
  * boundary of its own: reading the query string opts whatever renders it out
  * of the prerender, and this way that is only this, not the page.
  */
-export function CategoryParam({
-  onChange,
-}: {
-  onChange: (params: { categorySlug: string | null; subcategorySlug: string | null }) => void;
-}) {
+export function CategoryParam({ onChange }: { onChange: (params: CatalogueParams) => void }) {
   const searchParams = useSearchParams();
   const categorySlug = searchParams.get(CATEGORY_PARAM);
   const subcategorySlug = searchParams.get(SUBCATEGORY_PARAM);
+  const miniCategorySlug = searchParams.get(MINI_CATEGORY_PARAM);
 
   /* Before paint, so arriving from a category link never shows a frame of the
      unfiltered grid first. */
   useIsomorphicLayoutEffect(() => {
-    onChange({ categorySlug, subcategorySlug });
-  }, [categorySlug, subcategorySlug, onChange]);
+    onChange({ categorySlug, subcategorySlug, miniCategorySlug });
+  }, [categorySlug, subcategorySlug, miniCategorySlug, onChange]);
 
   return null;
 }

@@ -28,7 +28,7 @@ function searchableText(course: CatalogueCourse, categoryName: string | undefine
 export function filterCourses(
   courses: readonly CatalogueCourse[],
   categories: readonly CatalogueCategory[],
-  { category_id, subcategory_id, search }: CatalogueFilters,
+  { category_id, subcategory_id, mini_category_id, search }: CatalogueFilters,
 ): CatalogueCourse[] {
   const terms = (search ?? '').toLowerCase().split(/\s+/).filter(Boolean);
   const nameById = new Map(categories.map((category) => [category.id, category.name]));
@@ -36,6 +36,7 @@ export function filterCourses(
   return courses.filter((course) => {
     if (category_id && course.categoryId !== category_id) return false;
     if (subcategory_id && course.subcategoryId !== subcategory_id) return false;
+    if (mini_category_id && course.miniCategoryId !== mini_category_id) return false;
     if (terms.length === 0) return true;
 
     const text = searchableText(course, nameById.get(course.categoryId));
@@ -61,6 +62,19 @@ export function countBySubcategory(courses: readonly CatalogueCourse[]): Record<
   for (const course of courses) {
     if (course.subcategoryId) {
       counts[course.subcategoryId] = (counts[course.subcategoryId] ?? 0) + 1;
+    }
+  }
+
+  return counts;
+}
+
+/** How many of `courses` sit in each mini-category, keyed by mini-category id. */
+export function countByMiniCategory(courses: readonly CatalogueCourse[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+
+  for (const course of courses) {
+    if (course.miniCategoryId) {
+      counts[course.miniCategoryId] = (counts[course.miniCategoryId] ?? 0) + 1;
     }
   }
 

@@ -60,7 +60,7 @@ export function CoursesPageContent() {
 
   return (
     <main>
-      {/* Follows /courses?category=…&subcategory=… — see the note on CategoryParam */}
+      {/* Follows /courses?category=…&subcategory=…&mini=… — see the note on CategoryParam */}
       <Suspense fallback={null}>
         <CategoryParam onChange={catalogue.applyParams} />
       </Suspense>
@@ -99,15 +99,30 @@ export function CoursesPageContent() {
             />
           ) : null}
 
+          {/* Only the subcategories that have mini-categories get this row */}
+          {catalogue.activeSubcategory && catalogue.miniCategories.length > 0 ? (
+            <CourseSubcategoryNav
+              key={catalogue.activeSubcategory.id}
+              subcategories={catalogue.miniCategories}
+              activeSubcategory={catalogue.activeMiniCategory}
+              counts={catalogue.miniCategoryCounts}
+              totalCount={catalogue.activeSubcategoryTotalCount}
+              onSelect={catalogue.selectMiniCategory}
+              label="Filter courses by mini-category"
+            />
+          ) : null}
+
           <CourseCatalogue
             courses={catalogue.courses}
             categories={catalogue.categories}
             activeCategory={catalogue.activeCategory}
             activeSubcategory={catalogue.activeSubcategory}
+            activeMiniCategory={catalogue.activeMiniCategory}
             search={catalogue.search}
             matchCount={catalogue.matchCount}
             onClearCategory={() => switchCategory(null)}
             onClearSubcategory={catalogue.clearSubcategory}
+            onClearMiniCategory={catalogue.clearMiniCategory}
             onClearSearch={catalogue.clearSearch}
             onReset={catalogue.reset}
             onEnroll={openEnrollment}

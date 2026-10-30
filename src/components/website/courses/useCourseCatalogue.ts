@@ -96,9 +96,10 @@ const NO_COURSES: CatalogueCourse[] = [];
  * Everything the catalogue shows, in one request chain: the active Ayadi
  * Cloudversity brand, then its categories, subcategories, mini-categories and
  * published courses. Cached as one entry (src/lib/query), so the page opens
- * from the cache on a later visit or refresh.
+ * from the cache on a later visit or refresh. The navbar's enrolment form
+ * reads the same entry for its course list.
  */
-async function loadCatalogue(): Promise<CatalogueData> {
+export async function loadCatalogue(): Promise<CatalogueData> {
   // 1. Fetch active brands and dynamically resolve Ayadi Cloudversity
   const brands = await getCourseBrands();
   const activeBrands = brands.filter((b) => b.is_active);

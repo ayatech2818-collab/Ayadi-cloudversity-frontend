@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  ExternalLink,
   GraduationCap,
   LoaderCircle,
   Mail,
@@ -28,6 +29,8 @@ import {
   ENQUIRY_STATUS_LABELS,
   ENQUIRY_TYPE_LABELS,
   formatEnquiryDate,
+  getEnquiryCourse,
+  getEnquiryMessage,
   getEnquiryName,
 } from "./enquiry-utils";
 
@@ -85,6 +88,8 @@ function EnquiryDetail({
 
   const name = getEnquiryName(enquiry);
   const mailto = toMailto(enquiry.email);
+  const course = getEnquiryCourse(enquiry);
+  const message = getEnquiryMessage(enquiry);
 
   const changeStatus = async (status: EnquiryStatus) => {
     if (pending || status === enquiry.status) return;
@@ -143,10 +148,46 @@ function EnquiryDetail({
           {error && <Alert>{error}</Alert>}
         </FormSection>
 
+        {enquiry.type === "enrollment" && (
+          <FormSection title="Course">
+            {course ? (
+              <div className="flex items-center gap-3 rounded-xl bg-page/70 p-3 ring-1 ring-inset ring-border">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <GraduationCap size={17} />
+                </span>
+
+                <p
+                  title={course.title}
+                  className="min-w-0 flex-1 truncate text-sm font-semibold text-text"
+                >
+                  {course.title}
+                </p>
+
+                {/* The public course page, to see what they asked about */}
+                {course.id && (
+                  <a
+                    href={`/courses/${encodeURIComponent(course.id)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonClass("secondary", "sm")}
+                  >
+                    <ExternalLink size={13} className="text-primary" />
+                    View
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted">
+                No course was chosen with this enrollment.
+              </p>
+            )}
+          </FormSection>
+        )}
+
         <FormSection title="Message">
-          {enquiry.message ? (
+          {message ? (
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">
-              {enquiry.message}
+              {message}
             </p>
           ) : (
             <p className="text-sm text-muted">

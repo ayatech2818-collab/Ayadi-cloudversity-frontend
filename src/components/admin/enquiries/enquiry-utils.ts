@@ -121,3 +121,48 @@ export const getEnquiryName = (
 export const getEnquiryLocation = (
   enquiry: Pick<Enquiry, "city" | "country">
 ): string => [enquiry.city, enquiry.country].filter(Boolean).join(", ");
+
+// =========================================================
+// COURSE
+// =========================================================
+
+/**
+ * The line the course card and course page enrollment forms put at the top of
+ * the message: "Course: <title> (ID: <id>)". The navbar form sends the course
+ * as fields of its own instead.
+ */
+const COURSE_LINE = /^Course: (.+?)(?: \(ID: ([^)\s]+)\))?\s*(?:\n|$)/;
+
+export interface EnquiryCourse {
+  id: string | null;
+  title: string;
+}
+
+/** The course an enrollment is for, or null when none was picked. */
+export const getEnquiryCourse = (
+  enquiry: Pick<Enquiry, "type" | "course_id" | "course_title" | "message">
+): EnquiryCourse | null => {
+  if (enquiry.type !== "enrollment") return null;
+
+  const title = enquiry.course_title?.trim();
+
+  if (title) return { id: enquiry.course_id ?? null, title };
+
+  const match = enquiry.message && COURSE_LINE.exec(enquiry.message);
+
+  return match ? { id: match[2] ?? null, title: match[1].trim() } : null;
+};
+
+/**
+ * The visitor's own words. An enrollment's course line is left out, since
+ * the course is shown on its own.
+ */
+export const getEnquiryMessage = (
+  enquiry: Pick<Enquiry, "type" | "message">
+): string => {
+  const message = enquiry.message ?? "";
+
+  return (
+    enquiry.type === "enrollment" ? message.replace(COURSE_LINE, "") : message
+  ).trim();
+};

@@ -29,6 +29,10 @@ export interface EnrollmentCreateData {
     zipcode?: string | null;
 
     message?: string | null;
+
+    /** The course picked in the navbar form, if any. */
+    course_id?: string | null;
+    course_title?: string | null;
 }
 
 /**
@@ -60,6 +64,9 @@ export const createEnrollment = async (
         zipcode: data.zipcode ?? null,
 
         message: data.message ?? null,
+
+        course_id: data.course_id ?? null,
+        course_title: data.course_title ?? null,
     };
 
     const response = await api.post<Enquiry>(

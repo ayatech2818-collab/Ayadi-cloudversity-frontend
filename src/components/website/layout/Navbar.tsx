@@ -555,6 +555,7 @@ export function Navbar() {
       <LazyEnrollmentModal
         isOpen={isEnrollOpen}
         onClose={() => setIsEnrollOpen(false)}
+        showCoursePicker
       />
     </>
   );

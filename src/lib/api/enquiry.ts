@@ -28,6 +28,10 @@ export interface Enquiry {
 
     message: string | null;
 
+    /** The course an enrollment is for, when one was picked. */
+    course_id?: string | null;
+    course_title?: string | null;
+
     status: EnquiryStatus;
 
     created_at: string;
@@ -51,6 +55,9 @@ export interface EnquiryCreateData {
     zipcode?: string | null;
 
     message?: string | null;
+
+    course_id?: string | null;
+    course_title?: string | null;
 }
 
 export interface EnquiryUpdateData {

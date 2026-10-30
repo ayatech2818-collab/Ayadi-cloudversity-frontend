@@ -6,6 +6,7 @@ export interface Course {
     brand_id: string;
     category_id: string | null;
     subcategory_id: string | null;
+    mini_category_id: string | null;
 
     title: string;
     slug: string;
@@ -30,6 +31,7 @@ export interface CourseFormData {
     brand_id: string;
     category_id?: string | null;
     subcategory_id?: string | null;
+    mini_category_id?: string | null;
 
     title: string;
     slug: string;
@@ -51,6 +53,7 @@ export interface CourseFilters {
     brand_id?: string;
     category_id?: string;
     subcategory_id?: string;
+    mini_category_id?: string;
     /** Matched against the course title by the backend. */
     search?: string;
     is_published?: boolean;
@@ -75,6 +78,13 @@ const buildCourseFormData = (
         formData.append(
             "subcategory_id",
             data.subcategory_id
+        );
+    }
+
+    if (data.mini_category_id !== undefined) {
+        formData.append(
+            "mini_category_id",
+            data.mini_category_id || ""
         );
     }
 

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { CourseCard } from './CourseCard';
-import type { CatalogueCategory, CatalogueCourse, CatalogueSubcategory } from './types';
+import type { CatalogueCategory, CatalogueCourse, CatalogueMiniCategory, CatalogueSubcategory } from './types';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -31,10 +31,12 @@ export function CourseCatalogue({
   categories,
   activeCategory,
   activeSubcategory,
+  activeMiniCategory,
   search,
   matchCount,
   onClearCategory,
   onClearSubcategory,
+  onClearMiniCategory,
   onClearSearch,
   onReset,
   onEnroll,
@@ -46,12 +48,14 @@ export function CourseCatalogue({
   categories: CatalogueCategory[];
   activeCategory: CatalogueCategory | null;
   activeSubcategory?: CatalogueSubcategory | null;
+  activeMiniCategory?: CatalogueMiniCategory | null;
   search: string;
   /** Matches for the search across every category, which tells the empty
       state whether looking wider would help. */
   matchCount: number;
   onClearCategory: () => void;
   onClearSubcategory?: () => void;
+  onClearMiniCategory?: () => void;
   onClearSearch: () => void;
   onReset: () => void;
   onEnroll: (course: CatalogueCourse) => void;
@@ -78,9 +82,9 @@ export function CourseCatalogue({
               className="text-base font-bold tracking-tight text-accent sm:text-2xl sm:font-semibold sm:tracking-[-0.03em]"
             >
               {activeCategory
-                ? activeSubcategory
-                  ? `${activeCategory.name} — ${activeSubcategory.name}`
-                  : activeCategory.name
+                ? [activeCategory.name, activeSubcategory?.name, activeMiniCategory?.name]
+                    .filter(Boolean)
+                    .join(' — ')
                 : 'All courses'}
             </h2>
 
@@ -167,10 +171,12 @@ export function CourseCatalogue({
           <EmptyState
             activeCategory={activeCategory}
             activeSubcategory={activeSubcategory}
+            activeMiniCategory={activeMiniCategory}
             search={search}
             matchCount={matchCount}
             onClearCategory={onClearCategory}
             onClearSubcategory={onClearSubcategory}
+            onClearMiniCategory={onClearMiniCategory}
             onClearSearch={onClearSearch}
             onReset={onReset}
           />
@@ -183,26 +189,30 @@ export function CourseCatalogue({
 /* ==================================================
    EMPTY STATE
 
-   Four different reasons the grid can be empty, each with the way out that
+   The different reasons the grid can be empty, each with the way out that
    actually fits it.
 ================================================== */
 
 function EmptyState({
   activeCategory,
   activeSubcategory,
+  activeMiniCategory,
   search,
   matchCount,
   onClearCategory,
   onClearSubcategory,
+  onClearMiniCategory,
   onClearSearch,
   onReset,
 }: {
   activeCategory: CatalogueCategory | null;
   activeSubcategory?: CatalogueSubcategory | null;
+  activeMiniCategory?: CatalogueMiniCategory | null;
   search: string;
   matchCount: number;
   onClearCategory: () => void;
   onClearSubcategory?: () => void;
+  onClearMiniCategory?: () => void;
   onClearSearch: () => void;
   onReset: () => void;
 }) {
@@ -238,6 +248,22 @@ function EmptyState({
             All courses
           </button>
         ) : null}
+      </>
+    );
+  } else if (activeMiniCategory) {
+    // The mini-category itself has no courses.
+    icon = <BookOpen aria-hidden="true" size={24} />;
+    title = `No courses in ${activeMiniCategory.name} yet`;
+    actions = (
+      <>
+        {onClearMiniCategory && (
+          <button type="button" onClick={onClearMiniCategory} className={PRIMARY_ACTION}>
+            All {activeSubcategory?.name ?? 'subcategory'} courses
+          </button>
+        )}
+        <button type="button" onClick={onClearCategory} className={SECONDARY_ACTION}>
+          All courses
+        </button>
       </>
     );
   } else if (activeSubcategory) {

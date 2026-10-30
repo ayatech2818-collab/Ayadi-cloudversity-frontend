@@ -30,6 +30,10 @@ import {
   type CourseSubcategory,
 } from "@/lib/api/course-subcategories";
 import {
+  getMiniCategories,
+  type CourseMiniCategory,
+} from "@/lib/api/course-mini-categories";
+import {
   createCourse,
   deleteCourse,
   getCourses,
@@ -91,6 +95,13 @@ export default function CoursesPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedSubcategoryId, setSelectedSubcategoryId] =
     useState("");
+  const [selectedMiniCategoryId, setSelectedMiniCategoryId] =
+    useState("");
+
+  const [miniCategories, setMiniCategories] = useState<
+    CourseMiniCategory[]
+  >([]);
+  const [loadingMiniCategories, setLoadingMiniCategories] = useState(false);
 
   const [status, setStatus] = useState<CourseStatusFilter>("all");
 
@@ -193,6 +204,43 @@ export default function CoursesPage() {
   const categoryId = category?.id;
   const subcategoryId = subcategory?.id;
 
+  // Mini-categories are fetched whenever the subcategory changes.
+  useEffect(() => {
+    if (!subcategoryId) {
+      setMiniCategories([]);
+      setLoadingMiniCategories(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingMiniCategories(true);
+
+    getMiniCategories(subcategoryId)
+      .then((data) => {
+        if (!cancelled) {
+          setMiniCategories(data);
+          setLoadingMiniCategories(false);
+        }
+      })
+      .catch((fetchError) => {
+        if (!cancelled) {
+          console.error("Failed to load mini categories for filter:", fetchError);
+          setMiniCategories([]);
+          setLoadingMiniCategories(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [subcategoryId]);
+
+  // `undefined` while the filter is on "all".
+  const miniCategory = miniCategories.find(
+    (item) => item.id === selectedMiniCategoryId
+  );
+  const miniCategoryId = miniCategory?.id;
+
   // =========================================================
   // FETCH — COURSES
   // =========================================================
@@ -218,12 +266,20 @@ export default function CoursesPage() {
             brand_id: brandId,
             category_id: categoryId,
             subcategory_id: subcategoryId,
+            mini_category_id: miniCategoryId,
             search: debouncedSearch.trim() || undefined,
             is_published:
               status === "all" ? undefined : status === "published",
           }
         : null,
-    [brandId, categoryId, subcategoryId, debouncedSearch, status]
+    [
+      brandId,
+      categoryId,
+      subcategoryId,
+      miniCategoryId,
+      debouncedSearch,
+      status,
+    ]
   );
 
   // Names one request, so an answer is only shown for the filters it is for.
@@ -284,18 +340,29 @@ export default function CoursesPage() {
   // =========================================================
 
   const hasActiveFilters = Boolean(
-    category || subcategory || status !== "all" || search.trim()
+    category ||
+      subcategory ||
+      miniCategory ||
+      status !== "all" ||
+      search.trim()
   );
 
   const selectBrand = (id: string) => {
     setSelectedBrandId(id);
     setSelectedCategoryId("");
     setSelectedSubcategoryId("");
+    setSelectedMiniCategoryId("");
   };
 
   const selectCategory = (id: string) => {
     setSelectedCategoryId(id);
     setSelectedSubcategoryId("");
+    setSelectedMiniCategoryId("");
+  };
+
+  const selectSubcategory = (id: string) => {
+    setSelectedSubcategoryId(id);
+    setSelectedMiniCategoryId("");
   };
 
   const changeSearch = (value: string) => {
@@ -332,15 +399,20 @@ export default function CoursesPage() {
   });
 
   /** The name of every main and sub category, for the cards. */
+  const miniCategoryOptions = useMemo(
+    () => miniCategories.map(toOption),
+    [miniCategories, counts.byParent]
+  );
+
   const names = useMemo(
     () =>
       new Map(
-        [...categories, ...subcategories].map((item) => [
+        [...categories, ...subcategories, ...miniCategories].map((item) => [
           item.id,
           item.name,
         ])
       ),
-    [categories, subcategories]
+    [categories, subcategories, miniCategories]
   );
 
   // =========================================================
@@ -379,7 +451,12 @@ export default function CoursesPage() {
       subcategory &&
       saved.subcategory_id !== subcategory.id
     ) {
-      setSelectedSubcategoryId("");
+      selectSubcategory("");
+    } else if (
+      miniCategory &&
+      saved.mini_category_id !== miniCategory.id
+    ) {
+      setSelectedMiniCategoryId("");
     }
 
     closeEditor();
@@ -437,6 +514,9 @@ export default function CoursesPage() {
         selectedCategoryId={categoryId ?? ""}
         subcategoryOptions={categorySubcategories.map(toOption)}
         selectedSubcategoryId={subcategoryId ?? ""}
+        miniCategoryOptions={miniCategoryOptions}
+        selectedMiniCategoryId={selectedMiniCategoryId}
+        loadingMiniCategories={loadingMiniCategories}
         status={status}
         search={search}
         resultCount={courses.length}
@@ -444,7 +524,8 @@ export default function CoursesPage() {
         loading={showSkeleton}
         onBrandChange={selectBrand}
         onCategoryChange={selectCategory}
-        onSubcategoryChange={setSelectedSubcategoryId}
+        onSubcategoryChange={selectSubcategory}
+        onMiniCategoryChange={setSelectedMiniCategoryId}
         onStatusChange={setStatus}
         onSearchChange={changeSearch}
         onReset={resetFilters}
@@ -495,6 +576,7 @@ export default function CoursesPage() {
           brandId: brandId ?? "",
           categoryId: categoryId ?? "",
           subcategoryId: subcategoryId ?? "",
+          miniCategoryId: miniCategoryId ?? "",
         }}
         onClose={closeEditor}
         onSubmit={handleSubmit}

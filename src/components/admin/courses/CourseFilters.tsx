@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder, FolderTree, RotateCcw } from "lucide-react";
+import { Folder, FolderTree, Layers, RotateCcw } from "lucide-react";
 
 import BrandTabs, {
   type BrandOption,
@@ -30,6 +30,12 @@ interface CourseFiltersProps {
   /** Empty for all of them. */
   selectedSubcategoryId: string;
 
+  /** The chosen sub category's mini categories, with their course counts. */
+  miniCategoryOptions: BrandOption[];
+  /** Empty for all of them. */
+  selectedMiniCategoryId: string;
+  loadingMiniCategories?: boolean;
+
   status: CourseStatusFilter;
   search: string;
 
@@ -40,6 +46,7 @@ interface CourseFiltersProps {
   onBrandChange: (brandId: string) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
+  onMiniCategoryChange: (miniCategoryId: string) => void;
   onStatusChange: (status: CourseStatusFilter) => void;
   onSearchChange: (value: string) => void;
   onReset: () => void;
@@ -60,6 +67,9 @@ export default function CourseFilters({
   selectedCategoryId,
   subcategoryOptions,
   selectedSubcategoryId,
+  miniCategoryOptions,
+  selectedMiniCategoryId,
+  loadingMiniCategories = false,
   status,
   search,
   resultCount,
@@ -68,6 +78,7 @@ export default function CourseFilters({
   onBrandChange,
   onCategoryChange,
   onSubcategoryChange,
+  onMiniCategoryChange,
   onStatusChange,
   onSearchChange,
   onReset,
@@ -136,6 +147,34 @@ export default function CourseFilters({
               </option>
 
               {options(subcategoryOptions)}
+            </Select>
+          </div>
+
+          <div className="min-w-0 lg:flex-1">
+            <Select
+              aria-label="Filter by mini category"
+              icon={Layers}
+              value={selectedMiniCategoryId}
+              disabled={
+                loadingMiniCategories ||
+                !selectedSubcategoryId ||
+                miniCategoryOptions.length === 0
+              }
+              onChange={(event) =>
+                onMiniCategoryChange(event.target.value)
+              }
+            >
+              <option value="">
+                {!selectedSubcategoryId
+                  ? "All mini categories"
+                  : loadingMiniCategories
+                    ? "Loading mini categories..."
+                    : miniCategoryOptions.length === 0
+                      ? "No mini categories"
+                      : "All mini categories"}
+              </option>
+
+              {!loadingMiniCategories && options(miniCategoryOptions)}
             </Select>
           </div>
 

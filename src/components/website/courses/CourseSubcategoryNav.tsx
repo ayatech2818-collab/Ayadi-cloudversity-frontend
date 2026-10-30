@@ -3,33 +3,37 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 
-import type { CatalogueSubcategory } from './types';
+import type { CatalogueMiniCategory, CatalogueSubcategory } from './types';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-interface CourseSubcategoryNavProps {
-  subcategories: CatalogueSubcategory[];
-  activeSubcategory: CatalogueSubcategory | null;
+interface CourseSubcategoryNavProps<T extends CatalogueSubcategory | CatalogueMiniCategory> {
+  subcategories: T[];
+  activeSubcategory: T | null;
   /** Matches in each subcategory by subcategory id. */
   counts: Record<string, number>;
-  /** Total matches in the parent main category (the subcategory "All" count). */
+  /** Total matches in the parent category (the "All" count). */
   totalCount: number;
-  onSelect: (subcategory: CatalogueSubcategory | null) => void;
+  onSelect: (subcategory: T | null) => void;
+  /** Accessible name of the row — the mini-category row reuses this one. */
+  label?: string;
 }
 
 /**
- * Secondary navigation row for subcategories within an active main category.
+ * Secondary navigation row for subcategories within an active main category,
+ * and — the same row again — for mini-categories within an active subcategory.
  *
  * Non-sticky so it scrolls naturally with the page content without occluding
  * limited mobile screen real estate.
  */
-export function CourseSubcategoryNav({
+export function CourseSubcategoryNav<T extends CatalogueSubcategory | CatalogueMiniCategory>({
   subcategories,
   activeSubcategory,
   counts,
   totalCount,
   onSelect,
-}: CourseSubcategoryNavProps) {
+  label = 'Filter courses by subcategory',
+}: CourseSubcategoryNavProps<T>) {
   const reduceMotion = useReducedMotion();
   const row = useRef<HTMLDivElement>(null);
   const activeId = activeSubcategory?.id ?? null;
@@ -60,7 +64,7 @@ export function CourseSubcategoryNav({
           <div
             ref={row}
             role="group"
-            aria-label="Filter courses by subcategory"
+            aria-label={label}
             className="flex items-center gap-1 sm:gap-2 overflow-x-auto py-1 [scrollbar-width:none] max-sm:pr-8 sm:gap-2 [&::-webkit-scrollbar]:hidden"
           >
             <SubcategoryPill

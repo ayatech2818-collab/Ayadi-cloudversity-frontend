@@ -1,11 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import Field from "@/components/admin/ui/Field";
 import FormSection from "@/components/admin/ui/FormSection";
 import Select from "@/components/admin/ui/Select";
 import type { CourseBrand } from "@/lib/api/course-brands";
 import type { CourseCategory } from "@/lib/api/course-categories";
 import type { CourseSubcategory } from "@/lib/api/course-subcategories";
+import {
+  getMiniCategories,
+  type CourseMiniCategory,
+} from "@/lib/api/course-mini-categories";
+import { getApiErrorMessage } from "@/lib/api/errors";
 
 import {
   brandUsesCategories,
@@ -33,7 +40,7 @@ const option = (item: {
   </option>
 );
 
-/** Brand, then its main category, then that category's sub category. */
+/** Brand, then its main category, then sub category, then optional mini-category. */
 export default function CoursePlacementFields({
   values,
   errors,
@@ -43,6 +50,14 @@ export default function CoursePlacementFields({
   subcategories,
   onChange,
 }: CoursePlacementFieldsProps) {
+  const [miniCategories, setMiniCategories] = useState<
+    CourseMiniCategory[]
+  >([]);
+  const [loadingMiniCategories, setLoadingMiniCategories] = useState(false);
+  const [miniCategoryError, setMiniCategoryError] = useState<string | null>(
+    null
+  );
+
   const brandCategories = categories.filter(
     (category) => category.brand_id === values.brandId
   );
@@ -55,10 +70,51 @@ export default function CoursePlacementFields({
     values.brandId
   );
 
+  useEffect(() => {
+    if (!values.subcategoryId) {
+      setMiniCategories([]);
+      setLoadingMiniCategories(false);
+      setMiniCategoryError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingMiniCategories(true);
+    setMiniCategoryError(null);
+
+    getMiniCategories(values.subcategoryId)
+      .then((data) => {
+        if (!cancelled) {
+          setMiniCategories(data);
+          setLoadingMiniCategories(false);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.error("Failed to load mini-categories:", error);
+          setMiniCategoryError(
+            getApiErrorMessage(
+              error,
+              "Failed to load mini-categories."
+            )
+          );
+          setLoadingMiniCategories(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [values.subcategoryId]);
+
+  const hasSelectedMiniCategory =
+    Boolean(values.miniCategoryId) &&
+    miniCategories.some((item) => item.id === values.miniCategoryId);
+
   return (
     <FormSection title="Placement">
       <div
-        className={`grid gap-4 ${usesCategories ? "md:grid-cols-3" : ""}`}
+        className={`grid gap-4 ${usesCategories ? "sm:grid-cols-2" : ""}`}
       >
         <Field
           label="Brand"
@@ -132,6 +188,58 @@ export default function CoursePlacementFields({
                 </option>
 
                 {categorySubcategories.map(option)}
+              </Select>
+            </Field>
+
+            <Field
+              label="Mini-category"
+              htmlFor="course-minicategory"
+              aside={<span className="text-[11px] text-muted">Optional</span>}
+              error={errors.miniCategoryId || miniCategoryError || undefined}
+            >
+              <Select
+                id="course-minicategory"
+                value={values.miniCategoryId}
+                disabled={
+                  disabled ||
+                  !values.subcategoryId ||
+                  loadingMiniCategories
+                }
+                invalid={Boolean(errors.miniCategoryId || miniCategoryError)}
+                onChange={(event) =>
+                  onChange("miniCategoryId", event.target.value)
+                }
+              >
+                {loadingMiniCategories ? (
+                  <>
+                    <option value="">Loading mini-categories...</option>
+                    {values.miniCategoryId && (
+                      <option value={values.miniCategoryId}>
+                        Loading current selection...
+                      </option>
+                    )}
+                  </>
+                ) : miniCategoryError ? (
+                  <option value="">Failed to load mini-categories</option>
+                ) : !values.subcategoryId ? (
+                  <option value="">Pick a sub category first</option>
+                ) : (
+                  <>
+                    <option value="">
+                      {miniCategories.length > 0
+                        ? "None (no mini-category)"
+                        : "No mini-categories available"}
+                    </option>
+
+                    {values.miniCategoryId && !hasSelectedMiniCategory && (
+                      <option value={values.miniCategoryId} disabled>
+                        Saved mini-category (unavailable)
+                      </option>
+                    )}
+
+                    {miniCategories.map(option)}
+                  </>
+                )}
               </Select>
             </Field>
           </>

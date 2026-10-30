@@ -128,11 +128,16 @@ function CourseForm({
   ) => {
     const followsTitle = field === "title" && !slugEdited;
 
-    // A main category belongs to one brand and a sub category to one main
-    // category, so changing a level clears what was picked beneath it.
+    // A main category belongs to one brand, a sub category to one main
+    // category, and a mini-category to one sub category, so changing a level
+    // clears what was picked beneath it.
     const clearsCategory = field === "brandId";
     const clearsSubcategory =
       field === "brandId" || field === "categoryId";
+    const clearsMiniCategory =
+      field === "brandId" ||
+      field === "categoryId" ||
+      field === "subcategoryId";
 
     setValues((current) => {
       const next = { ...current, [field]: value };
@@ -140,6 +145,7 @@ function CourseForm({
       if (followsTitle) next.slug = generateSlug(next.title);
       if (clearsCategory) next.categoryId = "";
       if (clearsSubcategory) next.subcategoryId = "";
+      if (clearsMiniCategory) next.miniCategoryId = "";
 
       return next;
     });
@@ -152,6 +158,7 @@ function CourseForm({
       ...(followsTitle && { slug: undefined }),
       ...(clearsCategory && { categoryId: undefined }),
       ...(clearsSubcategory && { subcategoryId: undefined }),
+      ...(clearsMiniCategory && { miniCategoryId: undefined }),
     }));
   };
 

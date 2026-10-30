@@ -7,6 +7,7 @@ export interface CourseFormValues {
   brandId: string;
   categoryId: string;
   subcategoryId: string;
+  miniCategoryId: string;
 
   title: string;
   courseCode: string;
@@ -26,6 +27,7 @@ export type CourseFormErrors = Partial<
     | "brandId"
     | "categoryId"
     | "subcategoryId"
+    | "miniCategoryId"
     | "title"
     | "courseCode"
     | "slug"
@@ -51,6 +53,7 @@ export interface CoursePlacement {
   brandId: string;
   categoryId: string;
   subcategoryId: string;
+  miniCategoryId?: string;
 }
 
 /**
@@ -79,6 +82,9 @@ export const toFormValues = (
   subcategoryId: course
     ? (course.subcategory_id ?? "")
     : defaults.subcategoryId,
+  miniCategoryId: course
+    ? (course.mini_category_id ?? "")
+    : (defaults.miniCategoryId ?? ""),
 
   title: course?.title ?? "",
   courseCode: course?.course_code ?? "",
@@ -162,6 +168,10 @@ export const toCoursePayload = (
   brand_id: values.brandId,
   category_id: usesCategories ? values.categoryId : null,
   subcategory_id: usesCategories ? values.subcategoryId : null,
+  mini_category_id:
+    usesCategories && values.subcategoryId
+      ? values.miniCategoryId.trim() || null
+      : null,
 
   title: values.title.trim(),
   slug: values.slug.trim(),

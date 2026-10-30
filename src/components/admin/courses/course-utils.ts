@@ -61,6 +61,7 @@ export const countCourses = (
       course.brand_id,
       course.category_id,
       course.subcategory_id,
+      course.mini_category_id,
     ]) {
       if (id) {
         counts.byParent.set(id, (counts.byParent.get(id) ?? 0) + 1);
@@ -83,7 +84,7 @@ export const coursePlacement = (
   course: Course,
   names: Map<string, string>
 ): string =>
-  [course.category_id, course.subcategory_id]
+  [course.category_id, course.subcategory_id, course.mini_category_id]
     .map((id) => id && names.get(id))
     .filter(Boolean)
     .join(" › ");

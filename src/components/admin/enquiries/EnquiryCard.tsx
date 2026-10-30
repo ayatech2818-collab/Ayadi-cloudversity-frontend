@@ -1,6 +1,13 @@
 "use client";
 
-import { Eye, Mail, MapPin, Phone, Trash2 } from "lucide-react";
+import {
+  Eye,
+  GraduationCap,
+  Mail,
+  MapPin,
+  Phone,
+  Trash2,
+} from "lucide-react";
 
 import AuthorAvatar from "@/components/admin/authors/AuthorAvatar";
 import {
@@ -12,7 +19,9 @@ import type { Enquiry } from "@/lib/api/enquiry";
 import { EnquiryStatusBadge, EnquiryTypeBadge } from "./EnquiryBadges";
 import {
   formatEnquiryDate,
+  getEnquiryCourse,
   getEnquiryLocation,
+  getEnquiryMessage,
   getEnquiryName,
 } from "./enquiry-utils";
 
@@ -34,6 +43,8 @@ export default function EnquiryCard({
 }: EnquiryCardProps) {
   const name = getEnquiryName(enquiry);
   const location = getEnquiryLocation(enquiry);
+  const course = getEnquiryCourse(enquiry);
+  const message = getEnquiryMessage(enquiry);
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-surface p-3.5 shadow-[0_2px_8px_rgba(15,23,42,0.04)] ring-1 ring-inset ring-border transition-[translate,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_-24px_rgba(5,150,105,0.45)] sm:p-5">
@@ -72,6 +83,21 @@ export default function EnquiryCard({
         {formatEnquiryDate(enquiry.created_at)}
       </div>
 
+      {/* Which course an enrollment is for */}
+      {enquiry.type === "enrollment" && (
+        <p
+          title={course?.title}
+          className={`mt-2 flex min-w-0 items-center gap-1.5 text-xs font-semibold sm:text-[13px] ${
+            course ? "text-accent" : "text-muted/70"
+          }`}
+        >
+          <GraduationCap size={13} className="shrink-0 text-primary" />
+          <span className="truncate">
+            {course?.title ?? "No course chosen"}
+          </span>
+        </p>
+      )}
+
       {/* Contact */}
       <ul className="mt-3 space-y-1.5 text-xs text-muted sm:text-[13px]">
         <li className={CONTACT_LINE}>
@@ -98,9 +124,9 @@ export default function EnquiryCard({
         )}
       </ul>
 
-      {enquiry.message && (
+      {message && (
         <p className="mt-3 line-clamp-2 rounded-xl bg-page/70 px-2.5 py-2 text-xs leading-relaxed text-muted ring-1 ring-inset ring-border">
-          {enquiry.message}
+          {message}
         </p>
       )}
 

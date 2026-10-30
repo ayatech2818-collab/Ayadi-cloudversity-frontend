@@ -1,19 +1,26 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, X } from 'lucide-react';
-import { useCallback, useEffect, useState, useSyncExternalStore, type ChangeEvent, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ChangeEvent, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { loadCatalogue } from '@/components/website/courses/useCourseCatalogue';
 import { createEnrollment } from '@/lib/api/enrollment';
+import { publicKeys } from '@/lib/query/client';
 
 export interface EnrollmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   courseTitle?: string;
   courseId?: string;
+  /** Offers an optional course dropdown — for the navbar, which opens the
+      form without a course. */
+  showCoursePicker?: boolean;
 }
 
 interface FormData {
+  interestedCourseId: string;
   firstName: string;
   lastName: string;
   dateOfBirth: string;
@@ -34,6 +41,7 @@ interface FormErrors {
 }
 
 const initialFormData: FormData = {
+  interestedCourseId: '',
   firstName: '',
   lastName: '',
   dateOfBirth: '',
@@ -48,7 +56,13 @@ const initialFormData: FormData = {
 
 const emptySubscribe = () => () => {};
 
-export function EnrollmentModal({ isOpen, onClose, courseTitle, courseId }: EnrollmentModalProps) {
+export function EnrollmentModal({
+  isOpen,
+  onClose,
+  courseTitle,
+  courseId,
+  showCoursePicker = false,
+}: EnrollmentModalProps) {
   const mounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -60,6 +74,44 @@ export function EnrollmentModal({ isOpen, onClose, courseTitle, courseId }: Enro
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  const pickingCourse = showCoursePicker && !courseTitle;
+
+  /* The Courses page's own catalogue entry — usually already cached, so the
+     list is there without a request of its own. */
+  const catalogue = useQuery({
+    queryKey: publicKeys.catalogue,
+    queryFn: loadCatalogue,
+    enabled: pickingCourse && isOpen,
+  });
+
+  /* Published courses under their category, in the catalogue's order. */
+  const courseGroups = useMemo(() => {
+    const data = catalogue.data;
+    if (!data) return [];
+
+    const groups = data.categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      courses: data.courses.filter((course) => course.categoryId === category.id),
+    }));
+
+    const categoryIds = new Set(data.categories.map((category) => category.id));
+    const uncategorised = data.courses.filter((course) => !categoryIds.has(course.categoryId));
+
+    if (uncategorised.length > 0) {
+      groups.push({ id: 'other', name: 'Other courses', courses: uncategorised });
+    }
+
+    return groups.filter((group) => group.courses.length > 0);
+  }, [catalogue.data]);
+
+  const pickedCourse = pickingCourse
+    ? catalogue.data?.courses.find((course) => course.id === formData.interestedCourseId) ?? null
+    : null;
+
+  /* Without a list there is nothing to pick — the form works as before. */
+  const showCourseField = pickingCourse && !(catalogue.isError && !catalogue.data);
 
   // Lock body scrolling when modal is open
   useEffect(() => {
@@ -168,6 +220,9 @@ export function EnrollmentModal({ isOpen, onClose, courseTitle, courseId }: Enro
         zipcode: formData.zipcode.trim() || null,
 
         message: composedMessage || null,
+
+        course_id: pickedCourse?.id ?? null,
+        course_title: pickedCourse?.title ?? null,
       });
 
       setStep("success");
@@ -317,6 +372,64 @@ export function EnrollmentModal({ isOpen, onClose, courseTitle, courseId }: Enro
             {step === 1 && (
               <form onSubmit={handleSubmit} noValidate>
                 <div className="grid grid-cols-1 gap-x-5 gap-y-2.5 sm:grid-cols-2 sm:gap-y-4">
+                  {/* Interested Course (Full row) — navbar only, optional */}
+                  {showCourseField && (
+                    <div className="sm:col-span-2">
+                      <label
+                        htmlFor="interestedCourseId"
+                        className="mb-1 block text-xs font-medium text-slate-200 sm:mb-1.5 sm:text-[13px]"
+                      >
+                        Interested Course
+                      </label>
+                      <select
+                        id="interestedCourseId"
+                        name="interestedCourseId"
+                        value={formData.interestedCourseId}
+                        onChange={handleChange}
+                        disabled={!catalogue.data}
+                        className="
+                          h-9
+                          sm:h-11
+                          w-full
+                          rounded-xl
+                          sm:rounded-[14px]
+                          bg-[#1c274c]/85
+                          border
+                          border-white/10
+                          px-3
+                          sm:px-3.5
+                          text-xs
+                          sm:text-sm
+                          text-white
+                          transition-all
+                          duration-200
+                          focus:border-brand-middle
+                          focus:ring-1
+                          focus:ring-brand-middle
+                          focus:bg-[#202d58]
+                          focus:outline-none
+                          [color-scheme:dark]
+                          cursor-pointer
+                          disabled:cursor-wait
+                          disabled:opacity-60
+                        "
+                      >
+                        <option value="">
+                          {catalogue.data ? 'Not sure yet – Help me choose' : 'Loading courses…'}
+                        </option>
+                        {courseGroups.map((group) => (
+                          <optgroup key={group.id} label={group.name}>
+                            {group.courses.map((course) => (
+                              <option key={course.id} value={course.id}>
+                                {course.title}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
                   {/* First Name */}
                   <div>
                     <label

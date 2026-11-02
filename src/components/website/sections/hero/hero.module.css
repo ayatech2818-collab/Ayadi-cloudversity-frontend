@@ -902,4 +902,10 @@
   .root[data-mode='cinematic'] .progressTrack {
     display: none;
   }
+
+  /* Above the bottom navbar (84px and the home indicator), which would
+     otherwise sit on top of it and take the tap. */
+  .root[data-mode='cinematic'] .skip {
+    bottom: calc(100lvh - 100svh + 84px + env(safe-area-inset-bottom, 0px) + 0.75rem);
+  }
 }

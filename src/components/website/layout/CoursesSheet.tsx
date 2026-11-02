@@ -18,18 +18,11 @@ import {
   countBySubcategory,
 } from '@/components/website/courses/filterCourses';
 
-import { useCoursesMenu } from './useCoursesMenu';
+import { COURSES_MENU_GLASS, useCoursesMenu } from './useCoursesMenu';
 
 /* How far, or how fast, a drag on the handle has to go to close the sheet. */
 const DRAG_CLOSE_DISTANCE = 110;
 const DRAG_CLOSE_VELOCITY = 500;
-
-/* Frosted mint-to-periwinkle over a real backdrop blur: thin enough for the page
-   to show through, thick enough at the top to keep the navy title readable. */
-const FROST = {
-  backgroundImage:
-    'linear-gradient(165deg, rgba(240, 248, 243, 0.84), rgba(226, 241, 233, 0.78) 28%, rgba(222, 229, 241, 0.72))',
-};
 
 export interface CoursesSheetProps {
   isOpen: boolean;
@@ -134,7 +127,7 @@ export function CoursesSheet({ isOpen, onClose }: CoursesSheetProps) {
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 1 }}
             onDragEnd={handleDragEnd}
-            style={FROST}
+            style={COURSES_MENU_GLASS}
             className="fixed inset-x-2 bottom-0 z-[60] flex h-[88svh] flex-col overflow-hidden rounded-t-[32px] pb-[calc(84px+env(safe-area-inset-bottom))] shadow-[0_-20px_60px_-20px_rgba(8,13,30,0.5)] ring-1 ring-inset ring-white/80 backdrop-blur-2xl backdrop-saturate-150 md:hidden"
           >
             {/* Handle and title — the part that drags */}
@@ -294,10 +287,12 @@ export function CoursesSheet({ isOpen, onClose }: CoursesSheetProps) {
                               <span className="mt-0.5 line-clamp-1 text-[11px] text-muted">{course.description}</span>
                             ) : null}
 
-                            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary-hover">
-                              <Clock size={10} />
-                              {course.duration}
-                            </span>
+                            {course.duration ? (
+                              <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary-hover">
+                                <Clock size={10} />
+                                {course.duration}
+                              </span>
+                            ) : null}
                           </span>
 
                           <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-muted shadow-sm ring-1 ring-inset ring-accent/[0.06]">

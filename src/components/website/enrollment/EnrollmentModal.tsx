@@ -949,7 +949,7 @@ export function EnrollmentModal({
                   Enrollment Request Submitted!
                 </h3>
                 <p className="mx-auto mt-1.5 max-w-md text-xs text-slate-300 sm:mt-2 sm:text-sm">
-                  Thank you, <span className="font-semibold text-white">{formData.firstName}</span>. Our admissions advisor will review your application{courseTitle ? <> for <span className="font-semibold text-white">{courseTitle}</span></> : ''} and reach out to you within 24 hours.
+                  Thank you, <span className="font-semibold text-white">{formData.firstName}</span>. Our admissions advisor will review your application{courseTitle ? <> for <span className="font-semibold text-white">{courseTitle}</span></> : ''} and reach out to you.
                 </p>
 
                 <div className="mt-5 flex justify-center sm:mt-7">

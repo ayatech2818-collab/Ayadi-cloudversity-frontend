@@ -1,7 +1,8 @@
 'use client';
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, BookOpen, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, type ReactNode } from 'react';
 
@@ -19,7 +20,7 @@ const HOVER_SELECT_MS = 70;
 
 /* A shadow, not a border: the global `* { border-color }` in globals.css is
    unlayered, so it beats any border colour utility. */
-const COLUMN_DIVIDER = 'shadow-[inset_-1px_0_0_rgba(255,255,255,0.09)]';
+const COLUMN_DIVIDER = 'shadow-[inset_-1px_0_0_rgba(255,255,255,0.8)]';
 
 export interface CoursesMenuProps {
   isOpen: boolean;
@@ -74,7 +75,7 @@ export function CoursesMenu({ isOpen, onClose, onPointerEnter, onPointerLeave }:
           onPointerEnter={onPointerEnter}
           onPointerLeave={onPointerLeave}
           style={COURSES_MENU_GLASS}
-          className="absolute inset-x-0 top-2 hidden rounded-3xl shadow-[0_32px_80px_-20px_rgba(5,150,105,0.35),0_24px_60px_-24px_rgba(8,13,30,0.7)] ring-1 ring-inset ring-white/15 backdrop-blur-2xl backdrop-saturate-[1.8] md:block"
+          className="absolute inset-x-0 top-2 hidden rounded-3xl shadow-[0_32px_80px_-24px_rgba(8,13,30,0.5)] ring-1 ring-inset ring-white/80 backdrop-blur-2xl backdrop-saturate-150 md:block"
         >
           {/* Bridges the gap to the navbar, so the pointer never leaves the
               menu on its way down */}
@@ -83,7 +84,7 @@ export function CoursesMenu({ isOpen, onClose, onPointerEnter, onPointerLeave }:
           {/* Lit top edge */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-8 top-0 z-10 h-px bg-linear-to-r from-transparent via-emerald-200/70 to-transparent"
+            className="pointer-events-none absolute inset-x-8 top-0 z-10 h-px bg-linear-to-r from-transparent via-white to-transparent"
           />
 
           <div
@@ -91,7 +92,7 @@ export function CoursesMenu({ isOpen, onClose, onPointerEnter, onPointerLeave }:
             className="flex h-[400px] max-h-[calc(100vh-110px)] overflow-hidden rounded-3xl"
           >
             {/* Main categories */}
-            <div className={`flex w-[180px] shrink-0 flex-col gap-3 bg-white/[0.03] p-4 lg:w-[220px] ${COLUMN_DIVIDER}`}>
+            <div className={`flex w-[180px] shrink-0 flex-col gap-3 bg-white/30 p-4 lg:w-[220px] ${COLUMN_DIVIDER}`}>
               <p className={COLUMN_LABEL}>Category</p>
 
               <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto [scrollbar-width:none]">
@@ -104,10 +105,10 @@ export function CoursesMenu({ isOpen, onClose, onPointerEnter, onPointerLeave }:
                         href={hrefFor({ category: item.slug })}
                         onClick={onClose}
                         onSelect={() => selectCategory(item.id)}
-                        className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold leading-snug transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-emerald-300 ${
+                        className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold leading-snug transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-primary ${
                           isActive
                             ? CATEGORY_ACTIVE
-                            : 'text-white/70 hover:bg-white/[0.06] hover:text-white'
+                            : 'text-accent/80 hover:bg-white/60 hover:text-accent'
                         }`}
                       >
                         {item.name}
@@ -126,7 +127,7 @@ export function CoursesMenu({ isOpen, onClose, onPointerEnter, onPointerLeave }:
               <Link
                 href="/courses"
                 onClick={onClose}
-                className="group/all inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-sidebar-active px-3 py-2.5 text-xs font-bold text-white shadow-sidebar-active transition-[filter] duration-200 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+                className="group/all inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand-gradient px-3 py-2.5 text-xs font-bold text-white shadow-[0_8px_18px_-8px_rgba(5,150,105,0.8)] transition-[filter] duration-200 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 Go to all courses
                 <ArrowRight size={14} className="transition-transform duration-200 group-hover/all:translate-x-0.5" />
@@ -190,25 +191,26 @@ export function CoursesMenu({ isOpen, onClose, onPointerEnter, onPointerLeave }:
               {isPending ? (
                 <div className="grid grid-cols-1 gap-2 lg:grid-cols-2" aria-hidden="true">
                   {[1, 2, 3, 4].map((n) => (
-                    <div key={n} className="h-11 animate-pulse rounded-xl bg-white/10" />
+                    <div key={n} className="h-11 animate-pulse rounded-xl bg-white/60" />
                   ))}
                 </div>
               ) : !data ? (
-                <p className="px-1 text-sm text-white/60">Unable to load courses.</p>
+                <p className="px-1 text-sm text-accent/80">Unable to load courses.</p>
               ) : courses.length === 0 ? (
-                <p className="px-1 text-sm text-white/60">No courses here yet.</p>
+                <p className="px-1 text-sm text-accent/80">No courses here yet.</p>
               ) : (
-                <ul className="grid min-h-0 flex-1 auto-rows-min grid-cols-1 gap-1 overflow-y-auto [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin] lg:grid-cols-2">
+                <ul className="grid min-h-0 flex-1 auto-rows-min grid-cols-1 gap-1 overflow-y-auto [scrollbar-color:rgba(30,43,87,0.2)_transparent] [scrollbar-width:thin] lg:grid-cols-2">
                   {courses.map((course) => (
                     <li key={course.id}>
                       <Link
                         href={`/courses/${course.id}`}
                         onClick={onClose}
                         title={course.title}
-                        className="group/course flex items-center gap-2.5 rounded-xl p-2 text-[13px] font-medium leading-snug text-white/85 transition-colors duration-200 hover:bg-white/[0.08] hover:text-white focus-visible:outline-2 focus-visible:outline-emerald-300"
+                        className="group/course flex items-center gap-2.5 rounded-xl p-2 text-[13px] font-semibold leading-snug text-accent transition-colors duration-200 hover:bg-white/60 focus-visible:outline-2 focus-visible:outline-primary"
                       >
-                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-emerald-400/25 to-teal-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-300/25 transition-shadow duration-200 group-hover/course:shadow-[0_0_14px_rgba(52,211,153,0.5)]">
-                          <BookOpen size={14} />
+                        {/* The covers are 16:10, so this ratio shows them whole. */}
+                        <span className="relative h-10 w-16 shrink-0 overflow-hidden rounded-lg bg-accent/[0.06] shadow-sm transition-shadow duration-200 group-hover/course:shadow-[0_0_14px_rgba(5,150,105,0.35)]">
+                          <Image src={course.image} alt="" fill sizes="64px" className="object-cover" />
                         </span>
                         <span className="line-clamp-2 min-w-0">{course.title}</span>
                       </Link>
@@ -299,8 +301,8 @@ function MenuRow({
         href={href}
         onClick={onClick}
         onSelect={onSelect}
-        className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold leading-snug transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-300 ${
-          isActive ? activeClass : 'bg-white/[0.05] text-white/80 ring-1 ring-inset ring-white/10 hover:bg-white/10 hover:text-white'
+        className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold leading-snug transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary ${
+          isActive ? activeClass : 'bg-white/75 text-accent ring-1 ring-inset ring-white hover:bg-white'
         }`}
       >
         {children}

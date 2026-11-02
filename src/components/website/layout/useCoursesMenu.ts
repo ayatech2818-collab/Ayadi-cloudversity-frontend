@@ -6,25 +6,20 @@ import { useMemo, useState } from 'react';
 import { loadCatalogue } from '@/components/website/courses/useCourseCatalogue';
 import { publicKeys } from '@/lib/query/client';
 
-/* Deep navy glass lit by the brand's emerald and teal, as on the admin sidebar.
-   The base is nearly opaque and saturated: any thinner and a white page mixes
-   it down to a washed-out grey, while a dark page still shows through a little. */
+/* Frosted mint-to-periwinkle over a real backdrop blur, on the desktop menu and
+   the sheet: thin enough for the page to show through, thick enough at the top
+   to keep navy text readable. */
 export const COURSES_MENU_GLASS = {
-  backgroundImage: [
-    'radial-gradient(420px circle at 8% -10%, rgba(16, 185, 129, 0.38), transparent 65%)',
-    'radial-gradient(480px circle at 100% 110%, rgba(13, 148, 136, 0.42), transparent 65%)',
-    'radial-gradient(380px circle at 70% -20%, rgba(79, 110, 210, 0.38), transparent 70%)',
-    'linear-gradient(135deg, rgba(9, 16, 48, 0.95), rgba(16, 26, 74, 0.93) 55%, rgba(6, 42, 58, 0.94))',
-  ].join(', '),
+  backgroundImage:
+    'linear-gradient(165deg, rgba(240, 248, 243, 0.84), rgba(226, 241, 233, 0.78) 28%, rgba(222, 229, 241, 0.72))',
 };
 
-/* What each level looks like when chosen, on the desktop menu and the sheet. */
-export const CATEGORY_ACTIVE =
-  'bg-linear-to-r from-emerald-400/25 to-white/[0.04] text-white ring-1 ring-inset ring-emerald-300/30';
-export const SUBCATEGORY_ACTIVE = 'bg-sidebar-active text-white shadow-sidebar-active';
-export const MINI_ACTIVE = 'bg-emerald-400/15 text-emerald-200 ring-1 ring-inset ring-emerald-300/40';
+/* What each level looks like when chosen on the desktop menu, as on the sheet. */
+export const CATEGORY_ACTIVE = 'bg-accent text-white shadow-[0_6px_14px_-6px_rgba(30,43,87,0.7)]';
+export const SUBCATEGORY_ACTIVE = 'bg-brand-gradient text-white shadow-[0_8px_18px_-8px_rgba(5,150,105,0.8)]';
+export const MINI_ACTIVE = 'bg-accent/10 text-accent ring-1 ring-inset ring-accent/25';
 
-export const COLUMN_LABEL = 'px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-200/60';
+export const COLUMN_LABEL = 'px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-800';
 
 /*
  * What the Courses menu shows, desktop and mobile alike: main category → sub

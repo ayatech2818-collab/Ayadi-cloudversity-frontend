@@ -1,15 +1,19 @@
 import axios from 'axios';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 
 import { CourseDetailContent } from '@/components/website/courses/CourseDetailContent';
 import {
   mapCourseToCatalogueCourse,
+  mapCourseToCourseDetail,
   type CatalogueCategory,
   type CatalogueCourse,
+  type CatalogueMiniCategory,
   type CatalogueSubcategory,
 } from '@/components/website/courses/types';
 import { getCategory } from '@/lib/api/course-categories';
+import { getMiniCategory } from '@/lib/api/course-mini-categories';
 import { getSubcategory } from '@/lib/api/course-subcategories';
 import { getCourse, getCourses, type Course } from '@/lib/api/courses';
 
@@ -20,6 +24,29 @@ interface CourseDetailPageProps {
 }
 
 export const dynamicParams = true;
+
+const RELATED_COURSE_COUNT = 3;
+
+/* The metadata and the page both need these. Axios requests are not memoized
+   the way fetch is, so without this each would be sent twice per render. */
+const loadCourse = cache(getCourse);
+const loadCategory = cache(getCategory);
+
+/** Up to three other courses, closest in the hierarchy first: same mini-category,
+    then same subcategory, then the rest of the category. The sort is stable, so
+    the admin's display order holds within each group. */
+function pickRelatedCourses(course: Course, candidates: Course[]): Course[] {
+  const closeness = (candidate: Course) => {
+    if (course.mini_category_id && candidate.mini_category_id === course.mini_category_id) return 2;
+    if (course.subcategory_id && candidate.subcategory_id === course.subcategory_id) return 1;
+    return 0;
+  };
+
+  return candidates
+    .filter((candidate) => candidate.id !== course.id)
+    .sort((a, b) => closeness(b) - closeness(a))
+    .slice(0, RELATED_COURSE_COUNT);
+}
 
 /** Pre-renders static parameters for known Ayadi Cloudversity courses. */
 export async function generateStaticParams() {
@@ -42,11 +69,11 @@ export async function generateMetadata({
   const { courseId } = await params;
 
   try {
-    const course = await getCourse(courseId);
+    const course = await loadCourse(courseId);
 
     if (!course || !course.is_published) {
       return {
-        title: 'Course Not Found | Ayadi Cloudversity',
+        title: { absolute: 'Course Not Found | Ayadi Cloudversity' },
         description: 'The requested course could not be found.',
       };
     }
@@ -54,7 +81,7 @@ export async function generateMetadata({
     let categoryName: string | undefined;
     if (course.category_id) {
       try {
-        const cat = await getCategory(course.category_id);
+        const cat = await loadCategory(course.category_id);
         categoryName = cat?.name;
       } catch {
         // category lookup is non-fatal for metadata
@@ -64,11 +91,12 @@ export async function generateMetadata({
     const title = categoryName
       ? `${course.title} — ${categoryName} | Ayadi Cloudversity`
       : `${course.title} | Ayadi Cloudversity Courses`;
-    const description = course.short_description || course.description || '';
+    const description = course.short_description || course.description || undefined;
     const image = course.thumbnail_url || undefined;
 
     return {
-      title,
+      // Absolute: these already carry the brand, and the layout's template would add it again.
+      title: { absolute: title },
       description,
       openGraph: {
         title,
@@ -86,12 +114,12 @@ export async function generateMetadata({
   } catch (error) {
     if (axios.isAxiosError(error) && (error.response?.status === 404 || error.response?.status === 422)) {
       return {
-        title: 'Course Not Found | Ayadi Cloudversity',
+        title: { absolute: 'Course Not Found | Ayadi Cloudversity' },
         description: 'The requested course could not be found.',
       };
     }
     return {
-      title: 'Course | Ayadi Cloudversity',
+      title: { absolute: 'Course | Ayadi Cloudversity' },
       description: 'Explore courses at Ayadi Cloudversity.',
     };
   }
@@ -105,7 +133,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
   let isGenuineNotFound = false;
 
   try {
-    const fetched = await getCourse(courseId);
+    const fetched = await loadCourse(courseId);
     if (!fetched || !fetched.is_published) {
       isGenuineNotFound = true;
     } else {
@@ -124,10 +152,11 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     notFound();
   }
 
-  // Fetch category, subcategory, and related courses concurrently
-  const [categoryResult, subcategoryResult, relatedCoursesResult] = await Promise.allSettled([
-    courseData.category_id ? getCategory(courseData.category_id) : Promise.resolve(null),
+  // Fetch category, subcategory, mini-category and related courses concurrently
+  const [categoryResult, subcategoryResult, miniCategoryResult, relatedCoursesResult] = await Promise.allSettled([
+    courseData.category_id ? loadCategory(courseData.category_id) : Promise.resolve(null),
     courseData.subcategory_id ? getSubcategory(courseData.subcategory_id) : Promise.resolve(null),
+    courseData.mini_category_id ? getMiniCategory(courseData.mini_category_id) : Promise.resolve(null),
     courseData.category_id
       ? getCourses({ category_id: courseData.category_id, is_published: true })
       : Promise.resolve([]),
@@ -156,24 +185,29 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
         }
       : undefined;
 
+  const miniCategory: CatalogueMiniCategory | undefined =
+    miniCategoryResult.status === 'fulfilled' && miniCategoryResult.value
+      ? {
+          id: miniCategoryResult.value.id,
+          subcategory_id: miniCategoryResult.value.subcategory_id,
+          slug: miniCategoryResult.value.slug,
+          name: miniCategoryResult.value.name,
+          description: miniCategoryResult.value.description,
+          display_order: miniCategoryResult.value.display_order,
+        }
+      : undefined;
+
   const relatedCourses: CatalogueCourse[] =
     relatedCoursesResult.status === 'fulfilled' && Array.isArray(relatedCoursesResult.value)
-      ? relatedCoursesResult.value
-          .filter((item) => item.id !== courseData.id)
-          .slice(0, 3)
-          .map(mapCourseToCatalogueCourse)
+      ? pickRelatedCourses(courseData, relatedCoursesResult.value).map(mapCourseToCatalogueCourse)
       : [];
-
-  const catalogueCourse: CatalogueCourse = {
-    ...mapCourseToCatalogueCourse(courseData),
-    description: courseData.description?.trim() || courseData.short_description?.trim() || '',
-  };
 
   return (
     <CourseDetailContent
-      course={catalogueCourse}
+      course={mapCourseToCourseDetail(courseData)}
       category={category}
       subcategory={subcategory}
+      miniCategory={miniCategory}
       relatedCourses={relatedCourses}
     />
   );

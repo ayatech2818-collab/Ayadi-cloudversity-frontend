@@ -86,17 +86,21 @@ export function CourseCard({
 
           <div className="mt-1.5 sm:mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3">
             <dl className="flex flex-wrap items-center gap-x-2 min-[360px]:gap-x-2.5 gap-y-0.5 sm:gap-x-4 sm:gap-y-1.5 text-[9px] min-[360px]:text-[10px] sm:text-xs text-muted">
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <dt className="sr-only">Level</dt>
-                <SignalHigh aria-hidden="true" size={12} className="text-primary size-2.5 min-[360px]:size-3 sm:size-3.5 shrink-0" />
-                <dd className="truncate">{course.level}</dd>
-              </div>
+              {course.level ? (
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <dt className="sr-only">Level</dt>
+                  <SignalHigh aria-hidden="true" size={12} className="text-primary size-2.5 min-[360px]:size-3 sm:size-3.5 shrink-0" />
+                  <dd className="truncate">{course.level}</dd>
+                </div>
+              ) : null}
 
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <dt className="sr-only">Duration</dt>
-                <Clock3 aria-hidden="true" size={12} className="text-primary size-2.5 min-[360px]:size-3 sm:size-3.5 shrink-0" />
-                <dd className="truncate">{course.duration}</dd>
-              </div>
+              {course.duration ? (
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <dt className="sr-only">Duration</dt>
+                  <Clock3 aria-hidden="true" size={12} className="text-primary size-2.5 min-[360px]:size-3 sm:size-3.5 shrink-0" />
+                  <dd className="truncate">{course.duration}</dd>
+                </div>
+              ) : null}
             </dl>
 
             <div className="flex items-center gap-1 min-[360px]:gap-1.5 sm:gap-2 w-full sm:w-auto">

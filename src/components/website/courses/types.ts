@@ -11,8 +11,8 @@ export interface DummyCourseItem {
   id: string;
   title: string;
   category: string;
-  level: string;
-  duration: string;
+  level?: string;
+  duration?: string;
   description: string;
   image: string;
   badge?: string;
@@ -61,9 +61,32 @@ export function mapCourseToCatalogueCourse(course: Course): CatalogueCourse {
     categoryId: course.category_id ?? '',
     subcategoryId: course.subcategory_id ?? undefined,
     miniCategoryId: course.mini_category_id ?? undefined,
-    level: course.level?.trim() || 'All Levels',
-    duration: course.duration?.trim() || 'Flexible',
+    level: course.level?.trim() || undefined,
+    duration: course.duration?.trim() || undefined,
     description: course.short_description?.trim() || course.description?.trim() || '',
     image: course.thumbnail_url?.trim() || DEFAULT_COURSE_PLACEHOLDER,
+  };
+}
+
+/** A course as its own page shows it: the catalogue's fields, plus what a card
+    has no room for. */
+export type CourseDetail = CatalogueCourse & {
+  courseCode: string;
+  /** The main text: `description`, or `short_description` without one. */
+  about?: string;
+  /** The hero's line. Left out when it would only repeat `about`. */
+  summary?: string;
+};
+
+/** Converts a backend API Course object into the shape its detail page expects. */
+export function mapCourseToCourseDetail(course: Course): CourseDetail {
+  const short = course.short_description?.trim() || undefined;
+  const about = course.description?.trim() || short;
+
+  return {
+    ...mapCourseToCatalogueCourse(course),
+    courseCode: course.course_code.trim(),
+    about,
+    summary: short === about ? undefined : short,
   };
 }

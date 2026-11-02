@@ -331,13 +331,15 @@ function PathwayPanel({ pathway, index, isActive, onActivate }: PathwayPanelProp
           }}
         />
 
-        {/* Artwork — fills the width an open panel gains on a wide screen.
-            Its width is whatever the panel has left beside the copy (30rem),
-            so it never runs under the text, and it follows the panel as it
-            grows. Rises in once the panel is open, then floats. */}
+        {/* Artwork — on a wide screen it fills the width an open panel gains:
+            whatever is left beside the copy (30rem), so it never runs under the
+            text, and it follows the panel as it grows. Stacked, there is no
+            such width, so it takes the top-right corner, beside the icon and
+            above the "Explore" row. Rises in once the panel is open, then
+            floats. */}
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute bottom-3 right-3 -z-10 hidden aspect-[3/2] w-[clamp(0px,calc(100%-30rem),560px)] transition-[opacity,translate,scale] duration-700 ease-out lg:block ${
+          className={`pointer-events-none absolute right-3 top-3 -z-10 block aspect-[3/2] w-[min(46%,300px)] transition-[opacity,translate,scale] duration-700 ease-out lg:bottom-3 lg:top-auto lg:w-[clamp(0px,calc(100%-30rem),560px)] ${
             isActive ? 'translate-y-0 scale-100 opacity-100 delay-200' : 'translate-y-6 scale-95 opacity-0'
           }`}
         >
@@ -349,7 +351,7 @@ function PathwayPanel({ pathway, index, isActive, onActivate }: PathwayPanelProp
               src={pathway.image}
               alt=""
               fill
-              sizes="560px"
+              sizes="(min-width: 1024px) 560px, 300px"
               className="object-contain"
             />
           </span>

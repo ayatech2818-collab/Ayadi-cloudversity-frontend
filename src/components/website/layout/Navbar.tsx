@@ -261,6 +261,12 @@ export function Navbar() {
     ? 'max-w-0 opacity-0 group-hover:max-w-[180px] group-hover:opacity-100'
     : 'max-w-[180px] opacity-100';
 
+  /* A course page opens on a dark header, which turns the usual thin glass grey
+     and leaves the links unreadable, so the bars are thicker there. */
+  const glass = /^\/courses\/[^/]+$/.test(pathname)
+    ? 'bg-white/95'
+    : 'bg-white/75 supports-[backdrop-filter]:bg-white/65';
+
   return (
     <>
       {/* TOP NAVBAR */}
@@ -277,8 +283,8 @@ export function Navbar() {
           aria-label="Primary navigation"
           className={`
             group relative mx-auto overflow-hidden rounded-2xl
-            bg-white/75 ring-1 ring-inset ring-white/70
-            backdrop-blur-xl supports-[backdrop-filter]:bg-white/65
+            ${glass} ring-1 ring-inset ring-white/70
+            backdrop-blur-xl
             transition-[max-width,border-radius,box-shadow,background-color]
             duration-500 will-change-transform ${EASE}
             ${
@@ -507,13 +513,13 @@ export function Navbar() {
 </AnimatePresence>
   {/* Mobile navigation — no More popup or Framer Motion */}
   <div
-   className="
+   className={`
     relative mx-auto w-full max-w-[440px] overflow-hidden
     rounded-full border border-white/70
-    bg-white/75 p-1.5
-    backdrop-blur-xl supports-[backdrop-filter]:bg-white/65
+    ${glass} p-1.5
+    backdrop-blur-xl
     shadow-[0_10px_40px_rgba(4,76,59,0.16)]
-  "
+  `}
   >
     {/* Reflective top edge */}
     <div
@@ -535,8 +541,11 @@ export function Navbar() {
         { href: "/", label: "Home", Icon: House },
         { href: "/about", label: "About", Icon: AboutIcon },
         { href: "/courses", label: "Courses", Icon: CoursesIcon },
+        /* In the bar once there is room for them; in More until then */
+        { href: "/blog", label: "Blog", Icon: BlogIcon, wideOnly: true },
+        { href: "/media", label: "Media", Icon: Images, wideOnly: true },
         { href: "/contact", label: "Contact", Icon: Phone },
-      ].map(({ href, label, Icon }) => {
+      ].map(({ href, label, Icon, wideOnly }) => {
         const isCourses = href === "/courses";
         const active =
           href === "/"
@@ -546,7 +555,7 @@ export function Navbar() {
               (isCourses && isCoursesSheetOpen);
 
         const tabClass = `
-              relative flex min-w-[66px] shrink-0 snap-start
+              relative ${wideOnly ? "hidden min-[480px]:flex" : "flex"} min-w-[66px] flex-1 shrink-0 snap-start
               flex-col items-center justify-center gap-1
               rounded-full px-2 py-2.5
               ${
@@ -620,7 +629,7 @@ export function Navbar() {
             setIsMoreOpen((open) => !open);
           }}
           className={`
-            relative flex min-w-[66px] shrink-0 snap-start
+            relative flex min-w-[66px] flex-1 shrink-0 snap-start min-[480px]:hidden
             flex-col items-center justify-center gap-1
             rounded-full px-2 py-2.5
             ${

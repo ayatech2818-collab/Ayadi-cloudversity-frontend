@@ -74,10 +74,10 @@ const buildCourseFormData = (
         formData.append("category_id", data.category_id);
     }
 
-    if (data.subcategory_id) {
+    if (data.subcategory_id !== undefined) {
         formData.append(
             "subcategory_id",
-            data.subcategory_id
+            data.subcategory_id || ""
         );
     }
 

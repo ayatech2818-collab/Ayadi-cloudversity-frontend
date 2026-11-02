@@ -48,7 +48,15 @@ export function useCoursesMenu(enabled: boolean) {
     () => (data && category ? data.subcategories.filter((item) => item.category_id === category.id) : []),
     [data, category],
   );
-  const subcategory = subcategories.find((item) => item.id === subcategoryId) ?? subcategories[0] ?? null;
+  /* A course may have no sub category. Starting on the first one would hide it,
+     so a category holding any starts with no sub category picked: all its courses. */
+  const hasDirectCourses = (data?.courses ?? []).some(
+    (course) => course.categoryId === category?.id && !course.subcategoryId,
+  );
+  const subcategory =
+    subcategories.find((item) => item.id === subcategoryId) ??
+    (hasDirectCourses ? null : subcategories[0]) ??
+    null;
 
   const miniCategories = useMemo(
     () =>

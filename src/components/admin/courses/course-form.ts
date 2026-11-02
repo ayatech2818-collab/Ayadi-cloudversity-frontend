@@ -58,8 +58,8 @@ export interface CoursePlacement {
 
 /**
  * The server's rule: a brand with an active main category files every course
- * under a main category and a sub category. A brand without one takes its
- * courses directly.
+ * under a main category, and optionally a sub category. A brand without one
+ * takes its courses directly.
  */
 export const brandUsesCategories = (
   categories: CourseCategory[],
@@ -125,13 +125,7 @@ export const validateCourseForm = (
     } else if (!category.is_active) {
       errors.categoryId =
         "This main category is inactive. Pick an active one.";
-    } else if (!subcategory) {
-      errors.subcategoryId = subcategories.some(
-        (item) => item.category_id === category.id && item.is_active
-      )
-        ? "Select a sub category."
-        : "This main category has no active sub category. Add one first.";
-    } else if (!subcategory.is_active) {
+    } else if (subcategory && !subcategory.is_active) {
       errors.subcategoryId =
         "This sub category is inactive. Pick an active one.";
     }

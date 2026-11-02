@@ -167,7 +167,6 @@ export default function CoursePlacementFields({
             <Field
               label="Sub category"
               htmlFor="course-subcategory"
-              required
               error={errors.subcategoryId}
             >
               <Select
@@ -183,7 +182,7 @@ export default function CoursePlacementFields({
                   {!values.categoryId
                     ? "Pick a main category first"
                     : categorySubcategories.length > 0
-                      ? "Select sub category"
+                      ? "No sub category (optional)"
                       : "No sub categories"}
                 </option>
 

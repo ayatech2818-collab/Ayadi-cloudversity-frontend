@@ -9,7 +9,7 @@ import {
   ENQUIRY_TYPE_LABELS,
 } from "./enquiry-utils";
 
-const STATUS_STYLES: Record<
+export const ENQUIRY_STATUS_STYLES: Record<
   EnquiryStatus,
   { pill: string; dot: string }
 > = {
@@ -37,7 +37,7 @@ export function EnquiryStatusBadge({
 }: {
   status: EnquiryStatus;
 }) {
-  const { pill, dot } = STATUS_STYLES[status];
+  const { pill, dot } = ENQUIRY_STATUS_STYLES[status];
 
   return (
     <span

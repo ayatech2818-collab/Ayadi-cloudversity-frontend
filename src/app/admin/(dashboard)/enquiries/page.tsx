@@ -8,6 +8,7 @@ import {
   EnquiryDeleteDialog,
   EnquiryDetailModal,
   EnquiryEmptyState,
+  EnquiryExportModal,
   EnquiryFilters,
   EnquiryHeader,
 } from "@/components/admin/enquiries";
@@ -24,14 +25,19 @@ import { Toaster, useToasts } from "@/components/admin/ui/Toast";
 
 import {
   deleteEnquiry,
+  exportEnquiries,
   getEnquiries,
   updateEnquiry,
   type Enquiry,
   type EnquiryStatus,
 } from "@/lib/api/enquiry";
 import { getApiErrorMessage } from "@/lib/api/errors";
+import { downloadBlob } from "@/lib/download";
 
 const SEARCH_DEBOUNCE_MS = 400;
+
+/** Status updates sent at once when marking exported leads. */
+const MARK_BATCH_SIZE = 5;
 
 export default function EnquiryPage() {
   const { toasts, toastSuccess, toastError, dismissToast } =
@@ -78,6 +84,8 @@ export default function EnquiryPage() {
     null
   );
   const [deleting, setDeleting] = useState(false);
+
+  const [exportOpen, setExportOpen] = useState(false);
 
   // =========================================================
   // FETCH
@@ -264,6 +272,80 @@ export default function EnquiryPage() {
   };
 
   // =========================================================
+  // EXPORT
+  // =========================================================
+
+  /**
+   * Errors are left to throw so the dialog can show them; it also keeps a
+   * second request from starting while one is in flight.
+   *
+   * Resolves to the New leads in the file, which the dialog then lists so
+   * the admin can pick which to mark as Contacted. Empty for any other export.
+   */
+  const handleExport = async (status?: EnquiryStatus) => {
+    // Noted before the file is built. A lead that arrives in between is in
+    // the file but not here, so it stays New and comes again next time —
+    // seen twice at worst, never lost.
+    const newLeads =
+      status === "new" ? await getEnquiries({ status: "new" }) : [];
+
+    const { blob, filename } = await exportEnquiries(status);
+
+    downloadBlob(blob, filename);
+
+    if (newLeads.length === 0) {
+      toastSuccess("Export ready", `${filename} has been downloaded.`);
+      setExportOpen(false);
+    }
+
+    return newLeads;
+  };
+
+  /**
+   * Resolves to the ids that could not be updated, so the dialog can offer
+   * to try those again. Throws only if the New list itself cannot be read.
+   */
+  const handleMarkContacted = async (ids: string[]) => {
+    // Only leads still New are touched — one moved on since is left alone.
+    const stillNew = new Set(
+      (await getEnquiries({ status: "new" })).map(({ id }) => id)
+    );
+    const targets = ids.filter((id) => stillNew.has(id));
+
+    const failed: string[] = [];
+
+    for (let start = 0; start < targets.length; start += MARK_BATCH_SIZE) {
+      const batch = targets.slice(start, start + MARK_BATCH_SIZE);
+
+      const results = await Promise.allSettled(
+        batch.map((id) => updateEnquiry(id, { status: "contacted" }))
+      );
+
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          console.error("Failed to mark enquiry as contacted:", result.reason);
+          failed.push(batch[index]);
+        }
+      });
+    }
+
+    refresh();
+
+    if (failed.length === 0) {
+      const marked = targets.length;
+
+      toastSuccess(
+        "Leads marked as Contacted",
+        `${marked} ${marked === 1 ? "lead" : "leads"} will not appear in the next New export.`
+      );
+
+      setExportOpen(false);
+    }
+
+    return failed;
+  };
+
+  // =========================================================
   // RENDER
   // =========================================================
 
@@ -277,6 +359,7 @@ export default function EnquiryPage() {
         counts={counts}
         refreshing={loading}
         onRefresh={refresh}
+        onExport={() => setExportOpen(true)}
       />
 
       <EnquiryFilters
@@ -340,6 +423,16 @@ export default function EnquiryPage() {
         loading={deleting}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
+      />
+
+      {/* Export */}
+      <EnquiryExportModal
+        open={exportOpen}
+        counts={counts}
+        initialStatus={statusFilter}
+        onClose={() => setExportOpen(false)}
+        onExport={handleExport}
+        onMarkContacted={handleMarkContacted}
       />
 
       <Toaster toasts={toasts} onDismiss={dismissToast} />

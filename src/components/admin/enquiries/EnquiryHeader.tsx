@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  FileSpreadsheet,
   GraduationCap,
   Inbox,
   MailPlus,
@@ -19,12 +20,14 @@ interface EnquiryHeaderProps {
   /** True while the list is being fetched. */
   refreshing: boolean;
   onRefresh: () => void;
+  onExport: () => void;
 }
 
 export default function EnquiryHeader({
   counts,
   refreshing,
   onRefresh,
+  onExport,
 }: EnquiryHeaderProps) {
   return (
     <PageHeader
@@ -67,6 +70,15 @@ export default function EnquiryHeader({
           className={refreshing ? "animate-spin" : ""}
         />
         Refresh
+      </button>
+
+      <button
+        type="button"
+        onClick={onExport}
+        className={buttonClass("glass")}
+      >
+        <FileSpreadsheet size={16} />
+        Export Excel
       </button>
     </PageHeader>
   );
